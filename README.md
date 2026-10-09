@@ -118,6 +118,8 @@ All environment variables are listed in [`.env.example`](.env.example).
 
 If AIDOL is useful to you, you can [buy me a coffee on Ko-fi](https://ko-fi.com/tennosuke5245). It helps me keep working on it.
 
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/tennosuke5245)
+
 ## Contributing
 
 Issues and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) first. To report a security problem, see [SECURITY.md](SECURITY.md).

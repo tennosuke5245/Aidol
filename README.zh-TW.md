@@ -116,6 +116,8 @@ bun run check:oss    # 發佈前檢查有沒有不該公開的東西
 
 如果 AIDOL 對你有幫助，可以在 [Ko-fi 請我喝杯咖啡](https://ko-fi.com/tennosuke5245)，讓我有動力繼續做下去。
 
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/tennosuke5245)
+
 ## 參與貢獻
 
 歡迎開 issue 或送 pull request，開始前請先看 [CONTRIBUTING.md](CONTRIBUTING.md)。發現安全性問題請照 [SECURITY.md](SECURITY.md) 私下回報。

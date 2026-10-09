@@ -118,6 +118,8 @@ bun run check:oss    # 公開してはいけないものが含まれていない
 
 AIDOL が役に立ったら、[Ko-fi でコーヒーを一杯](https://ko-fi.com/tennosuke5245)おごってもらえるとうれしいです。開発を続ける励みになります。
 
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/tennosuke5245)
+
 ## コントリビュート
 
 Issue や Pull Request は歓迎です。はじめに [CONTRIBUTING.md](CONTRIBUTING.md)（繁体字中国語）を読んでください。セキュリティの問題は [SECURITY.md](SECURITY.md) の手順で非公開で報告してください。
