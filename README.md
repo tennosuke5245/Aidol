@@ -14,6 +14,7 @@ Build a character, let Codex draw it, and keep every outfit piece on one canvas.
   <img src="https://img.shields.io/badge/Bun-runtime-ECEEF7?logo=bun&logoColor=white&labelColor=161A30" alt="Bun">
   <img src="https://img.shields.io/badge/React-19-ECEEF7?logo=react&logoColor=white&labelColor=161A30" alt="React 19">
   <img src="https://img.shields.io/badge/Tauri-2-ECEEF7?logo=tauri&logoColor=white&labelColor=161A30" alt="Tauri 2">
+  <a href="https://ko-fi.com/tennosuke5245"><img src="https://img.shields.io/badge/Ko--fi-support-E5C27A?logo=ko-fi&logoColor=white&labelColor=161A30" alt="Support on Ko-fi"></a>
 </p>
 
 <p><b>English</b> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a></p>
@@ -112,6 +113,10 @@ bun run check:oss    # checks that nothing private is about to be published
 | `.agents/skills/aidol/` | The skill Codex uses for AIDOL jobs |
 
 All environment variables are listed in [`.env.example`](.env.example).
+
+## Support
+
+If AIDOL is useful to you, you can [buy me a coffee on Ko-fi](https://ko-fi.com/tennosuke5245). It helps me keep working on it.
 
 ## Contributing
 

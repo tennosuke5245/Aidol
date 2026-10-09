@@ -14,6 +14,7 @@
   <img src="https://img.shields.io/badge/Bun-runtime-ECEEF7?logo=bun&logoColor=white&labelColor=161A30" alt="Bun">
   <img src="https://img.shields.io/badge/React-19-ECEEF7?logo=react&logoColor=white&labelColor=161A30" alt="React 19">
   <img src="https://img.shields.io/badge/Tauri-2-ECEEF7?logo=tauri&logoColor=white&labelColor=161A30" alt="Tauri 2">
+  <a href="https://ko-fi.com/tennosuke5245"><img src="https://img.shields.io/badge/Ko--fi-support-E5C27A?logo=ko-fi&logoColor=white&labelColor=161A30" alt="Support on Ko-fi"></a>
 </p>
 
 <p><a href="README.md">English</a> · <b>繁體中文</b> · <a href="README.ja.md">日本語</a></p>
@@ -110,6 +111,10 @@ bun run check:oss    # 發佈前檢查有沒有不該公開的東西
 | `.agents/skills/aidol/` | Codex 處理 AIDOL 工作時用的 skill |
 
 所有環境變數都列在 [`.env.example`](.env.example)。
+
+## 支持這個專案
+
+如果 AIDOL 對你有幫助，可以在 [Ko-fi 請我喝杯咖啡](https://ko-fi.com/tennosuke5245)，讓我有動力繼續做下去。
 
 ## 參與貢獻
 
