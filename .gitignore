@@ -16,6 +16,9 @@
 !/bun.lock
 !/vite.config.mjs
 !/README.md
+!/README.zh-TW.md
+!/README.ja.md
+!/assets/
 !/LICENSE
 !/CONTRIBUTING.md
 !/SECURITY.md

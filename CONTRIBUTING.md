@@ -1,6 +1,6 @@
 # 參與 AIDOL
 
-謝謝你願意幫忙。開發環境與指令見 [README](README.md#開發)。
+謝謝你願意幫忙。開發環境與指令見 [README](README.zh-TW.md#開發)。
 
 ## 送出 pull request 前
 
