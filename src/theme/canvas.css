@@ -1,0 +1,174 @@
+/* 角色畫布：深色桌面上的人物節點、裝備節點、引出線與便利貼 */
+.graph-canvas { position: absolute; inset: 0; background: var(--night-2); }
+.graph-canvas.is-panning .react-flow__pane { cursor: grab; }
+.graph-canvas .react-flow { background: transparent; --xy-background-color: transparent; --xy-edge-stroke: rgba(205, 212, 245, .42); }
+.graph-canvas .react-flow__node { font-family: var(--font-ui); color: var(--text); }
+.graph-canvas .react-flow__node.selectable:focus-visible { outline: none; }
+.graph-canvas .react-flow__handle { width: 6px; height: 6px; min-width: 0; min-height: 0; border: 0; background: transparent; opacity: 0; pointer-events: none; }
+
+/* 人物節點 */
+.char-node { position: relative; width: 100%; height: 100%; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--line-2); box-shadow: 0 24px 60px rgba(0, 0, 0, .45); overflow: hidden; }
+.char-art { position: relative; display: flex; align-items: center; justify-content: center; margin: 14px 14px 0; padding: 0; border: 0; border-radius: 10px; background: #1A1E33; overflow: hidden; cursor: pointer; }
+.char-art > img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.char-art:hover { box-shadow: inset 0 0 0 1px var(--line-3); }
+.char-placeholder { position: absolute; inset: 22px 0 76px; width: 100% !important; height: calc(100% - 98px) !important; object-fit: contain; opacity: .85; }
+.char-empty { position: absolute; left: 0; right: 0; bottom: 16px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0 20px; text-align: center; }
+.char-empty b { font-family: var(--font-display); font-size: 17px; color: var(--text); }
+.char-empty small { font-size: 12.5px; color: var(--text-3); }
+/* 選到裝備時在立繪上框出它的位置（平常立繪上不放任何記號） */
+.char-region { position: absolute; border-radius: 6px; border: 1.5px solid var(--gold); background: rgba(229, 194, 122, .1); box-shadow: 0 0 0 9999px rgba(13, 15, 28, .38); pointer-events: none; animation: fade-in 160ms var(--ease); }
+.char-zoom { position: absolute; top: 22px; right: 22px; background: rgba(13, 15, 28, .78); }
+.char-foot { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 14px 18px 16px; }
+.char-id { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+/* 名字優先完整顯示，個性標籤用剩下的寬度，放不下就省略；不會把節點撐寬。 */
+.char-id h2 { flex: 0 1 auto; min-width: 0; font-size: 26px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.char-id p { flex: 1 1 0; min-width: 0; font-size: 13px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.char-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.char-states { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.char-actions { display: flex; gap: 6px; flex: none; }
+
+/* 狀態字（節點用，圖示＋文字） */
+.node-status { display: inline-flex; align-items: center; gap: 5px; min-height: 24px; padding: 0 9px; border: 0; border-radius: 999px; font-size: 12px; font-weight: 500; white-space: nowrap; background: rgba(200, 208, 255, .07); color: var(--text-2); }
+.node-status.tone-amber { background: var(--gold-soft); color: var(--gold-2); }
+.node-status.tone-blue { background: var(--aether-soft); color: var(--aether); }
+.node-status.tone-success { background: var(--jade-soft); color: var(--jade); }
+.node-status.tone-error { background: var(--rose-soft); color: var(--rose); }
+button.node-status { cursor: pointer; }
+
+/* 裝備節點 */
+.part-node { position: relative; width: 100%; height: 100%; display: grid; grid-template-rows: 176px minmax(0, 1fr); border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line-2); overflow: hidden; transition: border-color var(--dur); }
+.part-node:hover { border-color: var(--line-3); }
+.part-node.is-selected { border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); }
+.part-node.is-proposed { border-style: dashed; }
+.part-node.is-selected.is-proposed { border-style: solid; }
+.part-node.is-off .part-art { opacity: .5; }
+.part-node.is-new { animation: node-in 520ms var(--ease) both; }
+@keyframes node-in { from { opacity: 0; transform: scale(.94); } }
+.part-art { position: relative; display: grid; place-items: center; overflow: hidden; background: #20253D; }
+.part-art > img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.part-art .crop-thumb { width: 100%; }
+.part-icon { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: rgba(200, 208, 255, .06); color: var(--text-3); }
+.part-flag { position: absolute; left: 8px; top: 8px; padding: 1px 7px; border-radius: 999px; background: rgba(13, 15, 28, .8); font-size: 11px; color: var(--text-2); }
+.part-flag:empty { display: none; }
+.part-caption { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; padding: 9px 12px 10px; }
+.part-caption b { max-width: 100%; font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.part-sub { max-width: 100%; font-size: 12px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crop-thumb { position: relative; display: block; overflow: hidden; }
+
+/* 遠看時字大一點、只留需要處理的狀態 */
+.graph-canvas.is-far .part-caption b { font-size: 20px; }
+.graph-canvas.is-far .part-sub, .graph-canvas.is-far .char-actions { display: none; }
+.graph-canvas.is-far .node-status.tone-neutral, .graph-canvas.is-far .node-status.tone-success { display: none; }
+.graph-canvas.is-far .node-status { font-size: 18px; min-height: 30px; padding: 0 12px; }
+
+/* 引出線 */
+/* 關聯線：每件裝備同一種線，從人物節點邊框上的接點出發 */
+.link-edge .react-flow__edge-path { stroke: rgba(225, 230, 250, .5); stroke-width: 1.2; fill: none; vector-effect: non-scaling-stroke; transition: stroke var(--dur), stroke-opacity var(--dur); }
+.link-edge.is-hovered .react-flow__edge-path { stroke: rgba(240, 242, 255, .85); }
+.link-edge.is-muted .react-flow__edge-path { stroke-opacity: .3; }
+.link-edge.is-muted .link-port { opacity: .45; }
+.link-edge.is-focused .react-flow__edge-path { stroke: var(--gold); stroke-width: 1.6; }
+.link-edge.is-dashed .react-flow__edge-path { stroke-dasharray: 5 5; }
+.link-edge.is-new .react-flow__edge-path { stroke-dasharray: 900; stroke-dashoffset: 900; animation: edge-draw 900ms var(--ease) 120ms forwards; }
+.link-port { fill: var(--surface-2); stroke: rgba(225, 230, 250, .7); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.link-edge.is-focused .link-port { fill: var(--gold); stroke: var(--gold); }
+@keyframes edge-draw { to { stroke-dashoffset: 0; } }
+.canvas-relationship-label { position: absolute; padding: 1px 8px; border-radius: 999px; background: var(--surface-3); border: 1px solid var(--line-2); font-size: 11.5px; color: var(--text-2); pointer-events: none; white-space: nowrap; }
+.canvas-relationship-label.is-focused { border-color: rgba(229, 194, 122, .6); color: var(--gold-2); }
+
+/* 畫布註記：便利貼（文楷手寫）、說明、參考卡 */
+.canvas-annotation { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.annotation-note { padding: 14px 16px 16px; background: var(--note); color: var(--note-ink); border-radius: 3px; box-shadow: 0 8px 18px rgba(0, 0, 0, .3); transform: rotate(-1.2deg); }
+.annotation-note.tone-blue { background: var(--note-blue); }
+.annotation-note.tone-rose { background: var(--note-rose); }
+.annotation-note.tone-neutral { background: var(--note-neutral); }
+.annotation-text { padding: 6px 4px; color: var(--text); }
+.annotation-text.tone-gold { color: var(--gold-2); }
+.annotation-text.tone-blue { color: var(--aether); }
+.annotation-text.tone-rose { color: var(--rose); }
+.annotation-reference { padding: 0; background: none; }
+.canvas-annotation.is-selected { outline: 2px solid var(--gold); outline-offset: 4px; }
+.annotation-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 24px; font-size: 11px; letter-spacing: .08em; opacity: .75; }
+.annotation-card-controls { display: flex; gap: 2px; opacity: 0; transition: opacity var(--dur); }
+.canvas-annotation:hover .annotation-card-controls, .canvas-annotation.is-selected .annotation-card-controls, .canvas-annotation:focus-within .annotation-card-controls { opacity: 1; }
+.annotation-card-controls button { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 5px; background: rgba(255, 255, 255, .14); color: inherit; }
+.annotation-note .annotation-card-controls button { background: rgba(255, 255, 255, .5); }
+.annotation-content { min-height: 28px; font-family: var(--font-hand); font-size: 17px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; outline: none; }
+.annotation-text .annotation-content { font-size: 21px; line-height: 1.5; }
+.annotation-placeholder { opacity: .55; }
+.annotation-preview { position: relative; display: block; width: 100%; padding: 0; border: 1px solid var(--line-2); border-radius: 8px; background: #20253D; overflow: hidden; }
+.annotation-preview img { width: 100%; height: auto; max-height: 320px; object-fit: contain; }
+.annotation-preview-icon { position: absolute; right: 6px; top: 6px; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; background: rgba(13, 15, 28, .78); color: var(--text-2); }
+.annotation-image-missing { padding: 24px; border: 1px dashed var(--line-3); border-radius: 8px; font-size: 12px; color: var(--text-3); text-align: center; }
+.annotation-reference-caption h3 { font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--text); }
+.annotation-reference-caption p { font-size: 12.5px; line-height: 1.6; color: var(--text-2); white-space: pre-wrap; }
+.annotation-editor { display: flex; flex-direction: column; gap: 8px; }
+.annotation-editor textarea, .annotation-editor input { width: 100%; padding: 6px 8px; border: 1px solid rgba(0, 0, 0, .2); border-radius: 5px; background: rgba(255, 255, 255, .72); font-family: var(--font-hand); font-size: 16px; line-height: 1.55; color: var(--note-ink); resize: vertical; }
+.annotation-text .annotation-editor textarea, .annotation-reference .annotation-editor textarea, .annotation-reference .annotation-editor input { background: var(--well); color: var(--text); border-color: var(--line-2); font-family: var(--font-ui); font-size: 14px; }
+.annotation-editor label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+.annotation-tone-picker { display: flex; gap: 6px; }
+.tone-swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; padding: 0; }
+.tone-swatch[aria-pressed="true"] { border-color: var(--gold); }
+.tone-swatch-gold { background: #EBDDA6; }
+.tone-swatch-blue { background: #CFDAE6; }
+.tone-swatch-rose { background: #E6CFCA; }
+.tone-swatch-neutral { background: #DDD8CD; }
+.annotation-editor-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.annotation-editor-actions button { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0 10px; border: 1px solid rgba(0, 0, 0, .2); border-radius: 5px; background: rgba(255, 255, 255, .6); font-size: 12px; color: inherit; }
+.annotation-text .annotation-editor-actions button, .annotation-reference .annotation-editor-actions button { background: var(--surface-3); border-color: var(--line-2); color: var(--text); }
+.annotation-editor-actions .annotation-save { background: var(--gold) !important; color: var(--on-gold) !important; border-color: var(--gold) !important; }
+.annotation-local-status, .annotation-local-error { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; }
+.annotation-local-error { padding: 6px 8px; border-radius: 6px; background: var(--rose-soft); color: var(--rose); }
+.annotation-local-error button { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; color: inherit; text-decoration: underline; font-size: 12px; }
+.annotation-spinner { animation: spin 900ms linear infinite; }
+.canvas-formal-reference { display: flex; flex-direction: column; gap: 6px; }
+.canvas-formal-reference.is-selected .annotation-preview { outline: 2px solid var(--gold); outline-offset: 3px; }
+.formal-reference-caption span { font-size: 11px; color: var(--gold); }
+.formal-reference-caption h3 { font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--text); }
+.formal-reference-caption p { font-size: 12px; color: var(--text-3); }
+
+/* 底部工具列 */
+.canvas-footer { position: absolute; left: 16px; right: 16px; bottom: 16px; z-index: 5; display: flex; align-items: flex-end; justify-content: center; gap: 12px; pointer-events: none; }
+.canvas-footer > * { pointer-events: auto; }
+.canvas-toolbar { display: flex; align-items: center; gap: 2px; padding: 5px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-2); max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.canvas-toolbar > button { flex: none; min-width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--text-2); font-size: 13px; }
+.canvas-toolbar > button.tool-wide { padding: 0 10px; }
+.canvas-toolbar > button:not(:disabled):hover { background: var(--surface-3); color: var(--text); }
+.canvas-toolbar > button[aria-pressed="true"] { background: var(--surface-3); color: var(--gold-2); }
+.canvas-toolbar > button:disabled { opacity: .35; }
+.tool-divider { width: 1px; height: 20px; margin: 0 5px; background: var(--line-2); flex: none; }
+.tool-zoom { min-width: 44px; text-align: center; font-size: 12px; color: var(--text-2); }
+.canvas-create-feedback { position: absolute; left: 50%; bottom: 76px; z-index: 6; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 9px; background: var(--surface-3); border: 1px solid var(--line-2); box-shadow: var(--shadow-2); font-size: 13px; }
+.canvas-create-feedback.has-error { color: var(--rose); }
+.canvas-create-feedback button { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; color: inherit; text-decoration: underline; font-size: 12px; }
+
+/* 畫布右側：選取的裝備 */
+.canvas-view { position: absolute; inset: 0; }
+.canvas-view .rack { top: auto; bottom: 76px; right: 16px; }
+.inspector { position: absolute; top: 12px; right: 12px; bottom: 12px; z-index: 8; display: flex; flex-direction: column; width: 360px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line-2); box-shadow: var(--shadow-2); animation: inspector-in 180ms var(--ease); }
+@keyframes inspector-in { from { opacity: 0; transform: translateX(16px); } }
+.inspector-head { display: flex; align-items: center; gap: 8px; padding: 10px 10px 10px 16px; border-bottom: 1px solid var(--line); }
+.inspector-head span { margin-right: auto; font-size: 12.5px; color: var(--text-3); }
+.inspector-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 14px 16px 20px; }
+.inspector-body > * { flex-shrink: 0; }
+.inspector-art { position: relative; border-radius: 10px; overflow: hidden; background: #20253D; aspect-ratio: 4 / 3; display: grid; place-items: center; }
+.inspector-art > img { width: 100%; height: 100%; object-fit: contain; }
+.inspector-art .crop-thumb { width: 100%; }
+.inspector-note { font-size: 12.5px; line-height: 1.6; color: var(--text-3); }
+.inspector-views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.inspector-views figure { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.inspector-views button { padding: 0; border: 1px solid var(--line-2); border-radius: 8px; overflow: hidden; background: #20253D; aspect-ratio: 1; cursor: zoom-in; }
+.inspector-views img { width: 100%; height: 100%; object-fit: cover; }
+.inspector-views figcaption { font-size: 11.5px; color: var(--text-3); text-align: center; }
+.inspector-views .is-missing { display: grid; place-items: center; aspect-ratio: 1; border: 1px dashed var(--line-2); border-radius: 8px; font-size: 11.5px; color: var(--text-3); }
+.inspector-draw { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
+.inspector-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); }
+.inspector-foot label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+
+@media (max-width: 900px) {
+  .canvas-footer { flex-direction: column; align-items: center; }
+  .inspector { left: 10px; right: 10px; top: auto; width: auto; max-height: 72%; }
+}
+@media (max-width: 760px) {
+  .canvas-toolbar .tool-step, .canvas-toolbar .tool-zoom { display: none; }
+}

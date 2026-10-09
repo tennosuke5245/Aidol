@@ -1,0 +1,54 @@
+/* AIDOL 介面 tokens（2026-10-07 修訂）
+   暮夜靛藍的工作台：沉穩、低彩度、不發光。金色只標選取與主行動；
+   圖稿與角色是畫面上最亮的東西。狀態一律搭配圖示與文字。 */
+:root {
+  color-scheme: dark;
+  --night: #0D0F1C;          /* 頁面最底層 */
+  --night-2: #111427;        /* 畫布、舞台 */
+  --surface: #161A2E;        /* 頂欄、側欄、面板 */
+  --surface-2: #1C2138;      /* 卡片、節點、選項格 */
+  --surface-3: #242A46;      /* 懸停、凸起 */
+  --well: #0F1222;           /* 輸入框、凹槽 */
+  --line: rgba(200, 208, 255, .08);
+  --line-2: rgba(200, 208, 255, .15);
+  --line-3: rgba(200, 208, 255, .26);
+  --text: #ECEEF7;
+  --text-2: #B3B8CE;
+  --text-3: #8A90A8;         /* 輔助文字，對比至少 4.5:1 */
+  --gold: #E5C27A;           /* 選取、主行動、品牌 */
+  --gold-2: #F2DAA6;
+  --gold-deep: #A9853F;
+  --gold-soft: rgba(229, 194, 122, .12);
+  --aether: #8CCFE0;         /* 等你送出、繪製中 */
+  --aether-soft: rgba(140, 207, 224, .12);
+  --jade: #86CFA3;           /* 已採用 */
+  --jade-soft: rgba(134, 207, 163, .12);
+  --rose: #EF9EA9;           /* 失敗 */
+  --rose-soft: rgba(239, 158, 169, .12);
+  --on-gold: #21190A;
+  --scrim: rgba(5, 6, 14, .66);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 8px rgba(0, 0, 0, .2);
+  --shadow-2: 0 12px 32px rgba(0, 0, 0, .42);
+
+  --font-ui: 'AIDOL Noto Sans TC', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+  --font-display: 'AIDOL Serif', 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif;
+  --font-num: 'AIDOL Inter', 'Inter', var(--font-ui);
+  --font-hand: 'AIDOL Hand', 'LXGW WenKai TC', 'Kaiti TC', 'DFKai-SB', serif;
+  --font-mono: 'AIDOL Mono', 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+
+  --r-tile: 10px;
+  --r-panel: 14px;
+  --r-control: 9px;
+  --topbar-h: 56px;
+  --rail-w: 84px;
+  --panel-w: 392px;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --dur: 150ms;
+
+  /* 畫布上的便利貼與說明（深色桌面上的紙片） */
+  --note: #EBDDA6;
+  --note-ink: #3A3220;
+  --note-blue: #CFDAE6;
+  --note-rose: #E6CFCA;
+  --note-neutral: #DDD8CD;
+}

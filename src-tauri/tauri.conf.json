@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "AIDOL",
+  "version": "0.1.3",
+  "identifier": "studio.aidol.desktop",
+  "build": {
+    "beforeBuildCommand": "bun run build && bun scripts/build-sidecar.mjs",
+    "beforeDevCommand": "bun run build && bun scripts/build-sidecar.mjs",
+    "frontendDist": "../dist/client"
+  },
+  "app": {
+    "windows": [],
+    "security": {
+      "csp": null
+    }
+  },
+  "plugins": {
+    "shell": {
+      "open": "^codex://new\\?"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "externalBin": [
+      "binaries/aidol-core"
+    ],
+    "resources": {
+      "resources/": "resources/"
+    },
+    "icon": [
+      "icons-v3/32x32.png",
+      "icons-v3/128x128.png",
+      "icons-v3/128x128@2x.png",
+      "icons-v3/icon.icns",
+      "icons-v3/icon.ico"
+    ],
+    "shortDescription": "由 Codex 協作的角色設計工作室",
+    "longDescription": "AIDOL 以 YAML 人設、繪風參考、部件關聯與獨立精修工作協助日式動漫及遊戲角色設計。",
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "displayLanguageSelector": false,
+        "languages": [
+          "TradChinese"
+        ]
+      }
+    }
+  }
+}

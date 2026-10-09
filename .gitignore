@@ -1,0 +1,70 @@
+# AIDOL 公開版本的 .gitignore
+#
+# 根目錄採白名單：預設全部不公開，只放行下面列出的項目。
+# 設計稿、驗收紀錄、開發用 AGENTS.md 與 skills、本機角色資料都不會被 git 收進來；
+# 新增根目錄檔案或資料夾時，確定可以公開再加進白名單。
+/*
+!/.gitignore
+!/.gitattributes
+!/.github/
+!/.npmrc
+!/.env.example
+!/.agents/
+!/.openai/
+!/index.html
+!/package.json
+!/bun.lock
+!/vite.config.mjs
+!/README.md
+!/LICENSE
+!/CONTRIBUTING.md
+!/SECURITY.md
+!/THIRD_PARTY_NOTICES.md
+!/public/
+!/scripts/
+!/server/
+!/shared/
+!/src/
+!/src-tauri/
+!/tests/
+!/worker/
+
+# 只公開產品自己的 AIDOL Skill（交接給 Codex 用）；開發 AIDOL 用的 skills 留在本機
+/.agents/*
+!/.agents/skills/
+/.agents/skills/*
+!/.agents/skills/aidol/
+
+# 個人的 agent 指示與工具設定（任何層級）
+AGENTS*.md
+CLAUDE*.md
+.codex/
+.claude/
+
+# 設計稿、驗收紀錄、設計來源工具與舊版品牌稿
+design-qa*
+/scripts/import-placeholders.py
+/src/assets/brand/*-v2*
+/src/assets/fonts/specimen.html
+/src/assets/fonts/comparison/
+/src/assets/fonts/source-metrics.json
+/src-tauri/icons/
+/src-tauri/icons-v2/
+/src-tauri/.icons-v3-tmp/
+
+# 建置產物
+/src-tauri/target/
+/src-tauri/binaries/
+/src-tauri/resources/
+/src-tauri/gen/
+
+# 通用
+node_modules/
+*.log
+*.oss-tmp
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+desktop.ini

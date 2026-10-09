@@ -1,0 +1,1127 @@
+{
+ "noto-serif-tc-variable/noto-serif-tc-0-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 32176,
+  "sha256": "a1d1e575c9937fa98f430902c7803a583a7d39c38d20e3d5c642626df33018c3"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-1-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 58056,
+  "sha256": "997e088e86ec435ebf2062ffa39480201dcf03741460348853a786146bc92649"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-2-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 32716,
+  "sha256": "615e048fb06fca3cf20bbfc32d04c012857d3119b1683c78a9a1758cdf9a231e"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-4-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 11612,
+  "sha256": "81a2e4b50137e0d4ea52b67bcf88a1ad017be0abca2609f7c3ee58dd59b39128"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-10-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 20776,
+  "sha256": "4d52b82ce509460d43c9a3d87848739cf5d2d8cfd5cfe333b4612419ca8e1a6a"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-11-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 18568,
+  "sha256": "85cd5c2efe82502c9c268c2e5e258b978a228e513bf6c806c866bca9fbab5840"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-12-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 13972,
+  "sha256": "5b28815f2e101448efd3bb04f97fdfc07c02cdcffcfcaa51009abac3e48ea043"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-23-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 42972,
+  "sha256": "3c187eb5a16234b70ade5463fe91fd95e9128c203f6276750d58de2b89dd3659"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-24-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 69324,
+  "sha256": "bc6e8bb250f8073dadebb5a519e2ba33ec143a25f60788b44a7deedb4018b0cb"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-25-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 59564,
+  "sha256": "8e9b32f3ab36c2bda9c036c9d5c54a4d9901f81f62343075ae3c00c3e800399b"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-26-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 60796,
+  "sha256": "eff93c1cb83da5bd608cefd727050b81a02b3436255ce8c0e774e87258420c03"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-27-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 56436,
+  "sha256": "4c0f15f42a9b329799c01ecf168428c13302c4a3994ac206297d522c37e4cba7"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-28-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 52432,
+  "sha256": "2d0a1088c2f8c03985a09de67b418b56de51267791a5783e22746e08131846b6"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-29-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 62852,
+  "sha256": "fc0829e20edf5577bdf997700d337aabc1fdd86e4014a71b5d30ddcb4f0a360f"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-30-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 32856,
+  "sha256": "fb3d73a40ebcbac7ad143890230930c6a34192be7ab43a3becb2c462d176e7b9"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-31-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 36020,
+  "sha256": "32a0405e1bbf0672e38b1dd603cecd33982e71dbbda1634e649fb84bbd65efd4"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-32-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 73240,
+  "sha256": "14a6cd3ba25be1342fcc6012875cf1d124a6074cbf1f49eff130f65559d95116"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-33-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 58664,
+  "sha256": "1ccdf7785014232bcac64d4d0fc5b40f578ab41026cdabd4f3064daeaad77bc9"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-34-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 57680,
+  "sha256": "e4aba064fd989deb6666557542f07fd6392da18d469cdff46d4380f5ba8acc3c"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-35-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 44316,
+  "sha256": "317d341ba731fb38d689de94a66c721736a90c5285a9f2ccc845346ff664c345"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-36-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 62372,
+  "sha256": "d5b36e0dc605815782eba0c71e399e011936458aa651ec655f3042905bff9d95"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-37-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 41620,
+  "sha256": "4a3e28f244de06f5c203c66f510af28976654b69d5ac32d6be7854f3143b0704"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-38-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 26904,
+  "sha256": "49ac61ba3579d603bf28e964d9b91fc56229e32cedac3eac24ea8d548005fbd0"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-39-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 58236,
+  "sha256": "ff6308b78465a0b87e0b33727803d7af50cb994c9fb5c6db2cc166e1d57e28e4"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-40-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 63000,
+  "sha256": "db28e94e2c48a5eef33380a37715c10fb30c59319e48a147a6ccfb15e33f2431"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-41-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 69116,
+  "sha256": "6e86b3e91b59d7feb3ba2040421b51951d29835f4d20ae6c62608917cda8f6b4"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-42-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 57248,
+  "sha256": "f5f4e26334cf5828fd2b104a73761ce046fb8f767f47c5e1d570211fef455e92"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-43-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 67424,
+  "sha256": "b63abab20e060b4172860e5c65bc13c84e76bd207dcba7ccb2d196e60e7bb612"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-44-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 52756,
+  "sha256": "f9a3b1fb0c5fa880738bf8dfe031e7dc61cf561b8e0062f83150732808a8af55"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-45-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 39396,
+  "sha256": "18045c18fc9bccd99431643bb0e9388dea5fa5647bbc37b0e2f9bee3a9506d79"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-46-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 59536,
+  "sha256": "524dc49a0542060ef84d176147543ada75baa1bcaf4fe0034e33a92d8b5d6806"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-47-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 51172,
+  "sha256": "9f975be121211fcce0973db478cc4fbffbcbbf36bc57cb523b81a4b91cd51fa5"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-48-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 29692,
+  "sha256": "b7469fdf41ecba9861c1d7ee06977dc2e9927723c2195d98aa02fb5f04f19dd4"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-49-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 76564,
+  "sha256": "da6a0691b87a2f2d6e015ebe544cc6a3967c3d16ac55a389eafd954d48dc2e93"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-50-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 72436,
+  "sha256": "7406642223b49805817fb60ed0f232ba8b9745d41d8f40cdc35cc49eeeac0e46"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-51-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 57400,
+  "sha256": "1070292e8e7b6b8a5d547374cbeaf4c62e4dcda1a3e889c5df327a5356ca21f3"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-52-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 57312,
+  "sha256": "592f13358919373900579774151c114be5a8f3895acbdccfd2d747fb536ea7ce"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-53-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 56560,
+  "sha256": "0f93e95dd649587e4aea194f368d494170335ee8b7819092ef40327b63ce6bac"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-54-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 50052,
+  "sha256": "a8100d41b7cbec6459a350df9f3394176521b2b6d2cf3fbf5683f08545282589"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-55-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 56436,
+  "sha256": "40bf306fe36b808dab1799ccd2b2b99ad2a5c00ce9bc57391db2d9fb0884b8d2"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-56-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 54472,
+  "sha256": "e55aa250269a095ee803ea1db876c9e38e03e32b78ea7f69d9c0ac09dcc68470"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-57-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 54244,
+  "sha256": "4a21572bfa73a1e858e393a045b3572881917585dadfd254e15740c5ea9413ea"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-58-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 53704,
+  "sha256": "2be4e6f169b4e97fab9484d06058d327b853e2c8292dee645067b1724854b772"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-59-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 63540,
+  "sha256": "82abc3753499ca1362f25f618cc7549c2fddea33f3f3946eb4d75696efe1088b"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-60-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 67404,
+  "sha256": "a57e36addc51f9e8d60da19cbe42d219be2d738d1c23aa3c7180f27c23bdddb5"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-61-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 72448,
+  "sha256": "001884732d72e34b63d4cfb8777ac6fc24a7bf54ece57ed08b6f27c15351e43d"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-62-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 60800,
+  "sha256": "4f110fbdfb00d3ba6b095e8b78c05766b1ec287fe5b41da72989d81428504222"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-63-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 48180,
+  "sha256": "41e056491247d90d348fd02597275960be75cf1be77c118f6f6d3ac9fd5222eb"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-64-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 50888,
+  "sha256": "4c9f5d1746e561e8495ab07f86c3413bed0ccfe1de2d7a8af2cb001d5b3afd62"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-65-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 70228,
+  "sha256": "04f461b6da2b3332fc89da4dcff5451bd5c7e719d71cc069491b289cd923de80"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-66-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 57944,
+  "sha256": "b9a16c13d5358e32ff51c3a732493184030cc9cecf813c16244f9f5c9e89156c"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-67-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 46356,
+  "sha256": "e46696762cee1a646be0fc8e933bb37ecde973ce069668f98b627e3258496af4"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-68-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 42744,
+  "sha256": "75ad22e52cca38252c6d7f2e7cabd666489e3143effc923b9c3d179399c9786d"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-69-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 47000,
+  "sha256": "7908164a45193b24430bbb65e067b40a31c99c30bfe5b5f2f2fb524aad1c0dd4"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-70-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 65628,
+  "sha256": "1399b7dec37cf61eb5a6db3d294c144b55e02ead7517fbd568b423bff17e1aa7"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-71-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 45612,
+  "sha256": "05296d0d93130c7aeea36c7e3ebea997a77ff2d7d171a9a9cc0be9fc8c631a35"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-72-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 45368,
+  "sha256": "c606df4425b8ea497da19e273ff3d5d8d1e2347c8a200b503019feeb336ca7d7"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-73-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 58388,
+  "sha256": "2659fd260623aed605024fd6688dc17786e460fa70a974271bd6112c173d045b"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-74-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 38752,
+  "sha256": "99a88f260ce4440cebb5e534b59fd4567a13e318fc8fad9e5f5f2441a675db6e"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-75-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 47688,
+  "sha256": "bf9786b9fa4a66463641271052e1c325305df511d882cb1e806ddcd186ce054c"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-76-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 52532,
+  "sha256": "1c808dadc368d2784fb605c079affb8893d0eb26d76290491bb3548ab3a5a0de"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-77-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 38868,
+  "sha256": "71fc4002258ef0fe0023a56f64df60ec350d987a644e5a3564dfa5394f46472d"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-78-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 67192,
+  "sha256": "35f3c7a4c83c7fb337cc9e97a416e6ae7f9f5be7338c3c22032034ddd1e7a539"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-79-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 45876,
+  "sha256": "c8124533b49518c31a80e0e65dbdce1d97e56a832264681577212d53b17b0a9e"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-80-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 55364,
+  "sha256": "0cc067536105005c808a20774482e159876004e86818d3c88cac9b9b92c69be3"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-81-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 47692,
+  "sha256": "42abbdce6c5f04158ff513c93aa48bc2d9cd7130dccbd8cb1c1335d353968195"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-82-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 58756,
+  "sha256": "5b72e2d01c4959d9fbebdda75927e38363afce101b80f8889130753cbf5b4048"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-83-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 39084,
+  "sha256": "b8eda415b5fd60adc297c8937b08a6bc1b479dad851b9552b8df146e1b073ea3"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-84-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 35832,
+  "sha256": "91a667989424824f50d6197af315731092df3f4436cef89844391872a6031909"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-85-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 41660,
+  "sha256": "5b3d8fb12266a948958973d6569e5183f85c134e6195e835842fe725aa085197"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-86-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 57656,
+  "sha256": "cb950f60e02bbf35eab4192493ae6966d9b48fb2975c5fc97a312ac3e89d40b8"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-87-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 38816,
+  "sha256": "dce467dbef6a233dd610f4d9852c0f3ac977844dbb9d8d90cecd75fdccd4bbec"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-88-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 23716,
+  "sha256": "8e2685f945298c8cc833a96fd18255f17d51789e0da792d94d0445fc88d2209b"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-89-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 51660,
+  "sha256": "9332df4855ee56de0cf7233a224c820aded11d8e2161b5927d01c3d4c2904196"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-90-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 13912,
+  "sha256": "589906ae0ea0c7f283b19d886fa390ec93703e80bb5bfbc078fd6fd1118a2b69"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-91-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 5164,
+  "sha256": "1dfc7e5c81bf3b99a1d41a0d36bfe9fa36d6216a471e0ca18356a9410f92efc2"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-92-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 7176,
+  "sha256": "c01fc80bf1cbf65f0ab0fea1c1011a54e0948a0839b84c643cb1dc800bc16f7e"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-93-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 13592,
+  "sha256": "58141abb089b77a7e0c09784d50e954a9428480291c868d23ce238f3969635f1"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-94-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 9456,
+  "sha256": "f77e45d9cb2bfeee5a5f79814c0e60df92096622bacb0d6dfb3478d5cafdcc17"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-95-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 10708,
+  "sha256": "301a26a18e0d82a43fab27165dedb29a1a6f2e03f24e2f0d8c422493fda81b81"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-96-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 4428,
+  "sha256": "079fd67af6df4c697b964aae95d439fa8976410fec2cb12f713774af0c595fda"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-101-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 1780,
+  "sha256": "d082ca924082ff36a1c4c51d3eda66637d69a4de525f11f374c36d5fd36e7162"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-102-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 3092,
+  "sha256": "bfdf78e97570716fc2a171c51c381b7896c2bafcf85826bd9c18d78d335a2473"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-103-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 9732,
+  "sha256": "b5777e1753bb452043614f6eb22dcac26ad2dc92deea14d881a34c2d98f517cd"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-104-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 85332,
+  "sha256": "ec1a39220fadac860ec295ba6f95281c9af95a19625522872f26f0183afe8c18"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-105-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 83064,
+  "sha256": "9319894168600beb61b6fbe92e01ee66a90c14efb0de129f0185ef236f9e656b"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-106-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 85148,
+  "sha256": "e3dd258290c121887321cf93334ed45c59f2844739c52cf47a2b4cf49a83932a"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-107-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 93472,
+  "sha256": "9756c6d342d2e88c5350e56afe53780bade6e1ff87e0cdb191f89416827969e3"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-108-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 90852,
+  "sha256": "b7bcab83757c174280c488219bf2cc86262677cd626c068f88c0aa751ee034ba"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-109-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 87972,
+  "sha256": "a7f8e106ebf8cf1a44bb77d1bbe8d17fcb5aaedd21af19c8947d65341afd2a1f"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-110-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 96004,
+  "sha256": "1e803c6228d37c608d23632bb0ccead1517ce25d42d475618c9fcd0c9a675f5c"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-111-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 96316,
+  "sha256": "fb0ee9cfdb1740563f96f0bdfb7460c64df56ebabc8ed3d59ce304ec81ed426b"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-112-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 94804,
+  "sha256": "98db7e937bd749236be24a36639c4ec7427a405577937bb259072bba347403f1"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-113-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 94544,
+  "sha256": "8d247667606995bc564b58719167dd9f6f63a42477fbef417b358e740e6b662a"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-114-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 104164,
+  "sha256": "9243a39a3bf4147bee063ec8df56e05562f6da87fd7d83955cc1c4f745bf0fa4"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-115-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 99264,
+  "sha256": "f271991adb961f157eb0d3fa70bf13facc8e659368a9a5b598a06e53b7b2b95b"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-116-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 97248,
+  "sha256": "a71a384e8e04bd8e5a65872bbf8057ec1734734c729660acccd2b4343ca48382"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-117-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 95072,
+  "sha256": "fec3fa008b9e9cc797cebf49fcbcf2f28925818c6c72bf870b6c183b72fac377"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-118-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 115680,
+  "sha256": "b8f0961e7115a3829f10d46f7dc301726998bb067cf8ceaf079775da70945a61"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-119-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 97140,
+  "sha256": "61151f00656c7acb0a038c502ef929524bcad9dfe801700afe781303b2894500"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-120-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 95340,
+  "sha256": "4032d796e257b8d4b32a81cd848439d5ba656c40e2abda42f3907607ec43fab2"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-121-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 85216,
+  "sha256": "49beabffd208459adb33d439d30d22eb1fff42bd248977c18501f63e0fdc83a5"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-122-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 81064,
+  "sha256": "8764a9d4ca0e3503ac114e093de5fd833b85d3f914964da75cf5dfd8bc47f369"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-123-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 48648,
+  "sha256": "9f78004ae1296409400344561b972bb7c7cb6d7f0fefdcbaa89f2e75736e580a"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-cyrillic-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 14484,
+  "sha256": "a83796d8f747cdb3a99ea964d3289f996d915369266d3870f50dbb4408b072a5"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-vietnamese-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 10856,
+  "sha256": "7003b7e35bdd326721f01e80ab7e087e09c1864d5b5f83f4f7bec399a5de6025"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-latin-ext-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 10312,
+  "sha256": "2ff5121433e869754959aae5298fa414951424b1e2b0651e730e1272afa05cf6"
+ },
+ "noto-serif-tc-variable/noto-serif-tc-latin-wght-normal.woff2": {
+  "source": "@fontsource-variable/noto-serif-tc@5.3.0",
+  "bytes": 33104,
+  "sha256": "9605817ce2433029a7b44a7e40b765c2b78ab984fbdf3031f377fa6e09d00155"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-0-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 47128,
+  "sha256": "84bf0b7df68c98fec318e63441176bcd22ca0d79017e0f90ed853f8476bd31c9"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-1-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 51936,
+  "sha256": "28b79ceeb30a27dbad725924c70bbd5e6b7e7f64be9ca5cc1eeeff38d286e208"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-2-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 51892,
+  "sha256": "d6861f28290df4dfc1cd8a136df9ed325d37c3b3c7208f5e86804374d15c3aec"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-3-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 10020,
+  "sha256": "b5855c6bb0a4caa17797c7adde84696098b65287e4ae98e70c13363f52e2bc38"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-4-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 6644,
+  "sha256": "945f0e409c9799460d7680c4e98f28aeba57c44a60874e8fb8bf951eb9a08503"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-10-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 9572,
+  "sha256": "81751bed8b4a512ad43f2a9802b059e5c566d5bbc74d4aa152a628813ed144a5"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-11-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 12776,
+  "sha256": "a79bc8c3de774083d4a21bfc11ccbf4f66f50cefe1c0777d1d952f47a1343840"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-12-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 6196,
+  "sha256": "cd7fb44fbb9540e8dd83999bdb75f6fd58bbf6d868cf389a33fe50151d67e6f7"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-16-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 1172,
+  "sha256": "1161eab83de134eb4e6470c393d5b21faf64b5822232c7ffb8d8bebb94f7c236"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-23-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 35440,
+  "sha256": "3b47f69546040811ef7c36693f305d9180238f1f6a16a254d9b6b0e1dec0e0df"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-24-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 58816,
+  "sha256": "fb0335bd9604266d00ade57759b79072d9085ed8939fc6433677cdb49bc5f7ab"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-25-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 57312,
+  "sha256": "bb3c2afe9fb6decf439b0740ed041898b85e3bea3c85f097ea0810302ea37477"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-26-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 53568,
+  "sha256": "e5c175dbc746ef9512cfd30cfc600910950ff43a73eff750c5407e9392723fdd"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-27-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 48788,
+  "sha256": "cb5ff97952da6f288cc65e86e5cc13dc57348ae03866379ceadfd239872ba930"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-28-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 45356,
+  "sha256": "50a2935a3cde6489b452e9ea69eb7d91a39e976803ae926a0c04a22605453252"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-29-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 51728,
+  "sha256": "f46f7ae7be335c867cb300385bd4129d36b94351ef3ab3f0732d2058a46febcb"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-30-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 39472,
+  "sha256": "a7434095f858b84bb7ec9ce50b7b0634a35fd58c55c3865768135fd92ff51752"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-31-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 43968,
+  "sha256": "2d899b94598674febc75eb016ed2acb353f30f2b70c7002cfe003ba0bad7e906"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-32-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 51908,
+  "sha256": "a2bb761d7f2777a2fa101ee4dfeafaacd22ba1903f8aa8aaf0800923e2e3b7b0"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-33-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 42180,
+  "sha256": "d5d3c95ce66167678349a2651b64bf7d6084341c15958d3bdbbaaa67498c9f5b"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-34-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 45744,
+  "sha256": "84be32f1561a28b468d029d4311fb17283b92ca45cb48feab6e68c4719836752"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-35-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 42572,
+  "sha256": "a0700876e553510587754242b00ee494d8d7900d99e7a40af03884bf7542d237"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-36-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 52380,
+  "sha256": "d5954fc38e659e457bb0d6157c541ef059bffc4efcd216cb72cc81b20ed9bce4"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-37-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 44768,
+  "sha256": "218ee14836734b0e5a1065514c26176da6d6f9dd6ef340fc5b3c3d7a30ddf1dc"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-38-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 39608,
+  "sha256": "0b18a0fa02fa588fe09dba4a5e15af07c88184dd05c24dec1e71688714e0f224"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-39-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 48924,
+  "sha256": "a5f768e014f146c558bcf23212d2acb3671eeb991c37d220b727298898077d2a"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-40-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 48476,
+  "sha256": "d984bf30992f7e3f7d4812f6652534d9a5fefe4ddd9c9958b62e090b9b7471c1"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-41-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 50848,
+  "sha256": "979d89a9d317cc053b6d1cf0bf174d88cf5b802b29b42b5889da6f57513bd89f"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-42-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 41224,
+  "sha256": "29dd1439736c054e6b56bedfd867e383ad33a27e3280c248974183bdd12804a2"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-43-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 55384,
+  "sha256": "d03fb4c5456da71fec5ab147c21d2eb90f1a324d10d5f72dd737f5c21d88f809"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-44-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 41632,
+  "sha256": "ba0626ab664162eebb6d3db75f2035a6b197512ff2670ba65b3bbe21222a22f0"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-45-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 30820,
+  "sha256": "166763c4128de92b228a5b54bac4cec4cafe0a449adc713796432c74883a5764"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-46-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 45660,
+  "sha256": "3f55c8c706272086f74d03c4d06316a6059c89c43e72f4a8bb2b294a09274fbe"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-47-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 41456,
+  "sha256": "1aef110d30c8a53d76ae9f7e943bc7984668184ea3effd93ba90d4da63ff8e1e"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-48-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 42380,
+  "sha256": "d04c5b07c5511c5919d9b4c4975852b9d36fda386be18bb48a58d1e1d57ed535"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-49-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 54652,
+  "sha256": "1cedbe18fd3da7f562d8c5f2eb6da65fe10ad0d43984ee116dbbf686f924cee8"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-50-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 51120,
+  "sha256": "8d50547520984a8be5564fadfbdd3a75efba70ef3de1d7345964696761488d67"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-51-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 42644,
+  "sha256": "f5baf38f580ed1d744c04735ef9617ca5baf7cf41abaa598042850270b5cae73"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-52-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 45124,
+  "sha256": "ce4a056c4b9a8ea60f6621731af0d8ec9987fd2d75779b49b7199a97728cb4d2"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-53-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 39704,
+  "sha256": "14d0ad0fc3e6a8286948e971f6dd58ec780fa0306bb9176ae62ffa7bbfb1a2b5"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-54-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 35812,
+  "sha256": "736f628c05bd06e7c01519eacd1b3fbecf6449828a683b908452b5feb08d51d8"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-55-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 46340,
+  "sha256": "e980f3e3faefa67a0510462495e8037e659cf1d9a99c4cc0eb8dc1f2ec6ab271"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-56-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 45288,
+  "sha256": "9dc68d2cb6a6d392f823454c983da7d534f06e841a9b58915c95bc173f4af180"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-57-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 39544,
+  "sha256": "549ed9227ed3e369746c3673b73799a74910c1ace8c4818e26e0b845010b9bed"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-58-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 40716,
+  "sha256": "962bf4035442f1c87be7523ea7bf0c70d28f021108a8ebdd23eeffec0d55e108"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-59-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 46596,
+  "sha256": "af714e6898efff7d4ceb6a94113701465023917cab4b239420ccfd07e4661ccb"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-60-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 43900,
+  "sha256": "55546019020bd15bbe183543cc05c47788aca87907a0607ef6febe9fb750ac35"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-61-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 44220,
+  "sha256": "7afe3ef5f70c884ee1f9160a47eab55a479977d9721ff494fc8961fdbcd0441d"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-62-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 40296,
+  "sha256": "cf6e9414cfd438e3cd294428b6197634e17b53dc7a7d808ce07b340c3cb3d065"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-63-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 35460,
+  "sha256": "2deccafa445fe5f6d67231490250dc789e35a52133875dfae4d2d744c8bf3b9e"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-64-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 33024,
+  "sha256": "c79f386e0b61d7ece394a3f5ed3987ddf23324cd11c2fb5d71b63f369e31e244"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-65-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 53252,
+  "sha256": "c3657a8eab0aaf06bc1c1c5cf429f54b8a7a914c5638e7245916d2cccd7d310e"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-66-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 46044,
+  "sha256": "64a093eede468bc944a0ba2f8efb4402f0b51e6c8033b8e178dc2a4cc828b155"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-67-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 37760,
+  "sha256": "328f297c80eaa7553a020d41a7fbb754edef29e11426c839f3df6390f15dbf51"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-68-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 35636,
+  "sha256": "cf8b7a7376b2cd23de060e2df815f43191f93d8519966bbe0331da07a893d3ce"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-69-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 36732,
+  "sha256": "c822347af2d002d149feacf689ac5a02dadb7cd3d3d28876f044d01a0624eea7"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-70-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 50748,
+  "sha256": "64e70a408779db2a7ad442940e64d9b7918b24a4fde3ebb6e05071a81c1e3c87"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-71-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 43924,
+  "sha256": "4f5ae039f2d3853e170b6b70bc6e9642f99cab6a3ccc7d90030ca297b7ef51dd"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-72-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 39776,
+  "sha256": "3d5845dcef2b3b48460fd3247fc9f20f6a1ff3b28a1522d432e6a6cee00582a4"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-73-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 43344,
+  "sha256": "ffbc08b81d96321f3934a787b364a07719971fe008db28fb0d539c066b25ac54"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-74-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 33288,
+  "sha256": "a2f7edffae206f7674a9c1c7ed9fa20240c7e26ec297fe93c10771e5ebb839b7"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-75-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 40568,
+  "sha256": "290c29b0569b42e2f40a85fd931051143c93d992cebb8f59e1b05f5c23f50793"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-76-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 40944,
+  "sha256": "5efe1b55667535497148bb65e48bdef10e765b9d351a519511d9a4c7009c668f"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-77-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 32204,
+  "sha256": "fd9e6354bd68a4e3637a8ba9724019eb02e73c674bf1445bab775acd57a0be1d"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-78-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 53612,
+  "sha256": "41f61b4c743a4d50d424385696215c65d1f3bf01d343370bed8122b4d24ebfe7"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-79-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 36832,
+  "sha256": "52c657f8f328d45c01c1277e1cfd8ef2946494e67b32d8bb0e6d4769ffc7475e"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-80-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 43432,
+  "sha256": "a46aee461d53754c5045a84dad5cbd8c94cc719b9f72d5124c654c65aa981ab8"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-81-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 40176,
+  "sha256": "fcb7c089ba2098f3944610f2ffa60d65ea68b2a3622a57f41da92b72bc9cc7f3"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-82-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 45524,
+  "sha256": "ba10bee2575a36fbd0d37c5d7bac67ad6765a18caae3ec00edbf219b968ec90b"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-83-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 33340,
+  "sha256": "d518f5446ea14ad96caf5a2a56040cdf7c9ca3e9b0f156fce22f14cd713d5c01"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-84-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 30744,
+  "sha256": "d855199681edc16ea963924241723b19a3d35df0abf505a8e48d662f5c2ee66e"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-85-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 39728,
+  "sha256": "054f1d177ad893c04d58833d2ff4b1c4640b999b4ec16c37e57615f70b530e81"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-86-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 43404,
+  "sha256": "e194839e751848dd5d4bead04e4527815e3cf504108403f5e0977a66cab9e381"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-87-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 31144,
+  "sha256": "2fd73dd9fa500722db4a82f82ee094e0102a77094c29f17226c28e17f71642e0"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-88-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 26500,
+  "sha256": "2829c0ee8e0af8d887dbc6cbd1165d500396ae7de228270ee42bb7128d156de6"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-89-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 22048,
+  "sha256": "cc8980b93c44b469a37812ecd2d9a323f80b4511a0915e35abb5da2b153c2118"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-90-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 8860,
+  "sha256": "74c7e00686715c6844dae0ab033b53ea9daa629764e247cb7da5f53e89d33a79"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-91-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 4360,
+  "sha256": "9d934ec5ef6352b7eea343e0ec151f00ccb0249d6e1c2c81fd6d2911300a9ce4"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-92-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 5880,
+  "sha256": "9f0037567a4fa97657b9cc518e686c3d463481c2837e0bb8d1dfd8d904b31e82"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-93-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 8788,
+  "sha256": "2e506e2babebd1c089c6ba64f361cfb21db331244b45a4d324749606d6c407a3"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-94-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 8308,
+  "sha256": "841d1fb39fc420380377090e8cf5a43cc92169782ac823752bfcce83a05ffaf7"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-95-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 9004,
+  "sha256": "47908599247209295e501672dd9611d1e39965cd21b133362b98f4b18ae0187a"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-96-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 4504,
+  "sha256": "bf0f253de6a1ca2c760f212fda47fdac43e2dfeb425eb8cd2e010a54697221c6"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-97-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 1172,
+  "sha256": "8f9e35de6fbcace1e4010b5ac572e8f5875ccb7e00910a02f8d0a761d38f74ad"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-101-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 2924,
+  "sha256": "1a084ec21a40aab40c54d78051ba801776e2431624530db71fe981ed34a744a7"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-102-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 11692,
+  "sha256": "86a20aa839484bff5837ad4066d105ed4558d4e74f0d4f720d562a0d1c577466"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-103-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 8916,
+  "sha256": "6345792dd46f9b0481e05a4d70a6e6448fada19f9437e032f101217551973454"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-104-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 70724,
+  "sha256": "89e8bf179e9e4b0446381e761cc498a3f76bc3cf714b2bda4d95eca994d19249"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-105-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 71592,
+  "sha256": "2bbf1ded671da676e6ef53a5629cb9963c257bcee3c246c4693e6042c271af46"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-106-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 71500,
+  "sha256": "848538d78be0afef249905df83e3acde08ed41fdde8ebfdf13575f7f83e2b49e"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-107-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 74436,
+  "sha256": "1d80acfdd90c29ba95d7e7111524279292ddfe12a9f006cd1939cd9b38939e1b"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-108-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 75636,
+  "sha256": "9df47bbd122a22b67a9f1442e09dd9a836af1fa0e2f05d7d9362b44e4d39a6fa"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-109-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 73772,
+  "sha256": "7b100a0b4029c88fc02e1df119e20c34da524e94d2e65b3143329df25ba4be86"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-110-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 77700,
+  "sha256": "29f686788335b1a71f0e57c911e25e2d79e137e037a946b13b2f59840594a2d2"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-111-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 76180,
+  "sha256": "4895434f4a346ed289b4bfd645d02adcebe1d4a5d0d17a9f453e8e770434fcb5"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-112-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 74260,
+  "sha256": "fc393e8babec48d0e76bc588500e2578fe403e94460dcfcb092cf92204902373"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-113-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 74264,
+  "sha256": "a5a7dc00eb9cb58f4c5833a7ba51d9f27988f3ffa7c1d550c6273a2e02c66315"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-114-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 80260,
+  "sha256": "ff0fa0926f3925ffaba51c20770ccd127b7c1587543e348854dacb91709698fb"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-115-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 77356,
+  "sha256": "39b9678d4f6f57b41d64970771310f5fbea54d29580a4d9ed501c9554e1ca7ca"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-116-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 76120,
+  "sha256": "3e4211aadce53da64fa80186ac984b1d72faa26018f989d082afec8f17016b9a"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-117-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 74836,
+  "sha256": "3e53afc17054cb46ef6438c4f69fc18de2e83f65df53c3fffc6642cb0c64395c"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-118-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 42404,
+  "sha256": "d5f6431a90188bb2be4085384aa4d2992051a95594aa3e76f2cb5e0c4c78b06f"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-119-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 74880,
+  "sha256": "044b927e2984a9b18db2d9563d6719986d052ea530d8bc5e12241c5d334f0a7b"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-120-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 75132,
+  "sha256": "54fc2e1d5114b11975d0a77610a0e9395022f0e4f4c0fd543ccc25e4fd96b9cd"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-121-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 67484,
+  "sha256": "a30516dd718cf3cb4409eea2517834b1949d4628c803ad8e70ec4ae1cbf63b3e"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-122-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 63172,
+  "sha256": "89a26e5d01bf11f948eaf79599b44351b9155926e779d284a0f59fe9e3ffda06"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-123-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 30420,
+  "sha256": "d706d8c5c8b59c2da354585275b7f77cc81e5904a5f99a5c92cdfb89bd6224a8"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-cyrillic-ext-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 5876,
+  "sha256": "20d911075d50d3fb6d787d7117e624757bf315a116d6b6d40c975ed519c9ca36"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-cyrillic-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 8384,
+  "sha256": "2a2027229dceace1f40383ed53ebb2bc33ce18c173ea74b7c50c66284c1d694f"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-greek-ext-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 6660,
+  "sha256": "24c4dec395fb337064b60ddb326e678c6354fd81519ba664371abca19244a4f6"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-greek-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 9944,
+  "sha256": "c292e12f8b9e340f272c57951fa940db850f6d180990c63c4237e981d2d24087"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-lisu-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 5024,
+  "sha256": "00518d5a2a5c50365a18f5b45651c903ea2241bdc5dba2aaeccaa0bb5b8a7359"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-vietnamese-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 5316,
+  "sha256": "c72fe616989f3f915940edd5297c67d4a971c7090282f8d0c1113bd269c0d3f7"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-latin-ext-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 37144,
+  "sha256": "1550532d571444bf5ac831596cccb01b07802bb4d3c94aa99ebc36891b135494"
+ },
+ "lxgw-wenkai-tc/lxgw-wenkai-tc-latin-400-normal.woff2": {
+  "source": "@fontsource/lxgw-wenkai-tc@5.3.0",
+  "bytes": 17832,
+  "sha256": "1819583a1c255ae6ba05444910220b8a60dc91b1ba45774f023c939c53001d67"
+ },
+ "ibm-plex-mono/ibm-plex-mono-latin-400-normal.woff2": {
+  "source": "@fontsource/ibm-plex-mono@5.3.0",
+  "bytes": 14708,
+  "sha256": "08949f728dc52d528e69b1667d15c89a5686a4ee9a296ff90983985f99c380f7"
+ },
+ "ibm-plex-mono/ibm-plex-mono-latin-500-normal.woff2": {
+  "source": "@fontsource/ibm-plex-mono@5.3.0",
+  "bytes": 14888,
+  "sha256": "01d285447409c8a588692162439a038b8cbd7871309ee20267b0d2d91c6e8e22"
+ }
+}

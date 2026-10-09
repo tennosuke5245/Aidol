@@ -1,0 +1,4 @@
+interface:
+  display_name: "AIDOL 角色設計"
+  short_description: "以 YAML 人設、繪風參考與獨立工作協作，將真實產圖回收為待審候選"
+  default_prompt: "使用 $aidol 依指定人物設定與繪風參考完成本次部件精修，將候選稿送回工作台。"

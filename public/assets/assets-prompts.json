@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "createdOn": "2026-10-01",
+  "tool": "built-in image_gen.imagegen",
+  "useCase": "stylized-concept",
+  "project": "AIDOL",
+  "character": "凜",
+  "characterDesign": "Original adult anime game heroine, short silver hair, amber eyes, navy technical jacket with teal edging, antique brass crescent clasp, charcoal cargo trousers and black boots.",
+  "selectedTargetReference": "early visual reference image (not published)",
+  "notes": [
+    "One separate image generation call per asset.",
+    "Copied bytes are preserved without resizing, cropping, recoloring or alpha alteration.",
+    "Requested dimensions are prompting targets; native output dimensions are recorded below.",
+    "Reference app UI was not included in the generated raster assets."
+  ],
+  "assets": [
+    {
+      "path": "public/assets/rin-sheet.png",
+      "width": 1006,
+      "height": 1564,
+      "pixelFormat": "Format32bppArgb",
+      "cornerAlpha": 0,
+      "requestedWidth": 900,
+      "requestedHeight": 1400,
+      "transparentBackground": true,
+      "sha256": "5F15006156E652138A3727AE4338A2031BBA90C532061F87D8E4F4E4033471AB",
+      "bytes": 1294108,
+      "originalPreserved": true,
+      "prompt": "Use case: stylized-concept. Asset type: transparent character design sheet used as the central artwork of a dark graph-based character-design workspace.\nInput image 1 is a style and character-design reference ONLY: take the original silver-haired woman in its central character card. Do not reproduce the app interface, panel borders, graph, text, labels, annotation boxes, background or controls.\nPrimary request: create a standalone original adult Japanese anime game heroine character turnaround sheet. She is clearly an adult woman in her mid-twenties. Preserve the reference's specific character identity and outfit: short layered silver-gray hair with wispy bangs, amber golden eyes, reserved confident expression; dark navy blue technical oversized cropped jacket with black structured high collar, desaturated teal edge binding and vertical webbing strap, small aged-gold crescent-shaped buckle/clasp at the upper torso; fitted black high-neck inner layer; charcoal gray loose cargo trousers with technical seams, straps and small muted brass fittings; black heavy lace-up ankle boots with thick soles; black gloves. Tasteful fully clothed game character.\nStyle: refined Japanese anime game concept art, clear fine hand-drawn outlines, polished restrained cel-paint shading with painterly fabric folds, realistic matte nylon and metal details, silver hair luminous against dark UI. Keep the exact muted dark-navy, charcoal, teal, gold palette.\nComposition: portrait canvas, intended 900 x 1400 pixels or closest portrait aspect ratio. One large complete front full-body figure on the left/center, about 85% image height, head and both boot soles entirely visible, graceful neutral standing pose with arms slightly apart. One separate small complete back-view of the same woman at the lower right, about 32% image height, showing matching back jacket, trousers and boots. Generous transparent margin around ALL figures so none are cropped. The small back view must not overlap the large figure.\nBackground: genuinely transparent alpha, no scene, no ground plane, no drop shadows, no gradient, no checkerboard painted into the image. Only the two character cutouts. No typography, arrows, swatches, watermarks, UI, framing, symbols or extraneous accessories. Preserve full body proportions and outfit coherence between front and back.",
+      "referenceImages": [
+        "selectedTargetReference"
+      ]
+    },
+    {
+      "path": "public/assets/rin-coat.png",
+      "width": 1536,
+      "height": 1024,
+      "pixelFormat": "Format24bppRgb",
+      "cornerAlpha": 255,
+      "requestedWidth": 900,
+      "requestedHeight": 600,
+      "transparentBackground": false,
+      "sha256": "4E03F87E1CA0BAF8AA6BDAEE4AA90620AB8B9031E14757CBD82D17A2939A11C8",
+      "bytes": 1837105,
+      "originalPreserved": true,
+      "prompt": "Use case: stylized-concept. Asset type: a standalone garment design-sheet raster image for a dark character-design graph node.\nInput image 1 is the selected application mockup, STYLE AND ORIGINAL CHARACTER DESIGN REFERENCE ONLY. Input image 2 is the canonical original adult anime woman character sheet, OUTFIT REFERENCE ONLY. Derive her exact navy technical jacket; do not reproduce either reference layout, person, interface, graph, text, panels, controls or canvas.\nPrimary request: polished Japanese anime game wardrobe concept art of the same dark navy blue technical cropped oversized jacket, showing its complete FRONT and BACK side by side as two coherent views of one garment, worn on no person and no visible mannequin. Match the canonical woman image exactly: navy matte nylon fabric, high structured black stand collar, very generous folded sleeves, subtle charcoal shoulder panels, desaturated teal binding and asymmetric teal vertical webbing strap on the front opening, aged brass crescent clasp attached to the upper chest teal strap, small dark buckles and lower hem straps. The back has the same cropped hem, subtle yoke and brass fastening detail, technical straps and matching panel construction. Front-view jacket slightly open to reveal only empty dark interior, no torso. \nStyle: finely outlined and beautifully shaded Japanese anime game production concept art, refined dark nylon folds and restrained antique brass specular accents. Precise neutral orthographic-ish garment views, no perspective distortion.\nComposition: horizontal 3:2 canvas, target 900 x 600 or closest aspect ratio, front occupies left 45%, back right 45%, equal scale and fully contained with at least 6% margin so sleeve edges, hem and hanging straps are not cut off. Plain uniform deep neutral charcoal-gray background, subtle studio illumination for garment visibility, no dramatic setting.\nConstraints: one complete standalone usable asset. No text, labels, arrows, swatches, white border, watermark, UI, human head, hands, body, pants or feet. The coat must be the exact same article and design on both views.",
+      "referenceImages": [
+        "selectedTargetReference",
+        "public/assets/rin-sheet.png"
+      ]
+    },
+    {
+      "path": "public/assets/rin-hair.png",
+      "width": 1536,
+      "height": 1024,
+      "pixelFormat": "Format24bppRgb",
+      "cornerAlpha": 255,
+      "requestedWidth": 900,
+      "requestedHeight": 600,
+      "transparentBackground": false,
+      "sha256": "738F3730FA494A74E753AF57CEFBC7713D1393006BA18CC691D1C9CF5C1D5EBD",
+      "bytes": 2155834,
+      "originalPreserved": true,
+      "prompt": "Use case: stylized-concept. Asset type: standalone portrait/hair design image for a character-design graph node.\nInput image 1 is the selected UI mockup used ONLY as anime art style and original character design reference; input image 2 is the canonical original adult heroine sheet used ONLY as identity and outfit reference. Do not render any UI, frame, panels, text, graph, controls or the source image layout.\nPrimary request: a beautiful close head-and-shoulders portrait of exactly this original adult Japanese anime game woman in her mid-twenties. Short layered silver-gray hair, abundant delicate silvery strands, asymmetric wispy bangs sweeping across the forehead, slightly messy tapering locks around the cheeks and short nape, amber/golden eyes, calm reserved confident expression, fair skin, subtle sharp adult face. Her dark high-collar inner top and the very upper section of the same navy technical jacket with desaturated teal edging are visible at the bottom. Keep hairstyle, facial identity and costume palette consistent with image 2.\nStyle: intricate fine hand-drawn linework and polished Japanese game character concept painting, luminous silver locks with muted lavender-gray shadow tones, high-quality soft cel shading, warm amber eyes, restrained mood.\nComposition: horizontal 3:2 canvas, target 900 x 600 or closest aspect ratio. One portrait only, three-quarter head gently turned toward the viewer's right with both amber eyes visible; crown and all hair silhouette fully within the canvas with comfortable 7% upper and side margins. Head/hair dominates image at 80% of height. Plain uniform dark neutral charcoal-gray backdrop with no setting. The portrait must remain readable when reduced to a thumbnail.\nConstraints: adult, fully clothed, no text, labels, watermark, UI or borders. No dramatic lighting, lens effects, extra accessories or new hair ornament; preserve the unmodified hair design shown in the canonical sheet.",
+      "referenceImages": [
+        "selectedTargetReference",
+        "public/assets/rin-sheet.png"
+      ]
+    },
+    {
+      "path": "public/assets/rin-pants.png",
+      "width": 1536,
+      "height": 1024,
+      "pixelFormat": "Format24bppRgb",
+      "cornerAlpha": 255,
+      "requestedWidth": 900,
+      "requestedHeight": 600,
+      "transparentBackground": false,
+      "sha256": "E6D087D7886303CD233E6702C9DDF58737E2EEB2C5A9D44133E703F5AD7392F5",
+      "bytes": 1748639,
+      "originalPreserved": true,
+      "prompt": "Use case: stylized-concept. Asset type: standalone cargo trousers design-sheet raster asset for a dark Japanese anime character-design graph.\nInput image 1 is the selected application mockup for style and original costume design reference ONLY. Input image 2 is the canonical adult original heroine sheet, garment design reference ONLY. Do not reproduce any app UI, graph, panel, text, frame or character's upper body.\nPrimary request: a polished anime game garment design of the exact charcoal gray loose technical cargo trousers worn by the canonical heroine. Show complete FRONT and BACK trouser views side by side at equal scale, from full waist belt to both ankle hems, with no human body, legs, feet, mannequin or boots visible. Match the reference's distinctive matte charcoal fabric, beautifully folded loose tapered silhouette, high structured waist with dark belt and muted brass buckle, asymmetric black utility webbing, flap cargo pockets on upper and side thighs, hanging narrow straps, small brass rings/buckles and one tiny desaturated teal tab. The back view must match the same waistband, pocket construction, drape and ankle hems.\nStyle: refined Japanese game concept illustration with precise fine dark outlines, tasteful cel-painted folds and subtle nylon sheen, highly coherent wardrobe production design.\nComposition: horizontal 3:2 canvas, intended 900 x 600 or closest aspect ratio, front on left 45%, back on right 45%, whole trousers silhouettes completely contained with generous 6% margin around ALL edges. Plain uniform deep charcoal-gray background. Ensure trousers are distinct from backdrop with soft neutral studio highlights.\nConstraints: only the standalone garment's two views; no head, face, torso, coat, boots, footwear or other equipment; no text, labels, swatches, diagram arrows, borders, watermark or UI. Not cropped close-ups: all trousers, waist and hems visible.",
+      "referenceImages": [
+        "selectedTargetReference",
+        "public/assets/rin-sheet.png"
+      ]
+    },
+    {
+      "path": "public/assets/rin-boots.png",
+      "width": 1536,
+      "height": 1024,
+      "pixelFormat": "Format24bppRgb",
+      "cornerAlpha": 255,
+      "requestedWidth": 900,
+      "requestedHeight": 600,
+      "transparentBackground": false,
+      "sha256": "DD4098155DC86A56260840B56EE68080338DCE5ADF65E5D76E842072B176BE3C",
+      "bytes": 1817547,
+      "originalPreserved": true,
+      "prompt": "Use case: stylized-concept. Asset type: standalone heavy ankle boot wardrobe design asset for a dark anime character-design graph.\nInput image 1 is the selected application mockup used ONLY as character costume and anime illustration style reference. Input image 2 is the canonical adult heroine used ONLY as exact footwear design reference. Never reproduce the original app layout, panels, graph, annotations, text, controls or person.\nPrimary request: a pair of the exact black heavy technical lace-up ankle boots worn by the canonical heroine, arranged as a polished Japanese anime game footwear design image. Match rounded reinforced toe caps, glossy dark leather upper panels with fine construction seams, long lacing running up the front through muted brass metal hooks, cross straps with small antique brass buckles, thick black industrial lug soles and chunky low platform heel, short ankle/mid-calf shaft, one restrained tiny desaturated teal webbing detail if needed to match reference. No legs inside boots.\nStyle: elegant fine hand-drawn lines and sharp polished cel-painted game concept illustration, convincing leather and rubber material differentiation, restrained silver/gray specular highlights and small muted brass details. Match the canonical design; no exaggerated sci-fi additions.\nComposition: horizontal 3:2 canvas, intended 900 x 600 or closest aspect ratio. Two boots together at center, dominant front three-quarter view with second boot slightly behind and offset to the right to reveal its side construction. Both boots must be complete, from top openings to full sole silhouettes, filling about 75% of image height and fully contained with 8% side and bottom margins. Plain deep neutral charcoal-gray backdrop, no ground plane or environment.\nConstraints: footwear only, no torso, pants, feet, limbs, mannequins, person, image labels, watermark, swatches, borders, UI or text. Full boot soles visible and not cropped.",
+      "referenceImages": [
+        "selectedTargetReference",
+        "public/assets/rin-sheet.png"
+      ]
+    },
+    {
+      "path": "public/assets/rin-clasp.png",
+      "width": 1536,
+      "height": 1024,
+      "pixelFormat": "Format24bppRgb",
+      "cornerAlpha": 255,
+      "requestedWidth": 900,
+      "requestedHeight": 600,
+      "transparentBackground": false,
+      "sha256": "933B2F1B20AEC6CA90A285A096D6FCD09253AF35A4140C689AF56E87BF0E01E4",
+      "bytes": 1770654,
+      "originalPreserved": true,
+      "prompt": "Use case: stylized-concept. Asset type: standalone crescent metal clasp accessory design asset for a dark anime character-design graph.\nInput image 1 is the selected application mockup used ONLY as original anime character costume and accessory concept-art style reference. Input image 2 is the canonical adult heroine sheet used ONLY as exact moon-shaped metal clasp design reference. Do not reproduce any UI, graph, panels, text, controls, frames or source image layout.\nPrimary request: a highly detailed isolated close-up of the elegant aged-gold crescent-shaped clasp/buckle worn on the heroine's upper jacket webbing. It is a small functional game-costume accessory: open crescent ring, tapered moon tips, softly worn antique brass metal, fine engraved subtle ornamental linework around the broad outer moon arc, small round rivets and a discreet suspension loop/fitting at its upper tip. Show the accessory in a clear slight three-quarter front view, its crescent silhouette readable and beautifully centered. Keep its muted warm gold brass hue coherent with the canonical costume fittings. No invented gemstones or colored jewels. It may rest against a tiny neat dark attachment behind it, but do not include the clothing or character.\nStyle: polished Japanese anime game prop concept art, precise fine hand-drawn metal outlines, beautifully controlled soft painted metal highlights, believable beveled thickness, slight patina and engraved detail. Elegant and useful; not photorealistic.\nComposition: horizontal 3:2 canvas, target 900 x 600 or closest aspect ratio. One large isolated accessory centered in image, about 65% of image height, comfortable empty charcoal margins around every edge, plain uniform deep neutral charcoal-gray background, soft neutral studio light. Crescent object complete and not cropped.\nConstraints: only one standalone crescent clasp design, no collage, labels, diagrams, arrows, typography, watermark, UI, panels, other accessories, hands, person or clothing. Avoid dramatic glow, stars floating in background or scenic elements.",
+      "referenceImages": [
+        "selectedTargetReference",
+        "public/assets/rin-sheet.png"
+      ]
+    }
+  ]
+}

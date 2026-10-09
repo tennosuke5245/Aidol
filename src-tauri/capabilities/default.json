@@ -1,0 +1,7 @@
+{
+  "identifier": "main",
+  "description": "AIDOL 工作台的最小視窗權限；本機程序只由 Rust 啟動。",
+  "windows": ["main"],
+  "remote": { "urls": ["http://127.0.0.1:*"] },
+  "permissions": ["core:default"]
+}
