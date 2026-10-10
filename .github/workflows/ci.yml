@@ -1,0 +1,37 @@
+# 每個 PR 與推到 main 的 commit：檢查公開內容、建置、跑測試。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: bun install --frozen-lockfile
+      # 擋本機路徑、帳號、憑證與不該公開的檔案（commit Email 由各自的 GitHub 設定決定，這裡不檢查）
+      - run: bun run check:oss
+        env:
+          OSS_CHECK_SKIP_GIT_EMAIL: '1'
+      # 介面不可寫死中日文字，三種語言的翻譯 key 要一致
+      - run: bun run check:i18n
+      - run: bun run build
+      - run: bun test tests
+      - run: bun run test:sites
