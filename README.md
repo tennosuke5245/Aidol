@@ -23,7 +23,7 @@ Build a character, let Codex draw it, and keep every outfit piece on one canvas.
 
 </div>
 
-> The app's interface is currently in Traditional Chinese only.
+> The interface is available in English, Traditional Chinese and Japanese. It follows your system language, and you can switch at any time from the language menu. Profiles written by the AI are still in Traditional Chinese for now.
 
 ## What is AIDOL?
 
@@ -40,6 +40,7 @@ Your character lives in a plain YAML file, so nothing is locked inside a chat hi
 - **AI-written profiles.** Write a rough idea and let the AI fill in the profile. You see every change before it is applied.
 - **Nothing gets lost.** Everything saves automatically, with undo/redo and a full save history. Images are never overwritten.
 - **Export.** Download a character as a ZIP with its YAML, a readable profile and all images.
+- **Three languages.** English, 繁體中文 and 日本語, with Japanese type for the Japanese interface.
 
 <div align="center">
 <img src="assets/screenshots/creator.png" alt="AIDOL character creator: hairstyle thumbnails on the right, the main illustration in the middle" width="100%">
@@ -78,7 +79,7 @@ The desktop app starts its own local service, so you don't need to run Bun or Vi
 
 AIDOL only shows what really happened. There is no fake progress bar.
 
-1. **Waiting for you to send.** The job is ready and Codex has a new chat open. Press send in Codex.
+1. **Ready to send.** The job is ready and Codex has a new chat open. Press send in Codex.
 2. **Drawing n/N.** Codex reported that it started. `n` is how many images have come back.
 3. **New images.** Real images arrived. You can pick one even while the rest are still drawing.
 4. **Adopted.** The main illustration or outfit sheet is updated. Images that arrive later still go into the gallery.
@@ -102,6 +103,7 @@ AIDOL makes design images. It does not produce layered PSD files, Live2D rigs or
 bun run build        # build first; one test checks the build output
 bun test tests
 bun run check:oss    # checks that nothing private is about to be published
+bun run check:i18n   # checks that no UI text is hard-coded and all three languages have the same keys
 ```
 
 | Path | What's inside |

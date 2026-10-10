@@ -1,0 +1,103 @@
+{
+  "job": {
+    "status": {
+      "ended": "Ended",
+      "adopted": "Adopted",
+      "adoptedStillDrawing": "Adopted, still drawing",
+      "newImages_one": "{{count}} new image",
+      "newImages_other": "{{count}} new images",
+      "newImagesStillDrawing_one": "{{count}} new image, still drawing",
+      "newImagesStillDrawing_other": "{{count}} new images, still drawing",
+      "noNewImages": "No new images",
+      "drawing": "Drawing",
+      "drawingProgress": "Drawing {{returned}}/{{expected}}",
+      "failed": "Didn't work",
+      "notSent": "Not sent",
+      "waitingToSend": "Ready to send",
+      "unknown": "Status unknown"
+    },
+    "action": {
+      "view": "View",
+      "pick": "Pick one",
+      "drawAgain": "Draw again",
+      "viewInCodex": "View in Codex",
+      "openInCodex": "Open in Codex",
+      "tryAgain": "Try again",
+      "sendAnyway": "Send anyway"
+    }
+  },
+  "comparison": {
+    "noOutfit": "No outfit selected",
+    "view": {
+      "front": "Front main image",
+      "full": "Full main image",
+      "back": "Back view",
+      "detail": "Detail view",
+      "unknown": "Unknown view"
+    }
+  },
+  "diff": {
+    "area": {
+      "persona": "Profile",
+      "appearance": "Appearance",
+      "dna": "Character DNA",
+      "palette": "Palette",
+      "locks": "Locked features",
+      "style": "Art style",
+      "parts": "Pieces",
+      "outfits": "Outfits"
+    },
+    "field": {
+      "name": "Name",
+      "story": "Profile and story",
+      "traits": "Personality",
+      "hairText": "Hair description",
+      "eyesText": "Eye description",
+      "silhouetteText": "Silhouette description",
+      "age": "Age",
+      "headRatio": "Head ratio",
+      "build": "Build",
+      "height": "Height",
+      "hairStyle": "Hairstyle",
+      "length": "Hair length",
+      "volume": "Volume",
+      "bangs": "Bangs",
+      "texture": "Hair texture",
+      "color": "Hair color",
+      "accent": "Highlight",
+      "mood": "Expression",
+      "eyeShape": "Eye shape",
+      "brows": "Brows",
+      "eyeColor": "Eye color",
+      "notes": "Notes",
+      "mustKeep": "Features to keep",
+      "styleName": "Style name",
+      "styleDescription": "Style description",
+      "activeDirection": "Current direction",
+      "outfitName": "Outfit name",
+      "outfitStyle": "Outfit style",
+      "silhouette": "Silhouette",
+      "layers": "Layers",
+      "detail": "Detail",
+      "colors": "Colors"
+    },
+    "unset": "Not set",
+    "empty": "Empty",
+    "none": "None",
+    "pieces_one": "{{count}} piece",
+    "pieces_other": "{{count}} pieces",
+    "added": "Added {{name}}",
+    "removed": "Removed {{name}}",
+    "directionAdded": "Added direction {{id}}",
+    "directionRemoved": "Removed direction {{id}}",
+    "directionName": "Direction {{id}} name",
+    "directionControl": "Direction {{id}} {{control}}",
+    "partName": "{{name}} name",
+    "partDescription": "{{name}} description",
+    "partStatus": "{{name}} status",
+    "outfitItem": "{{outfit}}: {{name}}",
+    "wear": "{{outfit}}: wear {{name}}",
+    "worn": "Worn",
+    "notWorn": "Not worn"
+  }
+}

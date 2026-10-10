@@ -1,0 +1,18 @@
+{
+  "demoCreated": "建立範例角色",
+  "draftCreated": "建立角色草案",
+  "settingsUpdated": "更新人物設定",
+  "proposalAccepted": "採用人物設定提案",
+  "decomposeAdded_other": "AI 拆解裝備：新增 {{count}} 件",
+  "decomposeMoved": "AI 拆解裝備：更新位置",
+  "sheetAdopted": "採用角色設定稿候選",
+  "partAdopted": "採用{{name}}{{view}}候選",
+  "restored": "恢復第 {{revision}} 版設定",
+  "view": {
+    "front": "正面主圖",
+    "full": "完整主圖",
+    "back": "背面",
+    "detail": "細節"
+  },
+  "partAdoptedPlain": "採用{{name}}候選"
+}

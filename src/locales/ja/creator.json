@@ -1,0 +1,190 @@
+{
+  "rail": "キャラクリの項目",
+  "categories": {
+    "persona": "人物設定",
+    "body": "ボディ",
+    "hair": "髪型",
+    "face": "顔立ち",
+    "outfit": "衣装",
+    "color": "カラー",
+    "gear": "パーツ",
+    "style": "画風"
+  },
+  "hints": {
+    "persona": "名前、性格、ストーリー。書き方に迷ったら AI に任せましょう。",
+    "body": "年齢、頭身、体型。",
+    "hair": "クリックするとすぐ変わります。色は下で選べます。",
+    "face": "表情、目の形、眉、目の色。",
+    "outfit": "スタイルを選んだら、キャラクターのカラーパレットから色を決めます。",
+    "color": "キャラクター専用の色です。衣装や小物の色はここから選びます。",
+    "gear": "パーツごとに着脱でき、単体のデザイン画も描けます。",
+    "style": "ダイヤルを回して、絵の雰囲気を調整します。"
+  },
+  "stage": {
+    "label": "キャラクター",
+    "previewTitle": "{{name}}・立ち絵",
+    "zoom": "立ち絵を拡大",
+    "portraitAlt": "{{name}}の立ち絵",
+    "changedTitle": "この立ち絵のあとで見た目の設定が変わっています",
+    "changedHint": "「描画開始」を押すと新しい設定で描き直します",
+    "portraitTitle": "立ち絵",
+    "portraitHint": "クリックで拡大。右側で見た目を調整したら、「描画開始」で新しい 1 枚を描きます",
+    "emptyTitle": "まだ立ち絵がありません",
+    "emptyHint": "右側で見た目を選んでから「最初の立ち絵を描く」を押してください"
+  },
+  "draw": {
+    "notePlaceholder": "今回描きたいものは？例：かっこいい立ちポーズ、手紙を持っている（任意）",
+    "notePlaceholderFirst": "どんな雰囲気にしますか？例：雨の街に立っている（任意）",
+    "noteLabel": "今回描きたいもの",
+    "framing": "画角",
+    "count": "一度に描く枚数",
+    "preparing": "準備中…",
+    "start": "描画開始",
+    "first": "最初の立ち絵を描く"
+  },
+  "gear": {
+    "add": "パーツを追加",
+    "addSubtitle": "まず名前と見た目を書いておきましょう。あとで単体のデザイン画を描けます。",
+    "edit": "「{{name}}」を編集",
+    "zoom": "「{{name}}」を拡大",
+    "defaultAnchor": "身に着ける",
+    "noDesign": "デザイン画はまだありません",
+    "takeOff": "外す",
+    "putOn": "着ける",
+    "worn": "着用",
+    "notWorn": "未着用",
+    "draw": "描く",
+    "drawTitle": "このパーツのデザイン画を単体で描く",
+    "needPortrait": "単体で描くには、先に立ち絵が必要です",
+    "needPortraitHint": "先に立ち絵を描くと、それをもとにパーツを単体で描けます。"
+  },
+  "drawPart": {
+    "title": "「{{name}}」を描く",
+    "subtitle": "立ち絵をもとに、このパーツのデザイン画を単体で描きます。",
+    "note": "今回描きたいもの（任意）",
+    "notePlaceholder": "例：素材を真鍮にして、縁を少し使い込んだ感じに",
+    "view": "描く面",
+    "views": {
+      "front": "正面",
+      "back": "背面",
+      "detail": "細部"
+    },
+    "count": "枚数"
+  },
+  "reference": {
+    "add": "参考画像を追加",
+    "addSubtitle": "どこを参考にするか書いておくと、以降の描画すべてに添えられます。"
+  },
+  "body": {
+    "age": "年齢感",
+    "headRatio": "頭身",
+    "height": "身長",
+    "build": "体型"
+  },
+  "hair": {
+    "tags": "髪型のタイプ",
+    "all": "すべて",
+    "color": "髪色",
+    "accent": "メッシュ",
+    "length": "長さ",
+    "volume": "ボリューム",
+    "bangs": "前髪",
+    "texture": "髪質"
+  },
+  "face": {
+    "mood": "表情",
+    "eyeShape": "目の形",
+    "brows": "眉",
+    "eyeColor": "目の色"
+  },
+  "outfit": {
+    "tabs": "衣装",
+    "defaultName": "衣装 {{number}}",
+    "untitled": "名前のない衣装",
+    "add": "衣装を追加",
+    "none": "このキャラクターにはまだ衣装がありません。",
+    "name": "衣装の名前",
+    "style": "スタイル",
+    "styleTitle": "{{label}}：{{hint}}",
+    "colors": "配色",
+    "colorOrder": "順に：{{roles}}",
+    "roles": {
+      "outer": "アウター／トップス",
+      "inner": "インナー／ボトムス",
+      "accent": "アクセント"
+    },
+    "addColor": "配色に追加",
+    "noPalette": "まだカラーパレットがありません。先に「カラー」でキャラクターの色を決めてから選びましょう。",
+    "goPalette": "カラーを設定",
+    "silhouette": "シルエット",
+    "layers": "重ね着",
+    "detail": "細部"
+  },
+  "palette": {
+    "changeColor": "色を変更",
+    "name": "色の名前",
+    "untitled": "名前なし",
+    "use": "用途",
+    "general": "一般",
+    "delete": "「{{name}}」を削除",
+    "empty": "まだ色がありません。キャラクター専用の色を 4〜8 色決めておくと、衣装や小物の色はここから選べます。",
+    "defaultName": "色 {{number}}",
+    "add": "色を追加",
+    "importHint": "先に「髪型」か「顔立ち」で色を選んでください",
+    "import": "髪色と目の色を取り込む"
+  },
+  "style": {
+    "presets": "プリセット",
+    "presetNotes": {
+      "less": "すっきりした線、背景は余白",
+      "casual": "テレビアニメのようなバランス",
+      "key": "細部まで描き込み、宣伝用イラスト向け"
+    },
+    "groups": {
+      "form": "造形",
+      "render": "画面",
+      "color": "色調"
+    },
+    "references": "参考画像",
+    "addReference": "追加",
+    "referenceFallback": "参考",
+    "removeReference": "この参考画像を外す",
+    "referenceEmpty": "参考画像を置いて、どこを参考にするか書きましょう（線、配色、素材…）",
+    "roles": {
+      "style": "画風",
+      "identity": "見た目の特徴",
+      "color": "配色",
+      "clothing": "服の構造",
+      "material": "素材",
+      "composition": "構図"
+    }
+  },
+  "persona": {
+    "aiReady": "AI の提案ができました",
+    "suggestion": "AI の提案",
+    "changeCount_other": "{{count}} 項目",
+    "showLess": "閉じる",
+    "more_other": "ほか {{count}} 項目",
+    "applyAll": "すべて適用",
+    "applyAndDraw": "適用して描く",
+    "applyOnly": "適用のみ",
+    "dismiss": "使わない",
+    "name": "名前",
+    "story": "プロフィールとストーリー",
+    "storyPlaceholder": "例：軌道都市のあいだで荷物を届ける配達人。落ち着いていて、約束を守る。",
+    "traits": "性格",
+    "traitsPlaceholder": "入力して Enter",
+    "locks": "必ず残す特徴",
+    "locksNote": "毎回の描画に反映されます",
+    "locksPlaceholder": "例：銀白のショートヘア",
+    "suggestHair": "{{color}}の{{style}}",
+    "suggestEyes": "{{color}}の瞳",
+    "remove": "「{{name}}」を削除",
+    "ask": "AI に手伝ってもらう",
+    "askPlaceholder": "何を足しますか？例：生い立ちを補う、トレードマークの小物をひとつ。空欄なら今のプロフィールをもとに補完します。",
+    "asking": "AI が書いています（30 秒ほど）…",
+    "askButton": "AI に設定を補完してもらう",
+    "askHint": "AI が書いた内容はまず一覧で表示され、「適用」を押すまで変更されません。",
+    "fillRequest": "今のプロフィール「{{profile}}」をもとに、このキャラクターの設定と見た目を補完してください。"
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "job": {
+    "status": {
+      "ended": "終了",
+      "adopted": "採用済み",
+      "adoptedStillDrawing": "採用済み・まだ描画中",
+      "newImages_other": "新しい画像 {{count}}",
+      "newImagesStillDrawing_other": "新しい画像 {{count}}・まだ描画中",
+      "noNewImages": "新しい画像なし",
+      "drawing": "描画中",
+      "drawingProgress": "描画中 {{returned}}／{{expected}}",
+      "failed": "描けませんでした",
+      "notSent": "未送信",
+      "waitingToSend": "送信待ち",
+      "unknown": "状態不明"
+    },
+    "action": {
+      "view": "見る",
+      "pick": "1枚選ぶ",
+      "drawAgain": "もう一度描く",
+      "viewInCodex": "Codex で見る",
+      "openInCodex": "Codex で開く",
+      "tryAgain": "もう一度試す",
+      "sendAnyway": "それでも送る"
+    }
+  },
+  "comparison": {
+    "noOutfit": "衣装が未指定",
+    "view": {
+      "front": "正面のメイン画像",
+      "full": "全体のメイン画像",
+      "back": "背面",
+      "detail": "細部",
+      "unknown": "ビュー不明"
+    }
+  },
+  "diff": {
+    "area": {
+      "persona": "プロフィール",
+      "appearance": "見た目",
+      "dna": "キャラクター DNA",
+      "palette": "カラーパレット",
+      "locks": "固定する特徴",
+      "style": "画風",
+      "parts": "パーツ",
+      "outfits": "衣装"
+    },
+    "field": {
+      "name": "名前",
+      "story": "プロフィールとストーリー",
+      "traits": "性格",
+      "hairText": "髪の説明",
+      "eyesText": "目の説明",
+      "silhouetteText": "シルエットの説明",
+      "age": "年齢感",
+      "headRatio": "頭身",
+      "build": "体型",
+      "height": "身長感",
+      "hairStyle": "髪型",
+      "length": "髪の長さ",
+      "volume": "ボリューム",
+      "bangs": "前髪",
+      "texture": "髪質",
+      "color": "髪色",
+      "accent": "メッシュ",
+      "mood": "表情",
+      "eyeShape": "目の形",
+      "brows": "眉",
+      "eyeColor": "目の色",
+      "notes": "補足",
+      "mustKeep": "必ず残す特徴",
+      "styleName": "画風の名前",
+      "styleDescription": "画風の説明",
+      "activeDirection": "いまの方向",
+      "outfitName": "衣装の名前",
+      "outfitStyle": "服のスタイル",
+      "silhouette": "シルエット",
+      "layers": "重ね着",
+      "detail": "細部",
+      "colors": "配色"
+    },
+    "unset": "未設定",
+    "empty": "空欄",
+    "none": "なし",
+    "pieces_other": "{{count}}点",
+    "added": "{{name}}を追加",
+    "removed": "{{name}}を削除",
+    "directionAdded": "方向 {{id}}を追加",
+    "directionRemoved": "方向 {{id}}を削除",
+    "directionName": "方向 {{id}}の名前",
+    "directionControl": "方向 {{id}}の{{control}}",
+    "partName": "{{name}}の名前",
+    "partDescription": "{{name}}の説明",
+    "partStatus": "{{name}}の状態",
+    "outfitItem": "{{outfit}}：{{name}}",
+    "wear": "{{outfit}}：{{name}}を着る",
+    "worn": "着用",
+    "notWorn": "未着用"
+  }
+}

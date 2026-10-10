@@ -78,7 +78,7 @@
 .drawbar { position: absolute; left: 50%; bottom: 16px; z-index: 3; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; width: min(700px, calc(100% - 36px)); padding: 10px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line-2); box-shadow: var(--shadow-2); }
 .drawbar .drawbar-note { min-height: 38px; font-size: 13.5px; }
 .drawbar-row { display: flex; align-items: center; gap: 8px; }
-.drawbar-select select { min-height: 40px; width: 108px; }
+.drawbar-select select { min-height: 40px; width: auto; min-width: 108px; max-width: 168px; }
 .count-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--well); border: 1px solid var(--line); }
 .count-seg > button { min-width: 44px; min-height: 32px; padding: 0 10px; border: 0; border-radius: 7px; background: none; color: var(--text-2); font-family: var(--font-num); font-weight: 600; font-size: 13.5px; }
 .count-seg > button:hover { color: var(--text); }
@@ -188,7 +188,7 @@
 
 /* 色彩 */
 .palette-list { display: flex; flex-direction: column; gap: 8px; }
-.palette-row { display: grid; grid-template-columns: 42px minmax(0, 1fr) 96px 36px; gap: 8px; align-items: center; }
+.palette-row { display: grid; grid-template-columns: 42px minmax(0, 1fr) 112px 36px; gap: 8px; align-items: center; }
 .color-well { position: relative; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; }
 .color-well input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .color-well span { display: block; width: 100%; height: 100%; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22); }
@@ -208,6 +208,11 @@
 .gear-info small { font-size: 12px; color: var(--text-3); }
 .gear-actions { display: flex; align-items: center; gap: 2px; padding: 6px 8px 10px 10px; }
 .gear-wear { display: flex; align-items: center; gap: 6px; margin-right: auto; font-size: 12px; color: var(--text-3); }
+.gear-wear > span { white-space: nowrap; }
+.gear-actions .icon-btn { width: 30px; }
+/* 視窗窄（最小 1000px）或按鈕字比較長時，「繪製」換到下一行，不被卡片裁掉 */
+.gear-actions { flex-wrap: wrap; row-gap: 4px; }
+.gear-actions > .btn { margin-left: auto; }
 .gear-add { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 200px; border-radius: 12px; border: 1px dashed var(--line-3); background: none; color: var(--text-3); }
 .gear-add:hover { border-color: var(--gold); color: var(--gold-2); }
 
@@ -269,6 +274,9 @@
 .roster-persona { font-size: 12.5px; line-height: 1.6; color: var(--text-2); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .roster-status { position: absolute; top: 10px; left: 10px; z-index: 2; display: flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: var(--text-2); font-size: 12px; }
 .roster-status .pill { background-color: rgba(13, 15, 28, .82); }
+/* 狀態文字依語言長短不同：太長時在卡片內截斷，不超出卡片 */
+.roster-status { max-width: calc(100% - 20px); }
+.roster-status .pill { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .roster-new { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border-style: dashed; background: none; color: var(--text-2); font-size: 16px; }
 .roster-new:hover { color: var(--gold-2); border-color: var(--gold); }
 .roster-plus { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; border: 1px solid currentColor; }
@@ -305,3 +313,31 @@
   .roster { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .roster-name { font-size: 20px; }
 }
+
+/* ── 語言選單（角色選單右上、工作台「更多」選單） ── */
+.menu-sep { height: 1px; margin: 5px 6px; background: var(--line); }
+.menu-label { display: flex; align-items: center; gap: 6px; padding: 6px 11px 3px; font-size: 11.5px; color: var(--text-3); }
+.menu-panel > button[aria-checked="true"] { color: var(--gold); }
+.menu-panel .menu-check { margin-left: auto; }
+.lang-menu > summary { cursor: pointer; }
+.lang-menu .menu-panel { min-width: 180px; }
+.select-top .lang-menu { margin-left: auto; }
+/* 分類欄名稱不換行（換語言後字數不同） */
+.rail-label { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── 刪除角色 ── */
+.menu-panel > button.is-danger { color: var(--rose); }
+.menu-panel > button.is-danger:hover { background: var(--rose-soft); }
+/* 角色卡右上角的刪除鈕：滑過或鍵盤聚焦卡片時才出現；觸控裝置一直顯示 */
+.roster-delete { position: absolute; top: 8px; right: 8px; z-index: 3; width: 32px; height: 32px; background: rgba(13, 15, 28, .82); color: var(--text-2); opacity: 0; transition: opacity var(--dur), color var(--dur), background var(--dur); }
+.roster-card:hover .roster-delete, .roster-card:focus-within .roster-delete { opacity: 1; }
+.roster-delete:hover:not(:disabled) { color: var(--rose); background: rgba(13, 15, 28, .92); }
+@media (hover: none) { .roster-delete { opacity: 1; } }
+.roster-card:has(.roster-delete) .roster-status { max-width: calc(100% - 58px); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.toast-action { flex: none; color: var(--gold); font-weight: 600; }
+.select-trash { margin-top: 18px; color: var(--text-3); }
+.select-trash:hover:not(:disabled) { color: var(--text); background: var(--surface-3); }
+.trash-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.btn-text.btn-danger { color: var(--rose); }
+

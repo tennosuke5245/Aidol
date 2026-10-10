@@ -1,0 +1,192 @@
+{
+  "rail": "Creator sections",
+  "categories": {
+    "persona": "Profile",
+    "body": "Body",
+    "hair": "Hair",
+    "face": "Face",
+    "outfit": "Outfit",
+    "color": "Palette",
+    "gear": "Pieces",
+    "style": "Art style"
+  },
+  "hints": {
+    "persona": "Name, personality and story. Not sure what to write? Let the AI do it.",
+    "body": "Age, head ratio and build.",
+    "hair": "Click a style to try it on. Colors are below.",
+    "face": "Expression, eye shape, brows and eye color.",
+    "outfit": "Pick a style, then choose colors from the character's palette.",
+    "color": "The character's own colors, used for outfits and accessories.",
+    "gear": "Put each piece on or take it off, or draw its design on its own.",
+    "style": "Turn the knobs to change the feel of the image."
+  },
+  "stage": {
+    "label": "Character",
+    "previewTitle": "{{name}} · main illustration",
+    "zoom": "Enlarge main illustration",
+    "portraitAlt": "Main illustration of {{name}}",
+    "changedTitle": "The look has changed since this illustration",
+    "changedHint": "Press \"Start drawing\" to redraw with the new settings",
+    "portraitTitle": "Main illustration",
+    "portraitHint": "Click to enlarge. Adjust the look on the right, then press \"Start drawing\" for a new one",
+    "emptyTitle": "No main illustration yet",
+    "emptyHint": "Pick a look on the right, then press \"Draw first illustration\""
+  },
+  "draw": {
+    "notePlaceholder": "What should this one show? e.g. a cool stance, holding a letter (optional)",
+    "notePlaceholderFirst": "What feel are you after? e.g. standing in a rainy city (optional)",
+    "noteLabel": "What to draw this time",
+    "framing": "Framing",
+    "count": "Images per run",
+    "preparing": "Preparing…",
+    "start": "Start drawing",
+    "first": "Draw first illustration"
+  },
+  "gear": {
+    "add": "Add piece",
+    "addSubtitle": "Write down its name and look first. You can draw its design on its own later.",
+    "edit": "Edit \"{{name}}\"",
+    "zoom": "Enlarge \"{{name}}\"",
+    "defaultAnchor": "On body",
+    "noDesign": "No design yet",
+    "takeOff": "Take off",
+    "putOn": "Put on",
+    "worn": "On",
+    "notWorn": "Off",
+    "draw": "Draw",
+    "drawTitle": "Draw this piece's design on its own",
+    "needPortrait": "Draw a main illustration first to draw pieces on their own",
+    "needPortraitHint": "Draw the main illustration first. Then each piece can be drawn on its own, based on it."
+  },
+  "drawPart": {
+    "title": "Draw \"{{name}}\"",
+    "subtitle": "Draw this piece's design on its own, based on the main illustration.",
+    "note": "What should this one show? (optional)",
+    "notePlaceholder": "e.g. make it brass, a little worn at the edges",
+    "view": "View",
+    "views": {
+      "front": "Front",
+      "back": "Back",
+      "detail": "Detail"
+    },
+    "count": "Images"
+  },
+  "reference": {
+    "add": "Add reference image",
+    "addSubtitle": "Say what to borrow from it. It's included every time you draw."
+  },
+  "body": {
+    "age": "Age",
+    "headRatio": "Head ratio",
+    "height": "Height",
+    "build": "Build"
+  },
+  "hair": {
+    "tags": "Hairstyle tags",
+    "all": "All",
+    "color": "Hair color",
+    "accent": "Highlight",
+    "length": "Length",
+    "volume": "Volume",
+    "bangs": "Bangs",
+    "texture": "Texture"
+  },
+  "face": {
+    "mood": "Expression",
+    "eyeShape": "Eye shape",
+    "brows": "Brows",
+    "eyeColor": "Eye color"
+  },
+  "outfit": {
+    "tabs": "Outfits",
+    "defaultName": "Outfit {{number}}",
+    "untitled": "Untitled outfit",
+    "add": "Add outfit",
+    "none": "This character has no outfits yet.",
+    "name": "Outfit name",
+    "style": "Style",
+    "styleTitle": "{{label}}: {{hint}}",
+    "colors": "Colors",
+    "colorOrder": "Order: {{roles}}",
+    "roles": {
+      "outer": "Outer/top",
+      "inner": "Inner/bottom",
+      "accent": "Accent"
+    },
+    "addColor": "Add to colors",
+    "noPalette": "No palette yet. Set the character's colors in Palette first, then come back here.",
+    "goPalette": "Go to Palette",
+    "silhouette": "Silhouette",
+    "layers": "Layers",
+    "detail": "Detail"
+  },
+  "palette": {
+    "changeColor": "Change color",
+    "name": "Color name",
+    "untitled": "Untitled",
+    "use": "Use",
+    "general": "General",
+    "delete": "Delete \"{{name}}\"",
+    "empty": "No colors yet. Give the character 4–8 colors of their own to use for outfits and accessories.",
+    "defaultName": "Color {{number}}",
+    "add": "Add color",
+    "importHint": "Pick a color under Hair or Face first",
+    "import": "Use hair and eye colors"
+  },
+  "style": {
+    "presets": "Presets",
+    "presetNotes": {
+      "less": "Clean lines, empty background",
+      "casual": "Balanced, like a TV anime",
+      "key": "Rich detail, made for promo art"
+    },
+    "groups": {
+      "form": "Shape",
+      "render": "Picture",
+      "color": "Tone"
+    },
+    "references": "Reference images",
+    "addReference": "Add",
+    "referenceFallback": "Reference",
+    "removeReference": "Remove this reference",
+    "referenceEmpty": "Add a reference image and say what to borrow from it (lines, colors, materials…)",
+    "roles": {
+      "style": "Art style",
+      "identity": "Look",
+      "color": "Colors",
+      "clothing": "Clothing",
+      "material": "Materials",
+      "composition": "Composition"
+    }
+  },
+  "persona": {
+    "aiReady": "AI suggestions ready",
+    "suggestion": "AI suggestions",
+    "changeCount_one": "{{count}} change",
+    "changeCount_other": "{{count}} changes",
+    "showLess": "Show less",
+    "more_one": "{{count}} more",
+    "more_other": "{{count}} more",
+    "applyAll": "Apply all",
+    "applyAndDraw": "Apply and draw",
+    "applyOnly": "Apply only",
+    "dismiss": "Dismiss",
+    "name": "Name",
+    "story": "Profile and story",
+    "storyPlaceholder": "e.g. A courier who makes deliveries between orbital cities. Calm and true to their word.",
+    "traits": "Personality",
+    "traitsPlaceholder": "Type, then press Enter",
+    "locks": "Features to keep",
+    "locksNote": "Added to every image",
+    "locksPlaceholder": "e.g. short silver hair",
+    "suggestHair": "{{color}} hair ({{style}})",
+    "suggestEyes": "{{color}} eyes",
+    "remove": "Remove \"{{name}}\"",
+    "ask": "Ask the AI",
+    "askPlaceholder": "What should it add? e.g. flesh out the backstory, give them a signature accessory. Leave blank to fill in from the current profile.",
+    "asking": "The AI is writing (about 30 seconds)…",
+    "askButton": "Fill in with AI",
+    "askHint": "The AI's suggestions are listed first. Nothing changes until you press Apply.",
+    "fillRequest": "Based on the current profile, \"{{profile}}\", fill in this character's settings and look."
+  }
+}

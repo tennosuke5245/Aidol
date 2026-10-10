@@ -1,0 +1,9 @@
+{
+  "NETWORK": "無法連線到本機服務。",
+  "UNKNOWN": "發生錯誤（{{code}}）。",
+  "CODEX_UNAVAILABLE": "未能連線至本機 Codex CLI。請確認 Codex 已安裝並登入；AIDOL 不會變更登入。",
+  "CODEX_OPEN_FAILED": "沒辦法打開 Codex App。請確認已經安裝並登入 Codex App，再試一次。",
+  "DECOMPOSE_TIMEOUT": "Codex 讀圖逾時，請稍後再試一次。",
+  "DECOMPOSE_NEEDS_CODEX": "需要已安裝並登入的 Codex CLI 才能自動拆解裝備；也可以在畫布上手動新增。",
+  "DECOMPOSE_FAILED": "拆解沒有完成。"
+}

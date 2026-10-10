@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { inflateRawSync } from 'node:zlib';
-import { ProjectStore } from '../server/store.mjs';
+import { ProjectStore, portableTextScrubber } from '../server/store.mjs';
 import { startServer } from '../server/http.mjs';
 import { registerCodexRoutes } from '../server/integrations.mjs';
 import { characterYaml, parseCharacterYaml, newCharacter } from '../shared/domain.mjs';
@@ -223,6 +223,125 @@ test('HTTP 匯出另帶有版本的自由畫布與可攜圖片，保留 YAML／�
   } finally { await running.close(); }
 });
 
+test('匯出的設計包不帶本機絕對路徑與本機網址，工作內的路徑改成包內相對路徑', async t => {
+  const { project, dataDir } = await setup(t);
+  const running = await startServer({ dataDir, demo: false, port: 0, announce: false, registerIntegrations: registerCodexRoutes });
+  try {
+    const store = running.store;
+    const first = await store.createJob(project.id, { baseRevision: 1, prompt: '先畫正式立繪', kind: 'generate' });
+    const drawn = await store.addAsset(project.id, { buffer: png, jobId: first.id });
+    const accepted = await store.acceptCandidate(project.id, drawn.candidate.id, { baseRevision: 1 });
+    // 繪風參考圖的名稱是 Codex 或檔案總管給的，可能就是一條本機路徑
+    const style = await store.addAsset(project.id, { buffer: png, name: path.join(os.homedir(), 'Desktop', 'ref.png'), role: 'reference' });
+    const character = structuredClone(accepted.character);
+    character.style.references.push({ id: 'style-ref', assetId: style.asset.id, role: 'style', focus: ['線稿'] });
+    await store.updateCharacter(project.id, { baseRevision: 2, character });
+    const job = await store.createJob(project.id, { baseRevision: 3, prompt: '換一件外套', kind: 'refine' });
+    assert.ok(job.context.referenceAssets.length > 1 && path.isAbsolute(job.context.referenceAssets[0].path), '本機工作仍用絕對路徑讀參考圖');
+    assert.equal(job.context.styleReferences[0].name, path.join(os.homedir(), 'Desktop', 'ref.png'));
+    const handedOff = await fetch(`${running.url}/api/projects/${project.id}/jobs/${job.id}/handoff`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    assert.equal(handedOff.status, 200);
+    const { submitUrl, url: codexUrl } = (await store.getJob(project.id, job.id)).handoff;
+    const credentials = JSON.parse(await fs.readFile(path.join(store.jobDir(project.id, job.id), 'handoff.json'), 'utf8'));
+    // Codex 回報的失敗訊息：帶著 token、家目錄、工作資料夾、回報網址與 codex 連結
+    await store.recordProgress(project.id, job.id, { event: 'failed', message: `token ${credentials.token}；圖存在 ${path.join(os.homedir(), '.codex', 'out.png')} 與 ${store.jobDir(project.id, job.id)}；回報到 ${submitUrl} 失敗；${codexUrl}` });
+    const response = await fetch(`${running.url}/api/projects/${project.id}/export`);
+    const files = entries(Buffer.from(await response.arrayBuffer()));
+    const message = JSON.parse(files[`jobs/${job.id}/job.json`]).failure.message;
+    assert.equal(message, `token [token]；圖存在 ${path.join('~', '.codex', 'out.png')} 與 ${path.join('jobs', job.id)}；回報到 [local-url] 失敗；[codex-link]`, '訊息只存前 500 字，codex 連結放最後');
+    const locals = [dataDir, await fs.realpath(dataDir), ...(os.homedir().length > 3 ? [os.homedir()] : [])];
+    const forms = [...new Set(locals)].flatMap(dir => [dir, JSON.stringify(dir).slice(1, -1), encodeURIComponent(dir), dir.replaceAll('\\', '/')]);
+    for (const [name, content] of Object.entries(files)) {
+      if (name.startsWith('images/')) continue;
+      const text = content.toString();
+      for (const form of forms) assert.ok(!text.includes(form), `${name} 不可包含本機路徑 ${form}`);
+      assert.ok(!text.includes(credentials.token), `${name} 不可包含交接 token`);
+      assert.doesNotMatch(text, /[A-Za-z]:\\\\|\b(?:127\.0\.0\.1|localhost):\d+|codex:\/\//, `${name} 不可包含磁碟路徑、本機網址或 Codex 連結`);
+    }
+    const exportedJob = JSON.parse(files[`jobs/${job.id}/job.json`]);
+    const manifest = JSON.parse(files['manifest.json']);
+    assert.equal(exportedJob.context.snapshotPath, `jobs/${job.id}/input.yaml`);
+    assert.equal(exportedJob.context.instructionsPath, `jobs/${job.id}/instructions.md`);
+    for (const pathInPack of [exportedJob.context.snapshotPath, exportedJob.context.instructionsPath]) assert.ok(files[pathInPack], `${pathInPack} 在包裡找得到`);
+    for (const reference of exportedJob.context.referenceAssets) {
+      assert.equal(reference.path, manifest.assets.find(item => item.id === reference.id).exportedPath, '參考圖指向包內圖片');
+      assert.deepEqual(files[reference.path], png);
+      assert.match(files[exportedJob.context.instructionsPath].toString(), new RegExp(`: ${reference.path} \\(`), '工作說明裡的參考圖也指向包內圖片');
+    }
+    assert.equal(exportedJob.context.styleReferences[0].name, path.join('~', 'Desktop', 'ref.png'), '繪風參考的名稱也清過');
+    assert.deepEqual(Object.keys(exportedJob.handoff), ['createdAt'], '交接只留時間，不帶工作區、連結與回報網址');
+    assert.match(exportedJob.handoffPrompt, new RegExp(`jobs/${job.id}/input\\.yaml`));
+    assert.deepEqual(manifest.jobs.find(item => item.id === job.id), exportedJob, 'manifest 與 job.json 用同一份清理後的工作');
+    const local = await store.getJob(project.id, job.id);
+    assert.ok(path.isAbsolute(local.context.snapshotPath) && local.handoff.workspace, '匯出不改動本機存檔');
+  } finally { await running.close(); }
+});
+
+test('匯出清理認得本機路徑的各種寫法，也不誤改一般網址與相似的資料夾名', () => {
+  // 假的電腦路徑用 join 組出來，原始碼裡不出現字面路徑（check:oss 會擋）
+  const win = (...parts) => parts.join('\\');
+  const posix = (...parts) => parts.join('/');
+  const home = win('C:', 'Users', 'John Smith');
+  const projectDir = win('D:', 'dev', 'aidol', '.aidol', 'projects', 'p1');
+  const scrub = portableTextScrubber({ folders: [projectDir, win('D:', 'dev', 'aidol', '.aidol'), posix('', 'x', '.aidol')], home, secrets: ['a'.repeat(64)] });
+  const cases = [
+    [win('d:', 'dev', 'aidol', '.aidol', 'projects', 'p1', 'jobs', 'j'), win('jobs', 'j')],
+    [projectDir.replaceAll('\\', '\\\\') + '\\\\jobs', 'jobs'],
+    [posix('/mnt', 'd', 'dev', 'aidol', '.aidol', 'projects', 'p1', 'jobs'), 'jobs'],
+    [win('c:', 'Users', 'John Smith', 'Pictures', 'x.png'), win('~', 'Pictures', 'x.png')],
+    [home.replaceAll('\\', '\\\\') + '\\\\x.png', '~\\\\x.png'],
+    [posix('/mnt', 'c', 'Users', 'John Smith', 'x.png'), '~/x.png'],
+    [posix('', 'c', 'Users', 'bob', 'x.png'), '~/x.png'],
+    [posix('/mnt', 'c', 'Users', 'bob', 'x.png'), '~/x.png'],
+    ['file://localhost' + posix('', 'Users', 'bob', 'x.png'), '~/x.png'],
+    [['', 'Users', 'bob', 'x.png'].join('%2F'), '~%2Fx.png'],
+    [posix('', 'home', 'alice', 'out.png'), '~/out.png'],
+    ['http://127.0.0.1:37445/api/projects/p1/jobs/j/progress 失敗', '[local-url] 失敗'],
+    ['codex://new?path=%2Ftmp%2Fx&prompt=hi', '[codex-link]'],
+    [`token ${'a'.repeat(64)}`, 'token [token]'],
+    ['https://example.com/rootkit 與 https://example.com/home/dashboard', 'https://example.com/rootkit 與 https://example.com/home/dashboard'],
+    [posix('', 'x', '.aidol-old', 'y'), posix('', 'x', '.aidol-old', 'y')],
+    [posix('', 'x', '.aidol', 'y'), 'y'],
+    // %20 與整段 URL 編碼的寫法
+    ['file:///' + posix('C:', 'Users', 'John%20Smith', 'Pictures', 'x.png'), 'file:///~/Pictures/x.png'],
+    [encodeURIComponent(win('C:', 'Users', 'John Smith', 'AppData', 'x')), '~%5CAppData%5Cx'],
+    ['file:///' + posix('C:', 'Users', 'Jane%20Doe', 'x.png'), '~/x.png'],
+    // 沒寫 http 的本機位址、WSL 網路路徑、macOS 外接磁碟、/var/home
+    ['127.0.0.1:37445/api/x 失敗', '[local-url] 失敗'],
+    [win('', '', 'wsl.localhost', 'Ubuntu', 'home', 'bob', 'x.png'), '~\\x.png'],
+    [posix('', 'Volumes', 'Macintosh HD', 'Users', 'bob', 'x.png'), '~/x.png'],
+    [posix('', 'var', 'home', 'bob', 'x.png'), '~/x.png'],
+  ];
+  for (const [input, expected] of cases) assert.equal(scrub(input), expected, input);
+  // 邊界認得中日文字
+  const cjk = portableTextScrubber({ folders: [posix('', 'data', '角色')], home: posix('', 'home', '小明') });
+  assert.equal(cjk(posix('', 'data', '角色備份', 'x')), posix('', 'data', '角色備份', 'x'));
+  assert.equal(cjk(posix('', 'data', '角色', 'x')), 'x');
+  assert.equal(cjk(posix('', 'home', '小明', 'x')), '~/x');
+});
+
+test('資料夾搬過家後匯出：工作路徑仍是包內路徑，舊位置也不會帶出去', async (t) => {
+  const { store, project } = await setup(t);
+  const job = await store.createJob(project.id, { prompt: '搬家前建立的工作', baseRevision: 1 });
+  // 模擬整個資料夾從別台電腦搬過來：存檔裡記的仍是舊位置
+  const oldProject = path.join(path.parse(os.tmpdir()).root, 'old-machine', 'aidol-data', 'projects', project.id);
+  const metadataFile = path.join(store.projectDir(project.id), 'project.json');
+  const metadata = JSON.parse(await fs.readFile(metadataFile, 'utf8'));
+  const saved = metadata.jobs.find((item) => item.id === job.id);
+  const moved = (file) => path.join(oldProject, path.relative(store.projectDir(project.id), file));
+  saved.handoffPrompt = saved.handoffPrompt.split(saved.context.snapshotPath).join(moved(saved.context.snapshotPath)).split(saved.context.instructionsPath).join(moved(saved.context.instructionsPath));
+  saved.context.snapshotPath = moved(saved.context.snapshotPath);
+  saved.context.instructionsPath = moved(saved.context.instructionsPath);
+  saved.failure = { at: saved.createdAt, message: `讀不到 ${path.join(oldProject, 'assets', 'x.png')}` };
+  await fs.writeFile(metadataFile, JSON.stringify(metadata, null, 2));
+  const files = entries((await store.exportProject(project.id)).buffer);
+  const exported = JSON.parse(files[`jobs/${job.id}/job.json`]);
+  assert.equal(exported.context.snapshotPath, `jobs/${job.id}/input.yaml`);
+  assert.equal(exported.context.instructionsPath, `jobs/${job.id}/instructions.md`);
+  assert.equal(exported.failure.message, `讀不到 ${path.join('assets', 'x.png')}`);
+  for (const [name, content] of Object.entries(files)) if (!name.startsWith('images/')) assert.ok(!content.toString().includes('old-machine'), `${name} 不帶舊位置`);
+});
+
 test('中斷於transaction journal後重開會完成一致寫入', async (t) => {
   const { store, project, dataDir } = await setup(t);
   const next = structuredClone(project);
@@ -403,4 +522,135 @@ test('拒絕不合法工作視角與以背面冒充主圖的YAML', async (t) => 
   bad.components.coat.views = { front: back.asset.id };
   await assert.rejects(store.updateCharacter(project.id, { baseRevision: 2, character: bad }), { code: 'VIEW_ASSET_MISMATCH' });
   assert.equal((await store.getProject(project.id)).character.revision, 2);
+});
+
+test('刪除角色：整個資料夾移到資源回收區，可以復原；刪光後不再冒出範例角色', async (t) => {
+  const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'aidol-delete-'));
+  t.after(() => fs.rm(dataDir, { recursive: true, force: true }));
+  const store = await new ProjectStore({ dataDir, demo: true }).init();
+  const project = await store.createProject({ name: '要刪的角色', brief: '' });
+  await store.addAsset(project.id, { buffer: png, name: '參考', role: 'reference' });
+  const removed = await store.deleteProject(project.id);
+  assert.equal(removed.name, '要刪的角色');
+  assert.match(removed.trashId, new RegExp(`^${project.id}--\\d{14}-[0-9a-f]{8}$`));
+  await assert.rejects(store.getProject(project.id), { code: 'PROJECT_NOT_FOUND' });
+  assert.ok(!(await store.listProjects()).some(item => item.id === project.id), '角色選單不再列出');
+  const moved = path.join(dataDir, 'trash', removed.trashId);
+  assert.ok((await fs.readdir(path.join(moved, 'assets'))).length === 1, '圖片跟著搬到資源回收區，沒有刪掉');
+  assert.equal(JSON.parse(await fs.readFile(path.join(moved, 'deleted.json'), 'utf8')).id, project.id);
+  await assert.rejects(store.deleteProject(project.id), { code: 'PROJECT_NOT_FOUND' });
+  await assert.rejects(store.deleteProject('../outside'), { code: 'INVALID_ID' });
+  await assert.rejects(store.restoreProject('../../etc'), { code: 'INVALID_TRASH_ID' });
+
+  const restored = await store.restoreProject(removed.trashId);
+  assert.equal(restored.id, project.id);
+  assert.equal(restored.assets.length, 1, '復原後圖片還在');
+  await assert.rejects(fs.access(path.join(dataDir, 'projects', project.id, 'deleted.json')));
+  await assert.rejects(store.restoreProject(removed.trashId), { code: 'TRASH_NOT_FOUND' }, '同一份不能復原兩次');
+
+  // 原位置已經有同 ID 的資料夾時不覆蓋
+  const again = await store.deleteProject(project.id);
+  await fs.cp(path.join(dataDir, 'trash', again.trashId), path.join(dataDir, 'projects', project.id), { recursive: true });
+  await assert.rejects(store.restoreProject(again.trashId), { code: 'PROJECT_EXISTS' });
+  await fs.rm(path.join(dataDir, 'projects', project.id), { recursive: true });
+  assert.equal((await store.restoreProject(again.trashId)).id, project.id);
+
+  for (const item of await store.listProjects()) await store.deleteProject(item.id);
+  const reopened = await new ProjectStore({ dataDir, demo: true }).init();
+  assert.deepEqual(await reopened.listProjects(), [], '角色刪光後重開，不會再建立範例角色');
+});
+
+test('HTTP 刪除角色只接受本機網址', async (t) => {
+  const { project, dataDir } = await setup(t);
+  const running = await startServer({ dataDir, demo: false, port: 0, announce: false });
+  try {
+    const blocked = await fetch(`${running.url}/api/projects/${project.id}`, { method: 'DELETE', headers: { Origin: 'https://evil.example' } });
+    assert.equal(blocked.status, 403);
+    assert.equal((await fetch(`${running.url}/api/projects/${project.id}`)).status, 200, '外部網站刪不掉');
+    const removed = await (await fetch(`${running.url}/api/projects/${project.id}`, { method: 'DELETE' })).json();
+    assert.equal(removed.id, project.id);
+    assert.equal((await fetch(`${running.url}/api/projects/${project.id}`)).status, 404);
+    const restored = await fetch(`${running.url}/api/trash/${removed.trashId}/restore`, { method: 'POST' });
+    assert.equal(restored.status, 200);
+    assert.equal((await fetch(`${running.url}/api/projects/${project.id}`)).status, 200);
+  } finally { await running.close(); }
+});
+
+test('刪除角色的邊界：半個資料夾不拖垮角色選單、復原能排除殘留、刪除紀錄不見也能復原、範例圖片不會把角色建回來', async (t) => {
+  const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'aidol-delete-edge-'));
+  t.after(() => fs.rm(dataDir, { recursive: true, force: true }));
+  const store = await new ProjectStore({ dataDir, demo: true }).init();
+  const keep = await store.createProject({ name: '留下的角色', brief: '' });
+  const gone = await store.createProject({ name: '刪掉的角色', brief: '' });
+  const removed = await store.deleteProject(gone.id);
+
+  // 刪除時剛好有東西寫進角色資料夾，只留下半個資料夾
+  await fs.mkdir(path.join(dataDir, 'projects', gone.id, '.agents'), { recursive: true });
+  const ids = (await store.listProjects()).map(item => item.id);
+  assert.ok(ids.includes(keep.id) && !ids.includes(gone.id), '角色選單照常列出其他角色');
+  const restored = await store.restoreProject(removed.trashId);
+  assert.equal(restored.id, gone.id, '原位置只有半個資料夾時，先移開再復原');
+  assert.ok((await fs.readdir(path.join(dataDir, 'trash'))).some(name => name.endsWith('-partial')), '殘留的半個資料夾移到資源回收區旁，沒有刪');
+
+  // 資料夾名稱和角色 ID 對不上（手動把資源回收區的資料夾搬回來）：略過，不出現打不開的角色卡
+  const again = await store.deleteProject(gone.id);
+  await fs.cp(path.join(dataDir, 'trash', again.trashId), path.join(dataDir, 'projects', again.trashId), { recursive: true });
+  assert.ok(!(await store.listProjects()).some(item => item.id === gone.id));
+  await fs.rm(path.join(dataDir, 'projects', again.trashId), { recursive: true });
+
+  // 刪除紀錄被改過：不認；刪除紀錄不見：用 project.json 認得
+  const marker = path.join(dataDir, 'trash', again.trashId, 'deleted.json');
+  await fs.writeFile(marker, JSON.stringify({ id: keep.id, name: '假的' }));
+  await assert.rejects(store.restoreProject(again.trashId), { code: 'TRASH_NOT_FOUND' });
+  await fs.rm(marker);
+  assert.deepEqual((await store.listTrash()).map(item => item.trashId), [again.trashId]);
+  assert.equal((await store.restoreProject(again.trashId)).id, gone.id);
+
+  // 範例角色被刪除後，讀它的圖片不會把資料夾建回來
+  const rin = (await store.listProjects()).find(item => item.id === 'rin');
+  assert.ok(rin, '全新安裝有範例角色');
+  await store.deleteProject('rin');
+  await assert.rejects(store.readAsset('rin', 'demo-rin-sheet'), { code: 'PROJECT_NOT_FOUND' });
+  await assert.rejects(fs.access(path.join(dataDir, 'projects', 'rin')));
+
+  // 永久刪除只刪資源回收區裡的那一份
+  const rinTrash = (await store.listTrash()).find(item => item.id === 'rin');
+  await store.purgeTrash(rinTrash.trashId);
+  assert.ok(!(await store.listTrash()).some(item => item.id === 'rin'));
+  await assert.rejects(store.purgeTrash(rinTrash.trashId), { code: 'TRASH_NOT_FOUND' });
+  await assert.rejects(store.purgeTrash('../projects'), { code: 'INVALID_TRASH_ID' });
+});
+
+test('刪除時背景拆解還沒結束：復原後標成中斷，可以再拆一次；匯出與刪除同時發生不會卡住', async (t) => {
+  const { store, project } = await setup(t);
+  const job = await store.createJob(project.id, { prompt: '立繪', baseRevision: 1 });
+  const drawn = await store.addAsset(project.id, { buffer: png, jobId: job.id });
+  await store.acceptCandidate(project.id, drawn.candidate.id, { baseRevision: 1 });
+  await store.startDecomposition(project.id, {});
+  const removed = await store.deleteProject(project.id);
+  await assert.rejects(store.finishDecomposition(project.id, { assetId: drawn.asset.id, parts: [] }), { code: 'PROJECT_NOT_FOUND' });
+  const restored = await store.restoreProject(removed.trashId);
+  assert.equal(restored.decomposition.status, 'failed');
+  assert.equal(restored.decomposition.errorCode, 'DECOMPOSE_INTERRUPTED');
+
+  const [exported, deleted] = await Promise.allSettled([store.exportProject(project.id), store.deleteProject(project.id)]);
+  assert.equal(exported.status, 'fulfilled', '匯出先完成');
+  assert.ok(exported.value.buffer.length > 0);
+  assert.equal(deleted.status, 'fulfilled', '刪除等匯出完成後才搬');
+  await assert.rejects(store.exportProject(project.id), { code: 'PROJECT_NOT_FOUND' });
+});
+
+test('角色刪除後才送來的交接請求：回報找不到，不會把角色資料夾建回來', async (t) => {
+  const { project, dataDir } = await setup(t);
+  const running = await startServer({ dataDir, demo: false, port: 0, announce: false, registerIntegrations: registerCodexRoutes });
+  try {
+    const job = await running.store.createJob(project.id, { baseRevision: 1, prompt: '立繪', kind: 'generate' });
+    await running.store.deleteProject(project.id);
+    const handoff = await fetch(`${running.url}/api/projects/${project.id}/jobs/${job.id}/handoff`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    assert.equal(handoff.status, 404);
+    await assert.rejects(fs.access(path.join(dataDir, 'projects', project.id)), '沒有留下半個資料夾');
+    assert.equal((await fetch(`${running.url}/api/projects`)).status, 200, '角色選單照常');
+    const trash = await (await fetch(`${running.url}/api/trash`)).json();
+    assert.deepEqual(trash.map(item => item.id), [project.id]);
+  } finally { await running.close(); }
 });

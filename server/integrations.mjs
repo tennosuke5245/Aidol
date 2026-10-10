@@ -1,5 +1,6 @@
 import { readFile, writeFile, mkdir, cp, rename } from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
 import multer from 'multer';
 import { CodexClient, codexVersion } from './codex/client.mjs';
@@ -32,7 +33,13 @@ async function verifyHandoff(store, id, jobId, request) {
   return handoff;
 }
 
-export function registerCodexRoutes(app, store, { client = new CodexClient(), version = codexVersion } = {}) {
+// 背景 Codex（聊天、自動拆解）在系統暫存區的空資料夾裡工作，不用角色資料夾：
+// Windows 上被程式當成工作位置的資料夾不能搬，用角色資料夾會讓「刪除角色」搬不動；
+// 也免得 Codex 順著資料夾往上讀到不相干的 AGENTS.md 或 skills。需要的圖片以完整路徑附上。
+export function registerCodexRoutes(app, store, { client = new CodexClient(), version = codexVersion, workDir = path.join(os.tmpdir(), 'aidol-codex') } = {}) {
+  const codexWorkDir = async () => { await mkdir(workDir, { recursive: true }); return workDir; };
+  // 刪除或復原角色時資料夾搬不動：先請背景 Codex 放開（閒著就重開），再讓核心搬一次。
+  store.setFolderReleaser(() => (client.release ? client.release() : 'none'));
   const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024, files: 4, fieldSize: 200000 } });
   const locks = new Map();
   const lock = async (key, callback) => {
@@ -50,7 +57,7 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
       response.json({ available: true, version: cliVersion, authenticated: Boolean(auth.account), accountType: auth.account?.type || null, planType: auth.account?.planType || null, models: catalog.data,
         capabilities: { textDraft: true, imageGeneration: false, appImageHandoff: true }, skill });
     } catch {
-      response.json({ available: false, authenticated: false, version: null, models: [], capabilities: { textDraft: false, imageGeneration: false, appImageHandoff: true }, skill, error: '未能連線至本機 Codex CLI。請確認 Codex 已安裝並登入；AIDOL 不會變更登入。' });
+      response.json({ available: false, authenticated: false, version: null, models: [], capabilities: { textDraft: false, imageGeneration: false, appImageHandoff: true }, skill, error: '未能連線至本機 Codex CLI。請確認 Codex 已安裝並登入；AIDOL 不會變更登入。', code: 'CODEX_UNAVAILABLE' });
     }
   }));
 
@@ -76,7 +83,7 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
       `使用者本次要求：\n${message}`,
     ].join('\n\n');
     const result = await client.freshTurn({
-      cwd: store.projectDir(project.id), prompt, model: request.body.model,
+      cwd: await codexWorkDir(), prompt, model: request.body.model,
       outputSchema: { type: 'object', additionalProperties: false, properties: { yaml: { type: 'string' }, summary: { type: 'string' } }, required: ['yaml', 'summary'] },
     });
     let output;
@@ -101,9 +108,10 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
       } },
     },
   };
-  const friendly = (error) => /逾時|timeout/i.test(error?.message || '') ? 'Codex 讀圖逾時，請稍後再試一次。'
-    : /ENOENT|spawn|連線|connect/i.test(error?.message || '') ? '需要已安裝並登入的 Codex CLI 才能自動拆解裝備；也可以在畫布上手動新增。'
-    : error instanceof DomainError ? error.message : `拆解沒有完成：${String(error?.message || '未知原因').slice(0, 200)}`;
+  // 失敗原因：message 是繁中原文；code 讓介面換成使用者的語言（前端 locales/<語言>/errors.json）。
+  const friendly = (error) => /逾時|timeout/i.test(error?.message || '') ? { code: 'DECOMPOSE_TIMEOUT', message: 'Codex 讀圖逾時，請稍後再試一次。' }
+    : /ENOENT|spawn|Executable not found|not found in \$PATH|連線|connect/i.test(error?.message || '') ? { code: 'DECOMPOSE_NEEDS_CODEX', message: '需要已安裝並登入的 Codex CLI 才能自動拆解裝備；也可以在畫布上手動新增。' }
+    : error instanceof DomainError ? { code: error.code, message: error.message } : { code: 'DECOMPOSE_FAILED', message: `拆解沒有完成：${String(error?.message || '未知原因').slice(0, 200)}`, detail: String(error?.message || '').slice(0, 200) };
   async function decompose(id, { assetId, auto = false } = {}) {
     const started = await store.startDecomposition(id, { assetId, auto });
     if (started.skipped) return started;
@@ -116,14 +124,17 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
       '如果是多視角設定稿（同一角色出現多次），只框選最大、最完整的正面全身那一個。最多 10 件，從頭到腳排序。summary 用一句繁體中文說明拆出了什麼。',
       `已有的裝備：\n${existing}`,
     ].join('\n\n');
+    store.markDecomposing(id, true);
     (async () => {
       try {
-        const result = await client.freshTurn({ cwd: store.projectDir(id), prompt, images: [imagePath], outputSchema: decompositionSchema, timeoutMs: 240000 });
+        const result = await client.freshTurn({ cwd: await codexWorkDir(), prompt, images: [imagePath], outputSchema: decompositionSchema, timeoutMs: 240000 });
         let output;
         try { output = JSON.parse(result.text); } catch { throw new DomainError('Codex 有回覆，但格式不正確；可以再試一次。', 422, 'INVALID_CODEX_OUTPUT'); }
         await store.finishDecomposition(id, { assetId: asset.id, parts: output.parts, summary: output.summary, threadId: result.threadId });
       } catch (error) {
-        await store.failDecomposition(id, { assetId: asset.id, message: friendly(error) }).catch(() => {});
+        await store.failDecomposition(id, { assetId: asset.id, ...friendly(error) }).catch(() => {});
+      } finally {
+        store.markDecomposing(id, false);
       }
     })();
     return started;
@@ -139,16 +150,19 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
     if (['cancelled', 'accepted'].includes(job.status)) throw new DomainError('此工作已結束，請建立新的精修工作。', 409, 'JOB_ENDED');
     const workspace = store.projectDir(id);
     const directory = store.jobDir(id, jobId);
-    await mkdir(path.join(workspace, '.agents', 'skills'), { recursive: true });
-    await cp(skillSource(), path.join(workspace, '.agents', 'skills', 'aidol'), { recursive: true });
-    await writeJson(path.join(workspace, 'character.schema.json'), characterSchema);
-    const old = await jsonIfExists(path.join(directory, 'handoff.json'), null);
     const origin = `http://127.0.0.1:${request.socket.localPort}`;
     const submitUrl = `${origin}/api/projects/${encodeURIComponent(id)}/jobs/${encodeURIComponent(jobId)}/submit`;
-    await writeJson(path.join(directory, 'handoff.json'), {
-      schemaVersion: 1, projectId: id, jobId, baseRevision: job.baseRevision, outputView: job.outputView || 'front', outfitId: job.outfitId || null, variants: job.variants || 1,
-      submitUrl, progressUrl: `${origin}/api/projects/${encodeURIComponent(id)}/jobs/${encodeURIComponent(jobId)}/progress`, token: old?.token || randomBytes(32).toString('hex'),
-      inputPath: path.join(directory, 'input.yaml'), instructionsPath: path.join(directory, 'instructions.md'),
+    // 寫進角色資料夾的東西都在角色鎖裡、先確認角色還在：刪除角色時不會留下半個資料夾。
+    await store.withProjectFolder(id, async () => {
+      await mkdir(path.join(workspace, '.agents', 'skills'), { recursive: true });
+      await cp(skillSource(), path.join(workspace, '.agents', 'skills', 'aidol'), { recursive: true });
+      await writeJson(path.join(workspace, 'character.schema.json'), characterSchema);
+      const old = await jsonIfExists(path.join(directory, 'handoff.json'), null);
+      await writeJson(path.join(directory, 'handoff.json'), {
+        schemaVersion: 1, projectId: id, jobId, baseRevision: job.baseRevision, outputView: job.outputView || 'front', outfitId: job.outfitId || null, variants: job.variants || 1,
+        submitUrl, progressUrl: `${origin}/api/projects/${encodeURIComponent(id)}/jobs/${encodeURIComponent(jobId)}/progress`, token: old?.token || randomBytes(32).toString('hex'),
+        inputPath: path.join(directory, 'input.yaml'), instructionsPath: path.join(directory, 'instructions.md'),
+      });
     });
     // 貼進 Codex 的交接訊息只寫「畫什麼、資料在哪」：工作資料夾用相對於工作區的路徑，
     // 回報與回收規則在 AIDOL skill、細節在 instructions.md，不在這裡重複（太長會把 Codex 輸入框塞爆）。

@@ -1,0 +1,20 @@
+{
+  "saved": "設定を保存しました。",
+  "adopted": {
+    "part": "このパーツのデザイン画に採用しました。",
+    "mainDecomposing": "立ち絵に採用しました。立ち絵から衣装を分解しています…",
+    "main": "立ち絵に採用しました。"
+  },
+  "imported": "画像を取り込みました。ギャラリーに入っています。",
+  "referenceSaved": "参考画像と使い道を保存しました。",
+  "defaultFocus": {
+    "lines": "線",
+    "coloring": "塗り",
+    "look": "見た目",
+    "colors": "配色"
+  },
+  "copied": "コピーしました。",
+  "clipboardFailed": "クリップボードを使えません。テキストを選択してコピーしてください。",
+  "detailSeparator": "；",
+  "autosaveFailed": "自動保存できませんでした：{{message}}"
+}

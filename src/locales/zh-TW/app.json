@@ -1,0 +1,55 @@
+{
+  "prompt": {
+    "character": "畫出「{{name}}」的整體立繪。依照目前的人設、外觀、套裝與畫風，鎖定的特徵每張都要保留。",
+    "part": "照著目前的正式立繪，畫出「{{name}}」的{{view}}設計圖。{{description}}",
+    "partFallback": "裝備",
+    "view": {
+      "front": "正面",
+      "back": "背面",
+      "detail": "細節",
+      "full": "完整"
+    }
+  },
+  "chatFailed": "AI 沒有寫成：{{message}}",
+  "proposalApplied": "已套用 AI 寫的設定。",
+  "writingFromBrief": "AI 正在依你的描述寫設定，寫好會出現在「角色」。",
+  "briefRequest": "請依這段描述，替角色「{{name}}」補完人設、角色 DNA（身形、髮型、五官）、色票、鎖定特徵與主要套裝：",
+  "opening": "正在打開 AIDOL…",
+  "notConnected": "還沒連上本機服務",
+  "reconnect": "重新連線",
+  "newCharacter": {
+    "title": "創造新角色",
+    "subtitle": "先取個名字，其他都可以之後慢慢捏。"
+  },
+  "settingsTitle": "原始設定檔與 Codex 連線",
+  "skillInstalled": "AIDOL Skill 已安裝到 Codex。",
+  "yamlSaved": "設定檔已通過檢查並儲存。",
+  "history": {
+    "title": "存檔紀錄",
+    "hint": "每次修改都會自動存檔。讀取舊存檔會再存成一個新的存檔，圖片與後面的紀錄都會保留。",
+    "restored": "已讀取這個存檔。"
+  },
+  "closeToast": "關閉提示",
+  "documentTitle": "AIDOL · 角色設計工作室",
+  "delete": {
+    "title": "刪除角色？",
+    "drawing": "還有工作在畫：刪除後，之後才畫好的圖會收不到。",
+    "cancel": "取消",
+    "confirm": "刪除角色",
+    "done": "已刪除「{{name}}」。",
+    "undo": "復原",
+    "restored": "已復原「{{name}}」。",
+    "bodyNoImages": "「{{name}}」的設定和存檔紀錄會一起移到資源回收區。刪除後可以馬上復原，之後也能在角色選單的「資源回收區」找回來。",
+    "body_other": "「{{name}}」的設定、{{count}} 張圖和存檔紀錄會一起移到資源回收區。刪除後可以馬上復原，之後也能在角色選單的「資源回收區」找回來。"
+  },
+  "trash": {
+    "title": "資源回收區",
+    "hint": "刪除的角色會留在這裡，可以復原；永久刪除後就找不回來了。",
+    "empty": "資源回收區是空的。",
+    "images_other": "{{count}} 張圖",
+    "restore": "復原",
+    "purge": "永久刪除",
+    "purgeConfirm": "確定永久刪除？",
+    "purged": "已永久刪除「{{name}}」。"
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "busy": "Working…",
+  "closeDialog": "Close",
+  "image": {
+    "previewAlt": "Preview: {{name}}",
+    "replaceHint": "Click or drop another image to replace it",
+    "formats": "PNG, JPEG or WebP, up to 25 MB. You can also drop an image here"
+  },
+  "newCharacter": {
+    "name": "Name",
+    "namePlaceholder": "e.g. Hane",
+    "brief": "One-line description (optional)",
+    "briefPlaceholder": "e.g. A twelve-year-old genius hacker in black and red, prickly on the outside, soft on the inside.",
+    "reference": "Reference image (optional)",
+    "useFor": "Use this image for its",
+    "role": {
+      "identity": "Look and recognizable features",
+      "style": "Art style (lines, coloring)",
+      "color": "Colors",
+      "clothing": "Clothing construction"
+    },
+    "hintWithBrief": "After you create the character, the AI writes settings from this description. You review them before applying.",
+    "hintEmpty": "After you create the character, you go straight to the creator and start with the look.",
+    "creating": "Creating…",
+    "submit": "Start creating"
+  },
+  "part": {
+    "name": "Name",
+    "namePlaceholder": "e.g. Crescent hair clip",
+    "kind": "Type",
+    "kinds": {
+      "accessory": "Accessory",
+      "garment": "Clothing",
+      "footwear": "Footwear",
+      "hair": "Hairstyle",
+      "weapon": "Weapon",
+      "body": "Body feature",
+      "other": "Other"
+    },
+    "description": "What it looks like",
+    "descriptionPlaceholder": "e.g. A brass crescent hair clip in the same material as the chest buckle.",
+    "save": "Save",
+    "add": "Add to pieces"
+  },
+  "reference": {
+    "choose": "Choose a reference image",
+    "role": "Use it for",
+    "roles": {
+      "style": "Art style",
+      "identity": "Recognizable features",
+      "color": "Colors",
+      "clothing": "Clothing construction",
+      "material": "Materials",
+      "composition": "Composition"
+    },
+    "focus": "What to borrow",
+    "focusDefault": "line art, shading",
+    "focusPlaceholder": "line art, shading, metal texture",
+    "hint": "This purpose is included every time you draw from now on.",
+    "add": "Add reference"
+  },
+  "settings": {
+    "tabs": "Settings",
+    "yamlTab": "Character file",
+    "codexTab": "Codex connection",
+    "yamlHint": "The raw character file. Saving checks the format and image references. Day to day, just use the creator.",
+    "yamlLabel": "Character YAML file",
+    "yamlSave": "Check and save as v{{version}}",
+    "cliTitle": "Codex CLI · writing",
+    "signedIn": "signed in",
+    "notSignedIn": "not signed in",
+    "checking": "Checking the connection…",
+    "recheck": "Check again",
+    "skillTitle": "AIDOL Skill · drawing and progress",
+    "skillInstalled": "Installed. New chats can use $aidol.",
+    "skillNotInstalled": "The project Skill is attached every time you send a job. You can also install it into your Codex.",
+    "skillUpdate": "Update AIDOL Skill",
+    "skillInstall": "Install in Codex",
+    "notice": "Text settings are written with the Codex CLI; images are drawn in the Codex App. AIDOL opens a new Codex chat for you, and after you press send, the Skill reports progress and sends the images back. AIDOL never switches to the separately billed Image API."
+  },
+  "history": {
+    "saveNumber": "Save {{revision}}",
+    "current": "Current",
+    "restore": "Load this save"
+  }
+}

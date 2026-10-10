@@ -1,0 +1,57 @@
+{
+  "prompt": {
+    "character": "Draw a full main illustration of \"{{name}}\". Follow the current profile, appearance, outfit and art style, and keep every locked feature in each image.",
+    "part": "Based on the current main illustration, draw a {{view}} design of \"{{name}}\". {{description}}",
+    "partFallback": "this piece",
+    "view": {
+      "front": "front",
+      "back": "back",
+      "detail": "detail",
+      "full": "full"
+    }
+  },
+  "chatFailed": "The AI didn't finish writing: {{message}}",
+  "proposalApplied": "Applied the AI's settings.",
+  "writingFromBrief": "The AI is writing settings from your description. They'll show up under Profile when ready.",
+  "briefRequest": "Based on this description, fill in the profile, character DNA (body, hair, face), palette, locked features and main outfit for \"{{name}}\":",
+  "opening": "Opening AIDOL…",
+  "notConnected": "Can't reach the local service yet",
+  "reconnect": "Reconnect",
+  "newCharacter": {
+    "title": "Create a character",
+    "subtitle": "Start with a name. You can shape everything else later."
+  },
+  "settingsTitle": "Character file and Codex connection",
+  "skillInstalled": "AIDOL Skill is installed in Codex.",
+  "yamlSaved": "The character file passed the checks and was saved.",
+  "history": {
+    "title": "Save history",
+    "hint": "Every change is saved automatically. Loading an old save stores it as a new save, and all images and later saves are kept.",
+    "restored": "Loaded this save."
+  },
+  "closeToast": "Dismiss",
+  "documentTitle": "AIDOL · Character design studio",
+  "delete": {
+    "title": "Delete this character?",
+    "drawing": "A drawing job is still running. Images that finish after you delete won't be received.",
+    "cancel": "Cancel",
+    "confirm": "Delete character",
+    "done": "Deleted \"{{name}}\".",
+    "undo": "Undo",
+    "restored": "Restored \"{{name}}\".",
+    "bodyNoImages": "\"{{name}}\" with its settings and save history will be moved to the trash. You can undo right after deleting, or restore it later from Trash on the character screen.",
+    "body_one": "\"{{name}}\" with its settings, {{count}} image and save history will be moved to the trash. You can undo right after deleting, or restore it later from Trash on the character screen.",
+    "body_other": "\"{{name}}\" with its settings, {{count}} images and save history will be moved to the trash. You can undo right after deleting, or restore it later from Trash on the character screen."
+  },
+  "trash": {
+    "title": "Trash",
+    "hint": "Deleted characters stay here and can be restored. Once you delete one permanently, it can't be recovered.",
+    "empty": "The trash is empty.",
+    "images_one": "{{count}} image",
+    "images_other": "{{count}} images",
+    "restore": "Restore",
+    "purge": "Delete permanently",
+    "purgeConfirm": "Really delete?",
+    "purged": "Permanently deleted \"{{name}}\"."
+  }
+}

@@ -52,3 +52,13 @@
   --note-rose: #E6CFCA;
   --note-neutral: #DDD8CD;
 }
+
+/* 介面語言（src/i18n.js 設定 <html data-locale>）：英文以 Inter 為主；日文用日文字形，漢字才不會是繁中字形。
+   使用者自己寫的中文內容仍由 Noto Sans TC 補字。 */
+:root[data-locale="en"] {
+  --font-ui: 'AIDOL Inter', 'Inter', 'AIDOL Noto Sans TC', 'Noto Sans TC', system-ui, sans-serif;
+}
+:root[data-locale="ja"] {
+  --font-ui: 'AIDOL Sans JP', 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', 'AIDOL Noto Sans TC', system-ui, sans-serif;
+  --font-display: 'AIDOL Serif JP', 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', 'AIDOL Serif', serif;
+}

@@ -1,0 +1,295 @@
+{
+  "ages": {
+    "child": "Child",
+    "preteen": "Preteen",
+    "teen": "Teen",
+    "youngAdult": "Young adult",
+    "adult": "Adult",
+    "elder": "Older adult"
+  },
+  "headRatios": {
+    "2.5": "2.5 heads",
+    "4": "4 heads",
+    "5.5": "5.5 heads",
+    "6.5": "6.5 heads",
+    "7.5": "7.5 heads",
+    "8": "8 heads"
+  },
+  "builds": {
+    "delicate": "Delicate",
+    "slim": "Slim",
+    "average": "Average",
+    "soft": "Soft",
+    "athletic": "Athletic",
+    "sturdy": "Sturdy"
+  },
+  "heights": {
+    "petite": "Petite",
+    "short": "Short",
+    "average": "Average",
+    "tall": "Tall",
+    "veryTall": "Very tall"
+  },
+  "hairTags": {
+    "soft": "Soft",
+    "cool": "Cool",
+    "wild": "Wild",
+    "prince": "Princely",
+    "sporty": "Sporty",
+    "youthful": "Youthful",
+    "elegant": "Elegant"
+  },
+  "hairStyles": {
+    "soft-short": "Soft short",
+    "airy-bangs": "Airy bangs",
+    "side-part": "Side part",
+    "sleepy-messy": "Sleepy messy",
+    "fluffy-idol": "Fluffy idol",
+    "round-soft": "Round short",
+    "clean-student": "Neat student",
+    "cool-straight": "Cool straight",
+    "layered": "Layered short",
+    "layered-wolf": "Wolf cut",
+    "gentle-prince": "Princely",
+    "sporty-crop": "Sporty crop",
+    "bob": "Bob",
+    "long-straight": "Long straight",
+    "ponytail": "Ponytail",
+    "twin-tails": "Twin tails"
+  },
+  "hairLengths": {
+    "short": "Short",
+    "medium": "Medium",
+    "long": "Long"
+  },
+  "hairVolumes": {
+    "flat": "Flat",
+    "natural": "Natural",
+    "fluffy": "Fluffy"
+  },
+  "hairBangs": {
+    "center": "Center part",
+    "side": "Side swept",
+    "full": "Full bangs",
+    "airy": "Airy",
+    "none": "None"
+  },
+  "hairTextures": {
+    "smooth": "Smooth",
+    "soft": "Soft",
+    "spiky": "Spiky",
+    "wispy": "Wispy",
+    "wavy": "Wavy"
+  },
+  "hairColors": {
+    "black": "Ink black",
+    "ash": "Ash",
+    "brown": "Cocoa",
+    "blonde": "Honey",
+    "silver": "Silver",
+    "red": "Auburn",
+    "blue": "Indigo",
+    "lavender": "Lavender",
+    "pink": "Cherry pink",
+    "moss": "Moss"
+  },
+  "moods": {
+    "gentle": "Gentle",
+    "sleepy": "Sleepy",
+    "bright": "Bright",
+    "cool": "Calm",
+    "mischievous": "Impish",
+    "serious": "Serious",
+    "shy": "Shy",
+    "fierce": "Fierce"
+  },
+  "eyeShapes": {
+    "soft": "Soft",
+    "round": "Round",
+    "sharp": "Sharp",
+    "droopy": "Droopy",
+    "narrow": "Narrow"
+  },
+  "brows": {
+    "soft": "Soft",
+    "straight": "Straight",
+    "arched": "Arched"
+  },
+  "eyeColors": {
+    "brown": "Cocoa",
+    "amber": "Amber",
+    "green": "Leaf green",
+    "teal": "Teal",
+    "blue": "Sky blue",
+    "gray": "Slate",
+    "violet": "Violet",
+    "red": "Crimson"
+  },
+  "outfitStyles": {
+    "soft-casual": {
+      "label": "Casual",
+      "hint": "Soft top and straight trousers, clean and everyday"
+    },
+    "academy": {
+      "label": "Academy",
+      "hint": "Modern school uniform with a tidy jacket"
+    },
+    "street-layer": {
+      "label": "Street",
+      "hint": "Contemporary streetwear with a short outer layer"
+    },
+    "traveler": {
+      "label": "Traveler",
+      "hint": "Practical travel wear with a compact utility jacket"
+    },
+    "workshop": {
+      "label": "Workshop",
+      "hint": "Rolled-up work clothes and a sturdy apron"
+    },
+    "formal": {
+      "label": "Formal",
+      "hint": "Understated formal wear with clean long-coat lines"
+    },
+    "fantasy": {
+      "label": "Fantasy",
+      "hint": "Adventurer gear with clearly readable layers"
+    },
+    "idol-stage": {
+      "label": "Idol stage",
+      "hint": "Stage costume with one signature motif"
+    }
+  },
+  "silhouettes": {
+    "fitted": "Fitted",
+    "balanced": "Balanced",
+    "oversized": "Oversized"
+  },
+  "layerOptions": {
+    "single": "Single layer",
+    "layered": "Layered",
+    "coat": "Long coat"
+  },
+  "detailOptions": {
+    "clean": "Clean",
+    "functional": "Functional",
+    "statement": "Statement"
+  },
+  "paletteUses": {
+    "hair": "Hair",
+    "eyes": "Eyes",
+    "skin": "Skin",
+    "primary": "Main",
+    "secondary": "Secondary",
+    "accent": "Accent",
+    "metal": "Metal"
+  },
+  "mixerControls": {
+    "composition": {
+      "label": "Composition",
+      "steps": [
+        "Minimal",
+        "Simple",
+        "Balanced",
+        "Layered",
+        "Dense"
+      ]
+    },
+    "detail": {
+      "label": "Detail",
+      "steps": [
+        "Broad",
+        "Clean",
+        "Balanced",
+        "Fine",
+        "Micro"
+      ]
+    },
+    "hairDetail": {
+      "label": "Hair",
+      "steps": [
+        "Masses",
+        "Clumps",
+        "Balanced",
+        "Fine clumps",
+        "Strands"
+      ]
+    },
+    "rendering": {
+      "label": "Rendering",
+      "steps": [
+        "Flat",
+        "Light",
+        "Standard",
+        "Rich",
+        "Painterly"
+      ]
+    },
+    "background": {
+      "label": "Background",
+      "steps": [
+        "Empty",
+        "Hinted",
+        "Simple",
+        "Scene",
+        "Rich"
+      ]
+    },
+    "accessories": {
+      "label": "Accessories",
+      "steps": [
+        "None",
+        "Few",
+        "Balanced",
+        "Many",
+        "Ornate"
+      ]
+    },
+    "saturation": {
+      "label": "Saturation",
+      "steps": [
+        "Muted",
+        "Soft",
+        "Natural",
+        "Vivid",
+        "Intense"
+      ]
+    },
+    "value": {
+      "label": "Value",
+      "steps": [
+        "Dark",
+        "Low",
+        "Mid",
+        "Bright",
+        "Airy"
+      ]
+    },
+    "contrast": {
+      "label": "Contrast",
+      "steps": [
+        "Soft",
+        "Low",
+        "Balanced",
+        "Strong",
+        "Graphic"
+      ]
+    }
+  },
+  "mixerGroups": {
+    "form": "Form",
+    "render": "Render",
+    "color": "Color"
+  },
+  "mixerPresets": {
+    "less": "Less is more",
+    "casual": "Everyday anime",
+    "key": "Key visual"
+  },
+  "framings": {
+    "sheet": "Design sheet",
+    "full": "Full body",
+    "threeQuarter": "Three-quarter",
+    "half": "Half body",
+    "closeup": "Close-up"
+  }
+}

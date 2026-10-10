@@ -101,12 +101,16 @@ for (const file of files) {
 }
 
 // commit 的作者與提交者 Email 會跟著 git 歷史公開：只接受 GitHub 的 noreply 地址。
-const isPrivateEmail = (email) => /@users\.noreply\.github\.com$/i.test(email);
-const gitOutput = (args) => { try { return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim(); } catch { return ''; } };
-const configuredEmail = gitOutput(['config', 'user.email']);
-if (configuredEmail && !isPrivateEmail(configuredEmail)) problems.push(`git user.email「${configuredEmail}」會寫進每個 commit；請在這個儲存庫執行 git config user.email <id>+<帳號>@users.noreply.github.com`);
-const historyEmails = new Set(gitOutput(['log', '--all', '--format=%ae%n%ce']).split('\n').filter(Boolean));
-for (const email of historyEmails) if (!isPrivateEmail(email)) problems.push(`git 歷史中的 commit 含有 Email「${email}」；發佈前請改寫歷史或重新建立儲存庫`);
+// CI 設 OSS_CHECK_SKIP_GIT_EMAIL=1 跳過這段：PR 的合併 commit 由 GitHub 建立，
+// 外部貢獻者的 Email 由他們自己的 GitHub 設定決定；CI 只負責擋檔案內容。
+if (process.env.OSS_CHECK_SKIP_GIT_EMAIL !== '1') {
+  const isPrivateEmail = (email) => /@users\.noreply\.github\.com$/i.test(email);
+  const gitOutput = (args) => { try { return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim(); } catch { return ''; } };
+  const configuredEmail = gitOutput(['config', 'user.email']);
+  if (configuredEmail && !isPrivateEmail(configuredEmail)) problems.push(`git user.email「${configuredEmail}」會寫進每個 commit；請在這個儲存庫執行 git config user.email <id>+<帳號>@users.noreply.github.com`);
+  const historyEmails = new Set(gitOutput(['log', '--all', '--format=%ae%n%ce']).split('\n').filter(Boolean));
+  for (const email of historyEmails) if (!isPrivateEmail(email)) problems.push(`git 歷史中的 commit 含有 Email「${email}」；發佈前請改寫歷史或重新建立儲存庫`);
+}
 
 const size = (bytes) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 if (problems.length) {

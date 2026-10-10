@@ -1,0 +1,195 @@
+{
+  "separator": " · ",
+  "retry": "Try again",
+  "cancel": "Cancel",
+  "kind": {
+    "garment": "Clothing",
+    "footwear": "Footwear",
+    "accessory": "Accessory",
+    "weapon": "Weapon",
+    "hair": "Hair",
+    "body": "Body",
+    "other": "Other"
+  },
+  "view": {
+    "front": "Front",
+    "back": "Back",
+    "detail": "Detail"
+  },
+  "status": {
+    "newImages_one": "{{count}} new image",
+    "newImages_other": "{{count}} new images",
+    "drawing": "Drawing",
+    "failed": "Didn't work this time",
+    "sendInCodex": "Send in Codex",
+    "notWorn": "Not worn",
+    "changed": "Settings changed",
+    "adopted": "Adopted",
+    "notDrawn": "Not drawn yet"
+  },
+  "graph": {
+    "character": {
+      "open": "Open {{name}} in the creator",
+      "portraitAlt": "Main illustration of {{name}}",
+      "emptyTitle": "No main illustration yet",
+      "emptyHint": "Click here to open the creator. The first image you draw will go here.",
+      "zoom": "Enlarge main illustration",
+      "zoomTitle": "Enlarge",
+      "previewTitle": "{{name}} · Main illustration",
+      "openCreator": "Open creator"
+    },
+    "decompose": {
+      "running": "Breaking down outfit",
+      "failed": "Retry breakdown",
+      "hint": "Have the AI find the pieces in the main illustration and turn them into canvas nodes",
+      "action": "Break down"
+    },
+    "reference": {
+      "style": "Style reference",
+      "identity": "Character reference",
+      "color": "Color reference",
+      "clothing": "Clothing reference",
+      "composition": "Composition reference",
+      "material": "Material reference",
+      "design": "Design reference"
+    },
+    "edge": {
+      "accessory": "Accessory",
+      "piece": "Piece",
+      "aria": "{{name}}: {{label}}"
+    },
+    "positionRetry": "Reconnect and try again.",
+    "create": {
+      "error": "Couldn't add it to the canvas. Try again.",
+      "addingReference": "Adding reference image…",
+      "addingNote": "Adding sticky note…",
+      "addingText": "Adding text note…"
+    },
+    "toolbar": {
+      "label": "Canvas tools",
+      "chooseReference": "Choose a reference image for the canvas",
+      "select": "Select tool",
+      "selectShortcut": "Select (V)",
+      "pan": "Hand tool",
+      "panShortcut": "Hand (H)",
+      "addPiece": "Piece",
+      "addPieceHint": "Add a piece",
+      "addNote": "Add sticky note",
+      "noteShortcut": "Sticky note (N)",
+      "addText": "Add text note",
+      "addReference": "Add reference image",
+      "reference": "Reference image",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "focus": "Zoom to selection",
+      "fitAll": "Show all",
+      "tidy": "Tidy up",
+      "tidyHint": "Move the pieces back to either side of the character"
+    }
+  },
+  "part": {
+    "designAlt": "Design of {{name}}",
+    "cropAlt": "Where {{name}} is in the main illustration",
+    "fromPortrait": "From main illustration",
+    "draft": "Draft"
+  },
+  "formalReference": {
+    "label": "Used when drawing",
+    "fallback": "Set as the current style reference"
+  },
+  "annotation": {
+    "kind": {
+      "reference": "Canvas reference",
+      "note": "Sticky note",
+      "text": "Text note"
+    },
+    "tone": {
+      "gold": "Champagne",
+      "blue": "Mist blue",
+      "rose": "Dusty pink",
+      "neutral": "Graphite"
+    },
+    "toneGroup": "Card color",
+    "toneAria": "{{name}} color",
+    "image": "Reference image",
+    "zoom": "Enlarge {{name}}",
+    "zoomImage": "Enlarge reference image",
+    "imageMissing": "Reference image not found",
+    "edit": {
+      "reference": "Edit reference card",
+      "note": "Edit sticky note",
+      "text": "Edit text note"
+    },
+    "editTitle": "Edit",
+    "remove": {
+      "reference": "Remove reference card",
+      "note": "Remove sticky note",
+      "text": "Remove text note"
+    },
+    "removeTitle": "Remove this card",
+    "title": "Title",
+    "titleAria": "Reference card title",
+    "titlePlaceholder": "What to take from this image",
+    "description": "Description",
+    "descriptionAria": "Reference card description",
+    "descriptionPlaceholder": "Details you want to borrow",
+    "textAria": {
+      "note": "Sticky note text",
+      "text": "Canvas text note"
+    },
+    "placeholder": {
+      "note": "Jot down an idea…",
+      "text": "Add design notes…"
+    },
+    "saving": "Saving",
+    "done": "Done",
+    "untitled": "Untitled reference",
+    "contentAria": "{{kind}}: {{text}}",
+    "empty": "Empty",
+    "emptyHint": {
+      "note": "Double-click to write an idea",
+      "text": "Double-click to add text"
+    },
+    "removing": "Removing…",
+    "saveError": "The note wasn't saved. Your text is still here.",
+    "saveErrorHint": "Not saved yet. Your draft is kept.",
+    "deleteError": "Couldn't remove this note.",
+    "deleteErrorHint": "The card is still on the canvas.",
+    "savingPosition": "Saving position…",
+    "positionError": "Position not saved: {{error}}"
+  },
+  "addPiece": {
+    "title": "Add a piece",
+    "subtitle": "Start with a name and what it looks like. You can draw its design on its own later."
+  },
+  "inspector": {
+    "aria": "Piece: {{name}}",
+    "proposed": "Piece the AI found in the main illustration",
+    "piece": "Piece",
+    "cropNote": "This area is cropped from the main illustration; it isn't a design yet. Draw a design to see the front, back and details clearly.",
+    "noDesign": "No design yet. Describe it, then draw one.",
+    "openJob": "Click to see these images",
+    "anchor": "Worn on",
+    "anchorPlaceholder": "e.g. Waist",
+    "defaultAnchor": "On body",
+    "descriptionPlaceholder": "Colors, materials, details",
+    "previewTitle": "{{name}} · {{view}}",
+    "draw": "Draw design",
+    "whichView": "Which side to draw",
+    "notePlaceholder": "What to draw this time? (optional)",
+    "noteAria": "What to draw this time",
+    "count": "Number of images",
+    "needPortrait": "Pieces are drawn to match the main illustration, so you need one first",
+    "preparing": "Preparing…",
+    "needPortraitNote": "Draw a main illustration in the Creator first. Then pieces can be drawn on their own to match it.",
+    "takeOff": "Take off",
+    "putOn": "Put on",
+    "worn": "Worn",
+    "removeKeepHint": "Pieces with images are kept and just taken off",
+    "removeHint": "Remove this piece from the character",
+    "remove": "Remove"
+  },
+  "rack": {
+    "label": "Drawing progress"
+  }
+}

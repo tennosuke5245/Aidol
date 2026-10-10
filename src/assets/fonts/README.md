@@ -12,6 +12,17 @@ AIDOL 2.0「紙與墨」在既有介面字型之外加入三套本機字型，�
 
 `manifest-2.0.json` 記錄 225 個檔案（10,385,696 bytes）的路徑、bytes 與 SHA-256。三套均為 SIL OFL 1.1，授權全文與原 copyright 在各資料夾的 `OFL.txt`。檔案只是從上列 npm 套件取出 WOFF2；未把套件加入 app 相依，不使用遠端 stylesheet。保留各分片原本的 `unicode-range`，沒有依目前文案裁字。
 
+## 日文介面字型（2026-10-10）
+
+介面切到日本語時（`<html data-locale="ja">`），正文與標題改用日文字形，避免漢字以繁中字形顯示。CSS 在 `src/theme/fonts-ja.css`，切換在 `src/theme/tokens.css` 的 `:root[data-locale="ja"]`；其他語言不會下載這些檔案。
+
+| 字型 | 來源 | 本機資料夾 | CSS family | 使用 |
+| --- | --- | --- | --- | --- |
+| Noto Sans JP（variable，100–900） | `@fontsource-variable/noto-sans-jp@5.3.0` | `noto-sans-jp-variable/`（124 份 WOFF2＋OFL） | `AIDOL Sans JP` | 日文介面正文 |
+| Noto Serif JP（variable，200–900） | `@fontsource-variable/noto-serif-jp@5.3.0` | `noto-serif-jp-variable/`（124 份 WOFF2＋OFL） | `AIDOL Serif JP` | 日文介面標題、角色名 |
+
+`manifest-ja.json` 記錄 248 個檔案（12,297,076 bytes）的路徑、bytes 與 SHA-256。只從 npm 套件取出 WOFF2，未加入 app 相依；保留原本的 `unicode-range`。
+
 以下為 1.x 起使用、2.0 仍作為介面正文的字型。
 
 選定日期：2026-10-02。採 **Inter 英數＋Noto Sans TC 繁中**。日式簡約由清楚的字形、字重與留白建立；介面不指定 Georgia、Segoe UI 或未提供的字型家族。

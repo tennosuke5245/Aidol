@@ -61,8 +61,9 @@ test('App交接固定工作、候選回收去重、拒絕錯誤憑證與跨工�
 
 test('Codex聊天保存描述提案，原設定在採用前保持原樣', async () => {
   const directory = await mkdtemp(path.join(tmpdir(), 'aidol-chat-'));
-  let calls = 0; let current;
-  const client = { close() {}, async freshTurn({ prompt }) {
+  let calls = 0; let current; const cwds = [];
+  const client = { close() {}, async freshTurn({ prompt, cwd }) {
+    cwds.push(cwd);
     assert.ok(prompt.includes('必須使用自然繁體中文敘述角色或美術設計。'));
     assert.ok(prompt.includes('不要在這些內容提及 schema、identity、components、YAML 欄位'));
     calls++; const character = structuredClone(current.character); character.persona.traits.push(`提案${calls}`);
@@ -80,6 +81,7 @@ test('Codex聊天保存描述提案，原設定在採用前保持原樣', async 
     const final = await running.store.getProject(current.id);
     assert.equal(final.proposals.length, 2); assert.deepEqual(final.character.persona.traits, []);
     assert.equal(first.draft.status, 'pending');
+    assert.ok(cwds.every((cwd) => cwd && !path.resolve(cwd).startsWith(path.resolve(directory))), '聊天不在角色資料夾裡工作');
   } finally { await running.close(); await rm(directory, { recursive: true, force: true }); }
 });
 

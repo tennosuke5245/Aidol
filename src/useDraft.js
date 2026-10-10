@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api, clone } from './api';
+import { api, clone, messageOf } from './api';
 import { mergeCharacter } from '../shared/character-diff.mjs';
+import { t } from './i18n';
 
 // 角色草稿：改了就自動存檔（像遊戲一樣，不用按儲存），可以復原。
 // 每次存檔都是一個新版本；別處改了設定（採用圖、AI 提案）時，
@@ -55,9 +56,12 @@ export function useDraft(studio, project) {
           const merged = mergeCharacter(base.current, draftRef.current, latest.character);
           base.current = latest.character; updateProject(latest); setDraft(merged);
           dirty.current = true; setSaveState('pending');
+        } else if (error.code === 'PROJECT_NOT_FOUND') {
+          // 角色已被刪除（可能是別的視窗刪的）：不再重試、不跳錯誤提示，以免蓋掉「復原」。
+          dirty.current = false; setSaveState('error');
         } else {
           dirty.current = true; setSaveState('error');
-          notify(`自動存檔失敗：${error.message}`, true);
+          notify(t('studio.autosaveFailed', { message: messageOf(error) }), true);
         }
         return null;
       } finally {

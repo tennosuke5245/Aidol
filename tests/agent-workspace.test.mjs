@@ -39,7 +39,7 @@ test('已採用與已結束工作不再催促；用較早設定畫的只標示�
   const oldCandidate = candidate('accepted', 'accepted', { status: 'accepted', baseRevision: 2 });
   project.jobs.push(accepted, job('cancelled', { status: 'cancelled', baseRevision: 2 }));
   project.candidates.push(oldCandidate);
-  assert.deepEqual(jobPresentation(project, accepted), { label: '已採用', tone: 'success', action: 'view', actionLabel: '查看', candidate: oldCandidate, needsAttention: false, olderSettings: true });
+  assert.deepEqual(jobPresentation(project, accepted), { label: '已採用', labelKey: 'job.status.adopted', labelParams: {}, tone: 'success', action: 'view', actionLabel: '查看', actionKey: 'job.action.view', candidate: oldCandidate, needsAttention: false, olderSettings: true });
   assert.equal(jobPresentation(project, project.jobs[1]).action, 'none');
   assert.equal(jobPresentation(project, project.jobs[1]).label, '已結束');
   const summary = workspaceSummary(project, 'casual');

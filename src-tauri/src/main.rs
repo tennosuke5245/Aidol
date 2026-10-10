@@ -8,12 +8,13 @@ struct CoreProcess(Mutex<Option<CommandChild>>);
 
 #[tauri::command]
 fn open_codex(app: tauri::AppHandle, url: String) -> Result<(), String> {
-    let parsed = url::Url::parse(&url).map_err(|_| "聊天交接連結格式不正確。".to_string())?;
+    // 錯誤只回簡短的英文診斷（介面會換成使用者語言的說明，把這段放在括號裡）；不帶連結本身，裡面有本機路徑。
+    let parsed = url::Url::parse(&url).map_err(|_| "invalid handoff link".to_string())?;
     if parsed.scheme() != "codex" || parsed.host_str() != Some("new") || url.len() > 16000 {
-        return Err("只允許開啟新的 Codex 聊天。".to_string());
+        return Err("only codex://new links are allowed".to_string());
     }
     #[allow(deprecated)]
-    app.shell().open(url, None).map_err(|_| "無法開啟 Codex App，請確認已安裝。".to_string())
+    app.shell().open(url, None).map_err(|_| "the system could not open the codex:// link".to_string())
 }
 
 fn stop_core(app: &tauri::AppHandle) {
@@ -57,12 +58,14 @@ fn main() {
                                 if let Ok(value) = serde_json::from_str::<serde_json::Value>(payload) {
                                     if let Some(port) = value["port"].as_u64() {
                                         if (1..=65535).contains(&port) {
+                                            let port = port as u16;
                                             let url = url::Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
                                             let builder = WebviewWindowBuilder::new(&handle, "main", WebviewUrl::External(url))
-                                                .title("AIDOL · 角色設計工作室")
+                                                .title("AIDOL")
                                                 .inner_size(1480.0, 940.0)
                                                 .min_inner_size(1000.0, 700.0)
-                                                .on_navigation(|url| url.scheme() == "http" && url.host_str() == Some("127.0.0.1"));
+                                                // 只允許留在本機核心這個 port；同一台電腦上其他 127.0.0.1 服務一律不導過去。
+                                                .on_navigation(move |url| url.scheme() == "http" && url.host_str() == Some("127.0.0.1") && url.port_or_known_default() == Some(port));
                                             if builder.build().is_ok() { ready = true; }
                                         }
                                     }
@@ -71,7 +74,8 @@ fn main() {
                         }
                         CommandEvent::Terminated(_) => {
                             if let Some(window) = handle.get_webview_window("main") {
-                                let _ = window.set_title("AIDOL · 本機服務已結束，請重新開啟工作台");
+                                // 這時網頁已連不上本機核心，只能用視窗標題提示；介面語言可能是任一種，三種語言並列。
+                                let _ = window.set_title("AIDOL · 本機服務已結束，請重新開啟 · Local service stopped, please reopen · ローカルサービスが停止しました");
                             } else { handle.exit(1); }
                             break;
                         }

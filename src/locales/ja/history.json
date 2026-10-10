@@ -1,0 +1,18 @@
+{
+  "demoCreated": "サンプルキャラクターを作成",
+  "draftCreated": "キャラクターを作成",
+  "settingsUpdated": "設定を更新",
+  "proposalAccepted": "AI の設定を適用",
+  "decomposeAdded_other": "衣装の分解：{{count}}点を追加",
+  "decomposeMoved": "衣装の分解：位置を更新",
+  "sheetAdopted": "設定画を採用",
+  "partAdopted": "{{name}}（{{view}}）を採用",
+  "restored": "{{revision}}回目のセーブを読み込み",
+  "view": {
+    "front": "正面",
+    "full": "全体",
+    "back": "背面",
+    "detail": "細部"
+  },
+  "partAdoptedPlain": "{{name}}を採用"
+}

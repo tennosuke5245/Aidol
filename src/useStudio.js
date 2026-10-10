@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api, assetFor, clone } from './api';
+import { api, ApiError, assetFor, clone, messageOf } from './api';
 import { mergeProjectSnapshot } from '../shared/project-snapshot.mjs';
 import { prepareFirstImage } from '../shared/image-start.mjs';
+import { t } from './i18n';
 
 const liveStatuses = new Set(['handed_off', 'running', 'review']);
 
@@ -23,8 +24,9 @@ export function useStudio() {
   const canvasUploads = useRef(new WeakMap());
   projectRef.current = project;
 
-  const notify = useCallback((message, error = false) => setToast({ message, error, key: Date.now() }), []);
-  useEffect(() => { if (toast && !toast.error) { const timer = setTimeout(() => setToast(null), 6000); return () => clearTimeout(timer); } }, [toast]);
+  // action：提示上的按鈕（例如刪除後的「復原」），有按鈕時多留幾秒。
+  const notify = useCallback((message, error = false, action) => setToast({ message, error, action, key: Date.now() }), []);
+  useEffect(() => { if (toast && !toast.error) { const timer = setTimeout(() => setToast(null), toast.action ? 12000 : 6000); return () => clearTimeout(timer); } }, [toast]);
 
   const updateProject = useCallback(next => setProject(current => mergeProjectSnapshot(current, next)), []);
   const refreshProjects = useCallback(async () => { const list = await api('/projects'); setProjects(list); return list; }, []);
@@ -78,21 +80,27 @@ export function useStudio() {
     runLock.current = true; setBusy(true);
     try { return await action(); }
     catch (error) {
-      notify(error.message + (Array.isArray(error.details) ? ' ' + error.details.map(detail => `${detail.path}: ${detail.message}`).join('；') : ''), true);
-      if (error.status === 409 && projectRef.current) await refresh(projectRef.current.id).catch(() => {});
+      notify(messageOf(error) + (Array.isArray(error?.details) ? ' ' + error.details.map(detail => `${detail.path}: ${detail.message}`).join(t('studio.detailSeparator')) : ''), true);
+      if (error?.status === 409 && projectRef.current) await refresh(projectRef.current.id).catch(() => {});
       return undefined;
     } finally { runLock.current = false; setBusy(false); }
   }, [notify, refresh]);
 
-  const saveCharacter = useCallback(async (character, message = '設定已儲存。', baseRevision = projectRef.current.character.revision) => {
+  const saveCharacter = useCallback(async (character, message = t('studio.saved'), baseRevision = projectRef.current.character.revision) => {
     const result = await api(`/projects/${projectRef.current.id}/character`, { method: 'PUT', body: { baseRevision, character } });
     updateProject(result); refreshProjects(); if (message) notify(message);
     return result;
   }, [updateProject, refreshProjects, notify]);
 
   const openCodex = useCallback(async url => {
-    if (window.__TAURI_INTERNALS__) { const { invoke } = await import('@tauri-apps/api/core'); await invoke('open_codex', { url }); }
-    else { const anchor = document.createElement('a'); anchor.href = url; anchor.click(); }
+    if (!window.__TAURI_INTERNALS__) { const anchor = document.createElement('a'); anchor.href = url; anchor.click(); return; }
+    const { invoke } = await import('@tauri-apps/api/core');
+    // 桌面版：Rust 指令失敗時回傳的是一段英文診斷字串，換成使用者看得懂的說明，診斷放在括號裡方便回報。
+    try { await invoke('open_codex', { url }); }
+    catch (error) {
+      const detail = typeof error === 'string' ? error : error?.message;
+      throw new ApiError(t('errors.CODEX_OPEN_FAILED') + (detail ? ` (${detail})` : ''), 0, undefined, 'CODEX_OPEN_FAILED');
+    }
   }, []);
 
   const handoff = useCallback(async (jobId, { open = true } = {}) => {
@@ -132,7 +140,7 @@ export function useStudio() {
     const current = projectRef.current;
     const result = await api(`/projects/${current.id}/candidates/${candidate.id}/accept`, { method: 'POST', body: { baseRevision: await freshRevision() } });
     updateProject(result); refreshProjects();
-    notify(candidate.targetId !== 'character' ? '已設為這件裝備的設計圖。' : result.decomposition?.status === 'running' ? '已設為正式立繪，正在從立繪拆解裝備…' : '已設為正式立繪。');
+    notify(candidate.targetId !== 'character' ? t('studio.adopted.part') : result.decomposition?.status === 'running' ? t('studio.adopted.mainDecomposing') : t('studio.adopted.main'));
     return result;
   }, [updateProject, refreshProjects, notify, freshRevision]);
 
@@ -149,7 +157,7 @@ export function useStudio() {
     const data = new FormData();
     data.append('file', file); data.append('role', 'design'); data.append('targetId', job.targetId); data.append('jobId', job.id); data.append('view', job.outputView || 'front');
     const result = await api(`/projects/${current.id}/assets`, { method: 'POST', body: data });
-    updateProject(result.project); notify('已匯入這張圖，放在圖鑑裡。');
+    updateProject(result.project); notify(t('studio.imported'));
     return result;
   }, [updateProject, notify]);
 
@@ -198,7 +206,7 @@ export function useStudio() {
     const result = await uploadAsset(current.id, file);
     const character = clone(result.project.character);
     character.style.references.push({ id: `ref-${crypto.randomUUID().slice(0, 8)}`, assetId: result.asset.id, role, focus });
-    return saveCharacter(character, '參考圖片與用途已儲存。', result.project.character.revision);
+    return saveCharacter(character, t('studio.referenceSaved'), result.project.character.revision);
   }, [uploadAsset, saveCharacter]);
 
   const createProject = useCallback(async ({ name, brief = '', file, role = 'identity' }) => {
@@ -206,7 +214,7 @@ export function useStudio() {
     if (file) {
       const uploaded = await uploadAsset(created.id, file);
       const character = clone(uploaded.project.character);
-      character.style.references.push({ id: `ref-${crypto.randomUUID().slice(0, 8)}`, assetId: uploaded.asset.id, role, focus: role === 'style' ? ['線條', '上色'] : ['外觀', '配色'] });
+      character.style.references.push({ id: `ref-${crypto.randomUUID().slice(0, 8)}`, assetId: uploaded.asset.id, role, focus: role === 'style' ? [t('studio.defaultFocus.lines'), t('studio.defaultFocus.coloring')] : [t('studio.defaultFocus.look'), t('studio.defaultFocus.colors')] });
       created = await api(`/projects/${created.id}/character`, { method: 'PUT', body: { baseRevision: uploaded.project.character.revision, character } });
     }
     setProject(created);
@@ -247,8 +255,32 @@ export function useStudio() {
     updateProject(result.project); return result;
   }), [writeCanvas, uploadAsset, updateProject]);
 
+  // 刪除角色：核心把整個角色移到資源回收區；回傳的 trashId 可以拿來復原。
+  // 資源回收區：刪除的角色在這裡可以復原或永久刪除。
+  const [trash, setTrash] = useState([]);
+  const refreshTrash = useCallback(async () => { try { setTrash(await api('/trash')); } catch { /* 讀不到就先不顯示 */ } }, []);
+  useEffect(() => { refreshTrash(); }, [refreshTrash]);
+  const refreshLists = useCallback(async () => { await Promise.allSettled([refreshProjects(), refreshTrash()]); }, [refreshProjects, refreshTrash]);
+  const deleteProject = useCallback(async id => {
+    const removed = await api(`/projects/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (projectRef.current?.id === id) setProject(null);
+    try { if (localStorage.getItem('aidol-current-project') === id) localStorage.removeItem('aidol-current-project'); } catch {}
+    await refreshLists();
+    return removed;
+  }, [refreshLists]);
+  const restoreProject = useCallback(async trashId => {
+    const restored = await api(`/trash/${encodeURIComponent(trashId)}/restore`, { method: 'POST' });
+    await refreshLists();
+    return restored;
+  }, [refreshLists]);
+  const purgeTrash = useCallback(async trashId => {
+    const purged = await api(`/trash/${encodeURIComponent(trashId)}`, { method: 'DELETE' });
+    await refreshLists();
+    return purged;
+  }, [refreshLists]);
+
   const copy = useCallback(async text => {
-    try { await navigator.clipboard.writeText(text); notify('已複製。'); } catch { notify('無法使用剪貼簿，請選取文字複製。', true); }
+    try { await navigator.clipboard.writeText(text); notify(t('studio.copied')); } catch { notify(t('studio.clipboardFailed'), true); }
   }, [notify]);
 
   return {
@@ -256,6 +288,6 @@ export function useStudio() {
     setToast, notify, run, initialize, refresh, refreshProjects, refreshStatus, openProject, updateProject,
     saveCharacter, generate, handoff, openCodex, startFirstImage, acceptCandidate, importCandidate, decompose,
     sendChat, acceptProposal, dismissProposal, uploadReference, restore, addReference, createProject,
-    createAnnotation, updateAnnotation, deleteAnnotation, addCanvasReference, copy,
+    createAnnotation, updateAnnotation, deleteAnnotation, addCanvasReference, copy, deleteProject, restoreProject, purgeTrash, trash, refreshTrash,
   };
 }

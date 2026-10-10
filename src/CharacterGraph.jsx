@@ -2,16 +2,19 @@ import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import { ReactFlow, Background, BaseEdge, EdgeLabelRenderer, Handle, Position, useReactFlow, useUpdateNodeInternals, ReactFlowProvider, applyNodeChanges } from '@xyflow/react';
 import { Plus, Minus, CornersOut, Sparkle, EyeSlash, Crosshair, Cursor, Hand, Note, TextT, Image, CircleNotch, ArrowClockwise, Check, Clock, CircleDashed, MagnifyingGlassPlus, WarningCircle, Scissors, TShirt, Sneaker, Diamond, Sword, PersonSimple, Package } from '@phosphor-icons/react';
 import { workspaceSummary } from '../shared/agent-workspace.mjs';
-import { assetFor } from './api';
+import { assetFor, errorText } from './api';
 import { CanvasAnnotationNode, CanvasFormalReferenceNode } from './CanvasAnnotationNodes';
 import { mergeGraphNodes } from './canvas-node-state.mjs';
 import { characterNodeSize, columnX, containBox, layoutPorts, partNodeSize, placeParts, portraitBox } from './canvas-layout.mjs';
 import { CropThumb } from './CropThumb';
+import { getLocale, t, useT } from './i18n';
 import '@xyflow/react/dist/style.css';
 
 const statusIcons = { success: Check, amber: Sparkle, blue: Clock, neutral: CircleDashed, error: WarningCircle };
 const kindIcons = { garment: TShirt, footwear: Sneaker, accessory: Diamond, weapon: Sword, hair: Sparkle, body: PersonSimple, other: Package };
-export const kindNames = { garment: '衣物', footwear: '鞋', accessory: '配件', weapon: '武器', hair: '頭髮', body: '身體', other: '其他' };
+export const kindNames = () => ({ garment: t('canvas.kind.garment'), footwear: t('canvas.kind.footwear'), accessory: t('canvas.kind.accessory'), weapon: t('canvas.kind.weapon'), hair: t('canvas.kind.hair'), body: t('canvas.kind.body'), other: t('canvas.kind.other') });
+// 名稱、特徵等並列時的分隔符號（繁中、日文用「・」）。
+const joinDot = items => items.filter(Boolean).join(t('canvas.separator'));
 
 function NodeStatus({ status }) {
   const Icon = status.unworn ? EyeSlash : statusIcons[status.tone] || CircleDashed;
@@ -22,6 +25,7 @@ function NodeStatus({ status }) {
 // 連到裝備的接點在節點的左右邊框上，高度對齊裝備在立繪上的位置；立繪上不放任何圓點。
 // 選到一件裝備時，才在立繪上框出它的位置。
 const CharacterNode = memo(function CharacterNode({ id, data, selected }) {
+  const t = useT();
   const updateNodeInternals = useUpdateNodeInternals();
   const image = useRef(null);
   const [box, setBox] = useState(null);
@@ -39,23 +43,23 @@ const CharacterNode = memo(function CharacterNode({ id, data, selected }) {
   const region = crop && box ? { left: box.x + crop.x * box.width, top: box.y + crop.y * box.height, width: crop.width * box.width, height: crop.height * box.height } : null;
   const decomposition = data.decomposition;
   return <article className={`char-node ${selected ? 'is-selected' : ''} ${data.asset ? '' : 'is-empty'}`}>
-    <button type="button" className="char-art nodrag" onClick={event => { event.stopPropagation(); data.onOpen(); }} aria-label={`打開「${data.name}」的捏角色`}>
-      {data.asset ? <img ref={image} src={data.asset.url} alt={`${data.name}的正式立繪`} draggable="false" onLoad={measure} />
-        : <><img className="char-placeholder" src={data.placeholder} alt="" draggable="false" /><span className="char-empty"><b>還沒有正式立繪</b><small>點這裡開始捏角色，畫好的第一張會放在這裡</small></span></>}
+    <button type="button" className="char-art nodrag" onClick={event => { event.stopPropagation(); data.onOpen(); }} aria-label={t('canvas.graph.character.open', { name: data.name })}>
+      {data.asset ? <img ref={image} src={data.asset.url} alt={t('canvas.graph.character.portraitAlt', { name: data.name })} draggable="false" onLoad={measure} />
+        : <><img className="char-placeholder" src={data.placeholder} alt="" draggable="false" /><span className="char-empty"><b>{t('canvas.graph.character.emptyTitle')}</b><small>{t('canvas.graph.character.emptyHint')}</small></span></>}
       {region && <i className="char-region" style={region} aria-hidden="true" />}
     </button>
-    {data.asset && <button type="button" className="char-zoom icon-btn nodrag" aria-label="放大正式立繪" title="放大" onClick={event => { event.stopPropagation(); data.onPreview(data.asset, `${data.name}・正式立繪`); }}><MagnifyingGlassPlus size={17} /></button>}
+    {data.asset && <button type="button" className="char-zoom icon-btn nodrag" aria-label={t('canvas.graph.character.zoom')} title={t('canvas.graph.character.zoomTitle')} onClick={event => { event.stopPropagation(); data.onPreview(data.asset, t('canvas.graph.character.previewTitle', { name: data.name })); }}><MagnifyingGlassPlus size={17} /></button>}
     <footer className="char-foot">
-      <div className="char-id"><h2 className="display" title={data.name}>{data.name}</h2>{data.traits?.length > 0 && <p title={data.traits.join('・')}>{data.traits.join('・')}</p>}</div>
+      <div className="char-id"><h2 className="display" title={data.name}>{data.name}</h2>{data.traits?.length > 0 && <p title={joinDot(data.traits)}>{joinDot(data.traits)}</p>}</div>
       <div className="char-row">
         <div className="char-states">
           {data.status && <NodeStatus status={data.status} />}
-          {decomposition?.status === 'running' && <span className="node-status tone-blue"><CircleNotch size={12} weight="bold" className="spin" />正在拆解裝備</span>}
-          {decomposition?.status === 'failed' && <button type="button" className="node-status tone-error nodrag" title={decomposition.error} onClick={event => { event.stopPropagation(); data.onDecompose(); }}><WarningCircle size={12} weight="bold" />拆解沒完成・再試一次</button>}
+          {decomposition?.status === 'running' && <span className="node-status tone-blue"><CircleNotch size={12} weight="bold" className="spin" />{t('canvas.graph.decompose.running')}</span>}
+          {decomposition?.status === 'failed' && <button type="button" className="node-status tone-error nodrag" title={errorText(decomposition.errorCode || 'DECOMPOSE_FAILED', decomposition.error, decomposition.errorDetail)} onClick={event => { event.stopPropagation(); data.onDecompose(); }}><WarningCircle size={12} weight="bold" />{t('canvas.graph.decompose.failed')}</button>}
         </div>
         <div className="char-actions">
-          {data.asset && decomposition?.status !== 'running' && <button type="button" className="btn btn-quiet btn-sm nodrag" title="請 AI 從立繪找出裝備，變成畫布上的節點" onClick={event => { event.stopPropagation(); data.onDecompose(); }}><Scissors size={14} />拆解裝備</button>}
-          <button type="button" className="btn btn-primary btn-sm nodrag" onClick={event => { event.stopPropagation(); data.onOpen(); }}>捏角色</button>
+          {data.asset && decomposition?.status !== 'running' && <button type="button" className="btn btn-quiet btn-sm nodrag" title={t('canvas.graph.decompose.hint')} onClick={event => { event.stopPropagation(); data.onDecompose(); }}><Scissors size={14} />{t('canvas.graph.decompose.action')}</button>}
+          <button type="button" className="btn btn-primary btn-sm nodrag" onClick={event => { event.stopPropagation(); data.onOpen(); }}>{t('canvas.graph.character.openCreator')}</button>
         </div>
       </div>
     </footer>
@@ -65,17 +69,18 @@ const CharacterNode = memo(function CharacterNode({ id, data, selected }) {
 
 // 裝備節點：有設計圖顯示設計圖；還沒畫的顯示從立繪裁出的位置；都沒有時顯示種類圖示。
 const PartNode = memo(function PartNode({ data, selected }) {
+  const t = useT();
   const Icon = kindIcons[data.kind] || Package;
   return <article className={`part-node ${selected ? 'is-selected' : ''} ${data.proposed ? 'is-proposed' : ''} ${data.disabled ? 'is-off' : ''} ${data.isNew ? 'is-new' : ''}`}>
     <div className="part-art">
-      {data.asset ? <img src={data.asset.url} alt={`${data.name}的設計圖`} draggable="false" />
-        : data.cropUrl ? <CropThumb url={data.cropUrl} crop={data.crop} aspect={partNodeSize.width / 176} alt={`${data.name}在立繪上的位置`} />
+      {data.asset ? <img src={data.asset.url} alt={t('canvas.part.designAlt', { name: data.name })} draggable="false" />
+        : data.cropUrl ? <CropThumb url={data.cropUrl} crop={data.crop} aspect={partNodeSize.width / 176} alt={t('canvas.part.cropAlt', { name: data.name })} />
           : <span className="part-icon"><Icon size={34} weight="light" /></span>}
-      {data.proposed && <span className="part-flag">{data.asset ? '' : data.cropUrl ? '從立繪拆出' : '草案'}</span>}
+      {data.proposed && <span className="part-flag">{data.asset ? '' : data.cropUrl ? t('canvas.part.fromPortrait') : t('canvas.part.draft')}</span>}
     </div>
     <div className="part-caption">
       <b>{data.name}</b>
-      <span className="part-sub">{[data.anchor, kindNames[data.kind]].filter(Boolean).join('・')}</span>
+      <span className="part-sub">{joinDot([data.anchor, kindNames()[data.kind]])}</span>
       <NodeStatus status={data.status} />
     </div>
     <Handle id="left" type="target" position={Position.Left} />
@@ -104,7 +109,7 @@ const LinkEdge = memo(function LinkEdge({ id, sourceX, sourceY, targetX, targetY
 
 const nodeTypes = { character: CharacterNode, part: PartNode, annotation: CanvasAnnotationNode, formalReference: CanvasFormalReferenceNode };
 const edgeTypes = { link: LinkEdge };
-const referenceRoles = { style: '繪風', identity: '角色特徵', color: '色彩', clothing: '服裝', composition: '構圖', material: '材質' };
+const referenceTitle = role => ({ style: t('canvas.graph.reference.style'), identity: t('canvas.graph.reference.identity'), color: t('canvas.graph.reference.color'), clothing: t('canvas.graph.reference.clothing'), composition: t('canvas.graph.reference.composition'), material: t('canvas.graph.reference.material') })[role] || t('canvas.graph.reference.design');
 const motionDuration = duration => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : duration;
 const annotationNodeId = id => `annotation:${id}`;
 const characterOrigin = { x: 0, y: 0 };
@@ -119,18 +124,21 @@ function nodeStatus(project, targetId, outfitId, summary, equipped) {
   const running = (project.jobs || []).some(job => job.targetId === targetId && job.status === 'running' && (job.outfitId || null) === (outfitId || null));
   const failed = summary.attentionJobs.some(job => job.targetId === targetId && job.status === 'failed');
   const worn = !part || equipped.some(item => item.componentId === targetId && item.enabled);
-  if (fresh) return { tone: 'amber', label: `新圖 ${fresh}` };
-  if (running) return { tone: 'blue', label: '繪製中', running: true };
-  if (failed) return { tone: 'error', label: '這次沒畫成' };
-  if (open) return { tone: 'blue', label: '到 Codex 按送出' };
-  if (!worn) return { tone: 'neutral', label: '沒穿', unworn: true };
-  if (project.syncTargets.includes(targetId) && asset) return { tone: 'amber', label: '設定改過' };
-  if (asset) return { tone: 'success', label: '已採用' };
+  if (fresh) return { tone: 'amber', label: t('canvas.status.newImages', { count: fresh }) };
+  if (running) return { tone: 'blue', label: t('canvas.status.drawing'), running: true };
+  if (failed) return { tone: 'error', label: t('canvas.status.failed') };
+  if (open) return { tone: 'blue', label: t('canvas.status.sendInCodex') };
+  if (!worn) return { tone: 'neutral', label: t('canvas.status.notWorn'), unworn: true };
+  if (project.syncTargets.includes(targetId) && asset) return { tone: 'amber', label: t('canvas.status.changed') };
+  if (asset) return { tone: 'success', label: t('canvas.status.adopted') };
   if (targetId === 'character') return null;
-  return { tone: 'neutral', label: '還沒畫' };
+  return { tone: 'neutral', label: t('canvas.status.notDrawn') };
 }
 
 function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, onDecompose, onAdd, onPreview, placeholder, onCreateAnnotation, onUpdateAnnotation, onDeleteAnnotation, onAddCanvasReference }) {
+  const t = useT();
+  // 換語言時重建節點與關聯線上的文字。
+  const locale = getLocale();
   const flow = useReactFlow();
   const [nodes, setNodes] = useState([]);
   const [zoom, setZoom] = useState(1);
@@ -188,7 +196,7 @@ function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, o
     task.then(() => {
       if (positionDraftsRef.current[id]?.sequence === sequence) changePositionDraft(id, { position, sequence, saving: false, acknowledged: true });
     }, failure => {
-      if (positionDraftsRef.current[id]?.sequence === sequence) changePositionDraft(id, { position, sequence, saving: false, error: failure.message || '請重新連線後再試一次。' });
+      if (positionDraftsRef.current[id]?.sequence === sequence) changePositionDraft(id, { position, sequence, saving: false, error: failure.message || t('canvas.graph.positionRetry') });
     }).finally(() => { if (positionQueues.current.get(id) === task) positionQueues.current.delete(id); });
   }, [onUpdateAnnotation, changePositionDraft]);
   useEffect(() => {
@@ -241,7 +249,7 @@ function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, o
       }),
       ...(character.style.references || []).map((reference, index) => {
         const id = `formal-reference:${reference.id}`;
-        return { id, type: 'formalReference', selected: selectedCanvasId === id, position: saved[id] || referencePosition(origin, index), style: { width: 205 }, draggable: tool !== 'pan', data: { asset: project.assets.find(asset => asset.id === reference.assetId), title: `${referenceRoles[reference.role] || '設計'}參考`, description: reference.focus.join('・'), onPreview } };
+        return { id, type: 'formalReference', selected: selectedCanvasId === id, position: saved[id] || referencePosition(origin, index), style: { width: 205 }, draggable: tool !== 'pan', data: { asset: project.assets.find(asset => asset.id === reference.assetId), title: referenceTitle(reference.role), description: joinDot(reference.focus), onPreview } };
       }),
       ...(project.canvasAnnotations || []).map(annotation => {
         const id = annotationNodeId(annotation.id), draft = positionDrafts[annotation.id];
@@ -249,7 +257,7 @@ function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, o
       }),
     ];
     return { nodes, auto };
-  }, [project, outfitId, portrait, selectedId, onOpenCreator, onDecompose, onPreview, placeholder, readSaved, selectedCanvasId, editRequestedId, tool, positionDrafts, onUpdateAnnotation, onDeleteAnnotation, saveAnnotationPosition, freshParts, layoutVersion, cropOf, obstaclesFor, imageBox]);
+  }, [project, outfitId, portrait, selectedId, onOpenCreator, onDecompose, onPreview, placeholder, readSaved, selectedCanvasId, editRequestedId, tool, positionDrafts, onUpdateAnnotation, onDeleteAnnotation, saveAnnotationPosition, freshParts, layoutVersion, cropOf, obstaclesFor, imageBox, locale]);
   useEffect(() => {
     const { nodes: built, auto } = buildNodes();
     // 圖片尺寸確定後才把新排的位置記下來，之後就固定。
@@ -283,11 +291,11 @@ function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, o
       if (!port) return [];
       const slot = project.character.outfits[outfitId]?.equipped.find(item => item.componentId === part.id);
       const worn = Boolean(slot?.enabled);
-      const label = !worn ? '沒穿' : slot?.anchor || (part.kind === 'accessory' ? '配件' : '裝備');
-      return [{ id: `edge-${part.id}`, source: 'character', sourceHandle: `port-${part.id}`, target: part.id, targetHandle: port.side === 'left' ? 'right' : 'left', type: 'link', ariaLabel: `${part.name}：${label}`,
+      const label = !worn ? t('canvas.status.notWorn') : slot?.anchor || (part.kind === 'accessory' ? t('canvas.graph.edge.accessory') : t('canvas.graph.edge.piece'));
+      return [{ id: `edge-${part.id}`, source: 'character', sourceHandle: `port-${part.id}`, target: part.id, targetHandle: port.side === 'left' ? 'right' : 'left', type: 'link', ariaLabel: t('canvas.graph.edge.aria', { name: part.name, label }),
         data: { focused: focusId === part.id, muted: Boolean(focusId && focusId !== part.id), dashed: !worn, showLabel: !worn, label, isNew: freshParts.includes(part.id) } }];
     });
-  }, [project.character.components, project.character.outfits, outfitId, selectedId, selectedCanvasId, ports, freshParts]);
+  }, [project.character.components, project.character.outfits, outfitId, selectedId, selectedCanvasId, ports, freshParts, locale]);
 
   const changeNodes = changes => setNodes(current => applyNodeChanges(changes.filter(change => change.type !== 'select'), current));
   const savePositions = (_, node, dragged) => {
@@ -348,7 +356,7 @@ function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, o
       const id = annotationNodeId(result.annotation.id);
       setSelectedCanvasId(id); setEditRequestedId(id); setTool('select'); setCreation(null);
     } catch (failure) {
-      if (mounted.current) setCreation({ ...operation, working: false, error: failure.message || '尚未加入畫布，請再試一次。' });
+      if (mounted.current) setCreation({ ...operation, working: false, error: failure.message || t('canvas.graph.create.error') });
     }
   }
   const addTextCard = kind => createCard({ input: { kind, text: '', tone: kind === 'text' ? 'neutral' : 'gold', position: newPosition(kind) } });
@@ -371,24 +379,24 @@ function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, o
       fitView fitViewOptions={{ padding: 0.14, maxZoom: 1 }} minZoom={0.15} maxZoom={1.8} panOnDrag={tool === 'pan' ? true : [1, 2]} zoomOnDoubleClick={false} nodesConnectable={false} deleteKeyCode={null} colorMode="dark" proOptions={{ hideAttribution: true }}>
       <Background gap={26} size={1.1} color="#262B47" />
     </ReactFlow>
-    <input ref={referenceInput} className="sr-only" tabIndex={-1} type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="選擇畫布參考圖片" onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) createCard({ file, position: newPosition('reference') }); }} />
-    {creation && <div className={`canvas-create-feedback ${creation.error ? 'has-error' : ''}`} role={creation.error ? 'alert' : 'status'}>{creation.working ? <><CircleNotch className="annotation-spinner" size={15} />正在加入{creation.file ? '參考圖' : creation.input.kind === 'note' ? '便利貼' : '說明'}…</> : <><span>{creation.error}</span><button type="button" onClick={() => createCard(creation)}><ArrowClockwise size={14} />再試一次</button><button type="button" onClick={() => setCreation(null)}>取消</button></>}</div>}
+    <input ref={referenceInput} className="sr-only" tabIndex={-1} type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label={t('canvas.graph.toolbar.chooseReference')} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) createCard({ file, position: newPosition('reference') }); }} />
+    {creation && <div className={`canvas-create-feedback ${creation.error ? 'has-error' : ''}`} role={creation.error ? 'alert' : 'status'}>{creation.working ? <><CircleNotch className="annotation-spinner" size={15} />{creation.file ? t('canvas.graph.create.addingReference') : creation.input.kind === 'note' ? t('canvas.graph.create.addingNote') : t('canvas.graph.create.addingText')}</> : <><span>{creation.error}</span><button type="button" onClick={() => createCard(creation)}><ArrowClockwise size={14} />{t('canvas.retry')}</button><button type="button" onClick={() => setCreation(null)}>{t('canvas.cancel')}</button></>}</div>}
     <div className="canvas-footer">
-      <div className="canvas-toolbar" role="toolbar" aria-label="畫布工具">
-        <button type="button" aria-label="選取工具" title="選取（V）" aria-pressed={tool === 'select'} onClick={() => setTool('select')}><Cursor size={18} /></button>
-        <button type="button" aria-label="平移工具" title="平移（H）" aria-pressed={tool === 'pan'} onClick={() => setTool('pan')}><Hand size={18} /></button>
+      <div className="canvas-toolbar" role="toolbar" aria-label={t('canvas.graph.toolbar.label')}>
+        <button type="button" aria-label={t('canvas.graph.toolbar.select')} title={t('canvas.graph.toolbar.selectShortcut')} aria-pressed={tool === 'select'} onClick={() => setTool('select')}><Cursor size={18} /></button>
+        <button type="button" aria-label={t('canvas.graph.toolbar.pan')} title={t('canvas.graph.toolbar.panShortcut')} aria-pressed={tool === 'pan'} onClick={() => setTool('pan')}><Hand size={18} /></button>
         <span className="tool-divider" />
-        <button type="button" className="tool-wide" title="新增一件裝備" onClick={onAdd}><Plus size={16} />裝備</button>
-        <button type="button" aria-label="加入便利貼" title="便利貼（N）" disabled={Boolean(creation?.working) || !onCreateAnnotation} onClick={() => addTextCard('note')}><Note size={18} /></button>
-        <button type="button" aria-label="加入說明" title="說明" disabled={Boolean(creation?.working) || !onCreateAnnotation} onClick={() => addTextCard('text')}><TextT size={18} /></button>
-        <button type="button" aria-label="加入畫布參考圖" title="參考圖" disabled={Boolean(creation?.working) || !onAddCanvasReference} onClick={() => referenceInput.current?.click()}><Image size={18} /></button>
+        <button type="button" className="tool-wide" title={t('canvas.graph.toolbar.addPieceHint')} onClick={onAdd}><Plus size={16} />{t('canvas.graph.toolbar.addPiece')}</button>
+        <button type="button" aria-label={t('canvas.graph.toolbar.addNote')} title={t('canvas.graph.toolbar.noteShortcut')} disabled={Boolean(creation?.working) || !onCreateAnnotation} onClick={() => addTextCard('note')}><Note size={18} /></button>
+        <button type="button" aria-label={t('canvas.graph.toolbar.addText')} title={t('canvas.annotation.kind.text')} disabled={Boolean(creation?.working) || !onCreateAnnotation} onClick={() => addTextCard('text')}><TextT size={18} /></button>
+        <button type="button" aria-label={t('canvas.graph.toolbar.addReference')} title={t('canvas.graph.toolbar.reference')} disabled={Boolean(creation?.working) || !onAddCanvasReference} onClick={() => referenceInput.current?.click()}><Image size={18} /></button>
         <span className="tool-divider" />
-        <button type="button" className="tool-step" aria-label="縮小畫布" onClick={() => flow.zoomOut({ duration: motionDuration(200) })}><Minus size={15} /></button>
+        <button type="button" className="tool-step" aria-label={t('canvas.graph.toolbar.zoomOut')} onClick={() => flow.zoomOut({ duration: motionDuration(200) })}><Minus size={15} /></button>
         <span className="tool-zoom num">{Math.round(zoom * 100)}%</span>
-        <button type="button" className="tool-step" aria-label="放大畫布" onClick={() => flow.zoomIn({ duration: motionDuration(200) })}><Plus size={15} /></button>
-        <button type="button" aria-label="聚焦選取內容" title="聚焦選取內容" disabled={!selectedId && !selectedCanvasId} onClick={focusSelection}><Crosshair size={17} /></button>
-        <button type="button" aria-label="顯示全部" title="顯示全部" onClick={fitAll}><CornersOut size={17} /></button>
-        <button type="button" className="tool-wide" title="把裝備節點重新排回人物兩側" onClick={tidy}>整理</button>
+        <button type="button" className="tool-step" aria-label={t('canvas.graph.toolbar.zoomIn')} onClick={() => flow.zoomIn({ duration: motionDuration(200) })}><Plus size={15} /></button>
+        <button type="button" aria-label={t('canvas.graph.toolbar.focus')} title={t('canvas.graph.toolbar.focus')} disabled={!selectedId && !selectedCanvasId} onClick={focusSelection}><Crosshair size={17} /></button>
+        <button type="button" aria-label={t('canvas.graph.toolbar.fitAll')} title={t('canvas.graph.toolbar.fitAll')} onClick={fitAll}><CornersOut size={17} /></button>
+        <button type="button" className="tool-wide" title={t('canvas.graph.toolbar.tidyHint')} onClick={tidy}>{t('canvas.graph.toolbar.tidy')}</button>
       </div>
     </div>
   </div>;

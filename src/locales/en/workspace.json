@@ -1,0 +1,35 @@
+{
+  "save": {
+    "saved": "Saved",
+    "saving": "Saving",
+    "error": "Couldn't save. Click to retry"
+  },
+  "backToCanvas": "Back to canvas",
+  "characters": "Characters",
+  "undo": "Undo",
+  "undoShortcut": "Undo (Ctrl+Z)",
+  "redo": "Redo",
+  "redoShortcut": "Redo (Ctrl+Shift+Z)",
+  "view": "View",
+  "canvas": "Canvas",
+  "creator": "Creator",
+  "characterActions": "Character",
+  "gallery": "Gallery",
+  "galleryCount_one": "Gallery, {{count}} image",
+  "galleryCount_other": "Gallery, {{count}} images",
+  "more": "More",
+  "menu": {
+    "history": "Save history",
+    "export": "Export character (ZIP)",
+    "settings": "Character file and Codex connection",
+    "delete": "Delete character…"
+  },
+  "select": {
+    "title": "Choose a character",
+    "open": "Open {{name}}",
+    "new": "Create a character",
+    "delete": "Delete \"{{name}}\"",
+    "trash_one": "Trash ({{count}})",
+    "trash_other": "Trash ({{count}})"
+  }
+}

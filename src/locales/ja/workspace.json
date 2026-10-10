@@ -1,0 +1,33 @@
+{
+  "save": {
+    "saved": "自動保存済み",
+    "saving": "保存中",
+    "error": "保存できませんでした。クリックで再試行"
+  },
+  "backToCanvas": "キャンバスに戻る",
+  "characters": "キャラクター一覧",
+  "undo": "元に戻す",
+  "undoShortcut": "元に戻す（Ctrl＋Z）",
+  "redo": "やり直し",
+  "redoShortcut": "やり直し（Ctrl＋Shift＋Z）",
+  "view": "表示",
+  "canvas": "キャンバス",
+  "creator": "キャラクリ",
+  "characterActions": "キャラクター",
+  "gallery": "ギャラリー",
+  "galleryCount_other": "ギャラリー、{{count}}枚",
+  "more": "その他",
+  "menu": {
+    "history": "セーブ履歴",
+    "export": "キャラクターを書き出す（ZIP）",
+    "settings": "設定ファイルと Codex 連携",
+    "delete": "キャラクターを削除…"
+  },
+  "select": {
+    "title": "キャラクターを選ぶ",
+    "open": "{{name}}を開く",
+    "new": "新しくつくる",
+    "delete": "「{{name}}」を削除",
+    "trash_other": "ゴミ箱（{{count}}）"
+  }
+}

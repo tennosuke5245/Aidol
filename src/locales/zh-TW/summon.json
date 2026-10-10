@@ -1,0 +1,67 @@
+{
+  "close": "收起來",
+  "closeForNow": "先收起來",
+  "waiting": {
+    "title": "到 Codex 按送出",
+    "sub": "Codex 已經開好新對話，提示也填好了。按下送出，這裡就會開始翻牌。"
+  },
+  "drawing": {
+    "title": "繪製中 {{returned}}／{{expected}}",
+    "sub": "畫好一張就翻開一張，不用等全部畫完。"
+  },
+  "adopted": {
+    "titleMain": "已設為正式立繪",
+    "titlePart": "已設為「{{name}}」的設計圖",
+    "sub": "其他的都留在圖鑑，之後隨時可以換。"
+  },
+  "pick": {
+    "titleMain": "選一張當正式立繪",
+    "titlePart": "選一張當「{{name}}」的設計圖",
+    "subDrawing": "還有幾張在畫，可以先挑。",
+    "sub": "其他的會留在圖鑑，之後也能換。"
+  },
+  "failed": {
+    "title": "這次沒畫成",
+    "reported": "Codex 回報：{{message}}",
+    "sub": "Codex 回報失敗。要求與設定都還在，可以再試一次。"
+  },
+  "card": {
+    "waiting": "等待送出",
+    "failed": "沒有畫出",
+    "drawing": "繪製中",
+    "previewTitle": "{{target}}・第 {{number}} 張",
+    "zoom": "放大第 {{number}} 張",
+    "alt": "第 {{number}} 張",
+    "pickedMain": "正式立繪",
+    "picked": "已採用",
+    "adoptMain": "設為立繪",
+    "adopt": "採用這張",
+    "older": "用較早的設定畫的"
+  },
+  "opening": "開啟中…",
+  "reopen": "重新開啟 Codex",
+  "copyPrompt": "複製提示",
+  "tryAgain": "再試一次",
+  "progressInCodex": "到 Codex 看進度",
+  "openGallery": "打開圖鑑",
+  "prompt": {
+    "summary": "這次帶給 AI 的內容",
+    "inputs": "一起交給 AI 的圖",
+    "briefHeading": "角色描述"
+  },
+  "reference": {
+    "label": "{{role}}：{{focus}}",
+    "role": {
+      "style": "繪風參考",
+      "identity": "角色特徵參考",
+      "color": "配色參考",
+      "clothing": "服裝結構參考",
+      "material": "材質參考",
+      "composition": "構圖參考",
+      "other": "參考圖"
+    },
+    "overall": "整體感覺",
+    "main": "正式立繪（長相與服裝）",
+    "partDesign": "{{name}}的設計圖"
+  }
+}

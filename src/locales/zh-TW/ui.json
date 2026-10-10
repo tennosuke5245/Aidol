@@ -1,0 +1,8 @@
+{
+  "unset": "未設定",
+  "none": "不使用",
+  "knobStep": "{{control}}：{{step}}",
+  "knobCompare": "{{label}}：{{step}}",
+  "close": "關閉",
+  "language": "語言"
+}

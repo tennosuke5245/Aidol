@@ -6,6 +6,14 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 const execute = promisify(execFile);
+// 關掉 app-server。Windows 上連它開的子程序（指令、MCP 伺服器）一起結束，不留下還佔著資料夾的孤兒程序。
+function stopProcess(child) {
+  if (process.platform === 'win32' && child.pid) {
+    execFile('taskkill', ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true }, (error) => { if (error) child.kill(); });
+  } else child.kill();
+}
+// 被訊號結束的程序 exitCode 仍是 null，要一起看 signalCode。
+const exited = (child) => child.exitCode != null || child.signalCode != null;
 export function codexCommand() {
   if (process.env.AIDOL_CODEX_BINARY) return process.env.AIDOL_CODEX_BINARY;
   const executable = process.platform === 'win32' ? 'codex.exe' : 'codex';
@@ -30,14 +38,30 @@ export async function codexVersion() {
 
 // 一個 stdio 連線可以處理多個互相獨立的工作；工作絕不 resume 或 fork。
 export class CodexClient extends EventEmitter {
-  constructor({ cwd = process.cwd(), spawnProcess = spawn, requestTimeout = 25000 } = {}) {
+  constructor({ cwd = process.cwd(), spawnProcess = spawn, terminate = stopProcess, requestTimeout = 25000 } = {}) {
     super();
     this.cwd = cwd;
     this.spawnProcess = spawnProcess;
+    this.terminate = terminate;
     this.requestTimeout = requestTimeout;
     this.pending = new Map();
     this.sequence = 0;
     this.starting = null;
+    this.activeTurns = 0;
+  }
+
+  get running() { return Boolean(this.child) && !exited(this.child) && !this.closing; }
+  get busy() { return this.activeTurns > 0 || this.pending.size > 0; }
+
+  // 讓 app-server 放開它碰過的資料夾：閒著就整個重開（下次要用時自動再連）；
+  // 正在幫別的工作跑就不打斷，回報 busy。回傳 'none'（本來就沒在跑）、'released' 或 'busy'。
+  async release({ waitMs = 2000 } = {}) {
+    if (!this.running) return 'none';
+    // 短暫的查詢（例如狀態、模型清單）等它回來就好；對話或拆解要等很久，不等。
+    for (const until = Date.now() + waitMs; !this.activeTurns && this.pending.size && Date.now() < until;) await new Promise((resolve) => setTimeout(resolve, 50));
+    if (this.busy) return 'busy';
+    await this.close();
+    return 'released';
   }
 
   async start() {
@@ -48,9 +72,10 @@ export class CodexClient extends EventEmitter {
 
   async #connect() {
     this.closing = null;
-    this.child = this.spawnProcess(codexCommand(), ['app-server'], {
+    const child = this.spawnProcess(codexCommand(), ['app-server'], {
       cwd: this.cwd, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'],
     });
+    this.child = child;
     this.lines = createInterface({ input: this.child.stdout });
     this.lines.on('line', line => {
       let message;
@@ -65,14 +90,15 @@ export class CodexClient extends EventEmitter {
       } else if (message.method && Object.hasOwn(message, 'id')) {
         // 本整合僅讀取與生成描述，不准 agent 擴張到需核准的操作。
         const result = message.method.includes('requestApproval') ? { decision: 'decline' } : null;
-        this.child.stdin.write(`${JSON.stringify(result ? { id: message.id, result } : {
+        child.stdin.write(`${JSON.stringify(result ? { id: message.id, result } : {
           id: message.id, error: { code: -32601, message: 'AIDOL 不支援此互動要求。' },
         })}\n`);
       } else this.emit('notification', message);
     });
     this.child.stderr.on('data', () => {}); // 不將帳號或驗證診斷送到 UI。
-    this.child.on('error', error => this.#fail(error));
-    this.child.on('exit', () => this.#fail(new Error('Codex 連線已結束。')));
+    // 重開後，舊程序晚到的結束事件不能把新連線上的工作一起判失敗。
+    child.on('error', error => { if (this.child === child) this.#fail(error); });
+    child.on('exit', () => { if (this.child === child) this.#fail(new Error('Codex 連線已結束。')); });
     await this.request('initialize', { clientInfo: { name: 'aidol', title: 'AIDOL 角色設計工作室', version: '0.1.0' }, capabilities: {} });
     this.notify('initialized', {});
   }
@@ -102,7 +128,12 @@ export class CodexClient extends EventEmitter {
     this.child.stdin.write(`${JSON.stringify({ method, params })}\n`);
   }
 
-  async freshTurn({ prompt, images = [], cwd = this.cwd, model, outputSchema, timeoutMs = 180000 }) {
+  async freshTurn(options) {
+    this.activeTurns++;
+    try { return await this.#turn(options); } finally { this.activeTurns--; }
+  }
+
+  async #turn({ prompt, images = [], cwd = this.cwd, model, outputSchema, timeoutMs = 180000 }) {
     await this.start();
     const { thread } = await this.request('thread/start', {
       ...(model ? { model } : {}), cwd, approvalPolicy: 'never', sandbox: 'read-only',
@@ -155,11 +186,11 @@ export class CodexClient extends EventEmitter {
     this.lines?.close();
     this.starting = null;
     const child = this.child;
-    if (!child || child.exitCode !== null && child.exitCode !== undefined) return Promise.resolve();
+    if (!child || exited(child)) return Promise.resolve();
     this.closing = new Promise(resolve => {
       const timer = setTimeout(resolve, 3000);
       child.once('exit', () => { clearTimeout(timer); resolve(); });
-      child.kill();
+      this.terminate(child);
     });
     return this.closing;
   }

@@ -1,0 +1,86 @@
+{
+  "busy": "処理中…",
+  "closeDialog": "閉じる",
+  "image": {
+    "previewAlt": "プレビュー：{{name}}",
+    "replaceHint": "クリックするか別の画像をドロップすると差し替えられます",
+    "formats": "PNG、JPEG、WebP、最大 25 MB。画像をドロップしても追加できます"
+  },
+  "newCharacter": {
+    "name": "名前",
+    "namePlaceholder": "例：羽",
+    "brief": "ひとことで説明（任意）",
+    "briefPlaceholder": "例：12歳の天才ハッカー。黒と赤の配色で、口は悪いけれど根はやさしい。",
+    "reference": "参考画像（任意）",
+    "useFor": "この画像から参考にするもの",
+    "role": {
+      "identity": "見た目と特徴",
+      "style": "画風（線・塗り）",
+      "color": "配色",
+      "clothing": "服の構造"
+    },
+    "hintWithBrief": "作成すると、AI がこの説明をもとに設定を書きます。確認してから適用できます。",
+    "hintEmpty": "作成するとそのまま「キャラクリ」に進み、見た目から決めていきます。",
+    "creating": "作成中…",
+    "submit": "キャラクリを始める"
+  },
+  "part": {
+    "name": "名前",
+    "namePlaceholder": "例：三日月のヘアクリップ",
+    "kind": "種類",
+    "kinds": {
+      "accessory": "小物",
+      "garment": "服",
+      "footwear": "靴",
+      "hair": "髪型",
+      "weapon": "武器",
+      "body": "身体的特徴",
+      "other": "その他"
+    },
+    "description": "見た目",
+    "descriptionPlaceholder": "例：胸元の留め具と同じ素材の、真鍮の三日月ヘアクリップ。",
+    "save": "保存",
+    "add": "パーツに追加"
+  },
+  "reference": {
+    "choose": "参考画像を選ぶ",
+    "role": "使い道",
+    "roles": {
+      "style": "画風",
+      "identity": "特徴",
+      "color": "配色",
+      "clothing": "服の構造",
+      "material": "素材",
+      "composition": "構図"
+    },
+    "focus": "参考にしたいところ",
+    "focusDefault": "線、影",
+    "focusPlaceholder": "線、影、金属の質感",
+    "hint": "使い道はこのあと毎回の描画に添えられます。",
+    "add": "参考に追加"
+  },
+  "settings": {
+    "tabs": "設定の種類",
+    "yamlTab": "設定ファイル",
+    "codexTab": "Codex 連携",
+    "yamlHint": "キャラクター設定の元ファイルです。保存時に形式と画像の参照をチェックします。ふだんは「キャラクリ」で調整すれば十分です。",
+    "yamlLabel": "キャラクターの YAML ファイル",
+    "yamlSave": "チェックして v{{version}}として保存",
+    "cliTitle": "Codex CLI · 文章づくり",
+    "signedIn": "ログイン済み",
+    "notSignedIn": "未ログイン",
+    "checking": "接続を確認しています…",
+    "recheck": "もう一度確認",
+    "skillTitle": "AIDOL Skill · 描画と報告",
+    "skillInstalled": "インストール済み。新しいチャットで $aidol が使えます。",
+    "skillNotInstalled": "送信のたびにプロジェクトの Skill が添付されます。Codex にインストールすることもできます。",
+    "skillUpdate": "AIDOL Skill を更新",
+    "skillInstall": "Codex にインストール",
+    "notice": "文章の設定は Codex CLI と一緒に、絵は Codex App で描きます。AIDOL が Codex に新しいチャットを開き、送信を押すと Skill が進捗を報告して画像を送り返します。別料金の Image API に切り替えることはありません。"
+  },
+  "history": {
+    "saveNumber": "{{revision}}回目のセーブ",
+    "current": "現在",
+    "restore": "このセーブを読み込む"
+  }
+}

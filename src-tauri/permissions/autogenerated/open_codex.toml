@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-open-codex"
+description = "Enables the open_codex command without any pre-configured scope."
+commands.allow = ["open_codex"]
+
+[[permission]]
+identifier = "deny-open-codex"
+description = "Denies the open_codex command without any pre-configured scope."
+commands.deny = ["open_codex"]

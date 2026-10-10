@@ -1,0 +1,19 @@
+{
+  "demoCreated": "Created the sample character",
+  "draftCreated": "Created the character",
+  "settingsUpdated": "Updated the settings",
+  "proposalAccepted": "Applied the AI's settings",
+  "decomposeAdded_one": "Outfit breakdown: added {{count}} piece",
+  "decomposeAdded_other": "Outfit breakdown: added {{count}} pieces",
+  "decomposeMoved": "Outfit breakdown: updated positions",
+  "sheetAdopted": "Adopted a design sheet",
+  "partAdopted": "Adopted {{name}} ({{view}})",
+  "restored": "Restored save {{revision}}",
+  "view": {
+    "front": "front",
+    "full": "full",
+    "back": "back",
+    "detail": "detail"
+  },
+  "partAdoptedPlain": "Adopted {{name}}"
+}

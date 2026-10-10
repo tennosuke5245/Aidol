@@ -1,0 +1,20 @@
+{
+  "saved": "設定已儲存。",
+  "adopted": {
+    "part": "已設為這件裝備的設計圖。",
+    "mainDecomposing": "已設為正式立繪，正在從立繪拆解裝備…",
+    "main": "已設為正式立繪。"
+  },
+  "imported": "已匯入這張圖，放在圖鑑裡。",
+  "referenceSaved": "參考圖片與用途已儲存。",
+  "defaultFocus": {
+    "lines": "線條",
+    "coloring": "上色",
+    "look": "外觀",
+    "colors": "配色"
+  },
+  "copied": "已複製。",
+  "clipboardFailed": "無法使用剪貼簿，請選取文字複製。",
+  "detailSeparator": "；",
+  "autosaveFailed": "自動存檔失敗：{{message}}"
+}

@@ -1,4 +1,5 @@
 import path from 'node:path';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { randomUUID, createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
@@ -16,15 +17,87 @@ import { framings, variantCounts } from '../shared/libraries.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const clone = (value) => structuredClone(value);
 // 角色選單上最先顯示：新圖 → 繪製中 → 等你送出 → 失敗。
+// 還在畫（或等 Codex 回報）的工作：刪除角色前要提醒。
+const isDrawing = (job) => ['running', 'handed_off'].includes(job.status) || Boolean(job.progress?.startedAt && !job.progress?.finishedAt);
 const attentionRank = (item) => ({ review: 0, wait: 1, handoff: item.tone === 'error' ? 3 : 2 })[item.action] ?? 4;
 const now = () => new Date().toISOString();
 const uid = (prefix) => `${prefix}-${randomUUID()}`;
 const exists = async (file) => fs.access(file).then(() => true, () => false);
+const trashIdPattern = /^[A-Za-z0-9][A-Za-z0-9_-]{0,79}--[0-9]{14}-[0-9a-f]{8}$/;
+const validTrashId = (trashId) => {
+  if (typeof trashId !== 'string' || !trashIdPattern.test(trashId)) throw new DomainError('資源回收區的識別碼格式不正確。', 400, 'INVALID_TRASH_ID');
+  return trashId;
+};
+// 資料夾被開著（當工作位置、或裡面有檔案開著）時 Windows 不准搬。說清楚是誰卡住，不要只顯示系統錯誤：
+// AIDOL 自己的背景 Codex 會先被請求放開（見 _moveFolder）；它正在忙就請使用者等它做完，否則就是其他程式。
+const lockedCodes = ['EBUSY', 'EPERM', 'EACCES'];
+const folderBusy = (error, { codexBusy = false } = {}) => {
+  if (codexBusy && lockedCodes.includes(error?.code)) return new DomainError('AIDOL 的 Codex 還在工作中（例如聊天或拆解裝備），暫時沒辦法讓它放開角色資料夾。等它完成後再試一次。', 409, 'PROJECT_BUSY_CODEX');
+  return [...lockedCodes, 'EXDEV'].includes(error?.code) ? new DomainError('角色資料夾被其他程式開著，所以搬不動（不是 AIDOL 自己）。請關閉 Codex App、檔案總管或編輯器後再試一次。', 409, 'PROJECT_BUSY') : error;
+};
 const validId = (id) => {
   if (typeof id !== 'string' || !new RegExp(idPattern).test(id) || ['__proto__', 'constructor', 'prototype'].includes(id)) throw new DomainError('識別碼格式不正確。', 400, 'INVALID_ID');
   return id;
 };
+// 介面語言：繁體中文（原文）、English、日本語；不提供簡體中文。
+const preferenceLocales = ['zh-TW', 'en', 'ja'];
 const mimeExtensions = { 'image/png': '.png', 'image/jpeg': '.jpg', 'image/webp': '.webp', 'image/gif': '.gif' };
+// ── 匯出設計包的清理（2026-10-09）──
+// 設計包會被帶出電腦分享。已知的路徑欄位直接改寫成包內路徑；Codex 寫的自由文字
+// （失敗訊息、拆解與提案摘要、圖片名稱、工作說明）再清掉本機資料夾、家目錄、本機網址與交接 token。
+// 使用者自己寫的角色內容不動，manifest 才會和 character.yaml 一致。
+const SEP = String.raw`(?:[\\/]|%2[Ff]|%5[Cc])`;
+// 路徑裡的空白也可能寫成 %20；邊界判斷認得中日文字，資料夾「角色」不會吃掉「角色備份」。
+const SPACE = '(?: |%20)';
+const NOT_BEFORE = String.raw`(?<![\p{L}\p{N}_.~-])`;
+const NOT_AFTER = String.raw`(?![\p{L}\p{N}_.-])`;
+// 以分隔符號開頭的寫法只從連續分隔符號的第一個開始比對，一長串 //// 不會拖慢（避免 O(n²)）。
+const SEP_START = String.raw`(?<![\\/])`;
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const pathPart = (part) => escapeRegExp(part).replaceAll(' ', SPACE);
+const endsWithSep = new RegExp(`${SEP}$`);
+const trailingSeps = new RegExp(`${SEP}+$`);
+// 一個資料夾的各種寫法：\ 或 /、JSON 跳脫的 \\、%2F／%5C／%3A、大小寫、WSL 的 /mnt/c/…、Git Bash 的 /c/…。
+// 前後都要是路徑邊界：資料夾 ab 不會吃掉 abc 或 ab-old。
+const folderPattern = (dir) => {
+  const parts = String(dir || '').split(/[\\/]+/).filter(Boolean);
+  const drive = /^([A-Za-z]):$/.exec(parts[0] || '');
+  if (!parts.length || (drive && parts.length < 2)) return null;
+  const head = drive ? `(?:${drive[1]}(?::|%3[Aa])|${SEP_START}${SEP}+mnt${SEP}+${drive[1]}|${SEP_START}${SEP}+${drive[1]})` : `${SEP_START}${SEP}+${pathPart(parts[0])}`;
+  const rest = parts.slice(1).map((part) => `${SEP}+${pathPart(part)}`).join('');
+  return new RegExp(`${NOT_BEFORE}${head}${rest}(?:${SEP}+|${NOT_AFTER})`, 'giu');
+};
+// 別的帳號的家目錄（Windows、WSL、Git Bash、macOS 含外接磁碟、Linux、file://）一律換成 ~。
+// 帳號名稱含空白時只認得 %20 的寫法；這台電腦自己的家目錄由 folderPattern 完整比對。
+const homePrefixes = [
+  `${SEP}+mnt${SEP}+[A-Za-z]`,
+  `${SEP}+[A-Za-z](?=${SEP}+(?:Users|home)${SEP})`,
+  String.raw`${SEP}{2}wsl(?:\.localhost|\$)${SEP}+[^\\/\s"'<>]+`,
+  String.raw`${SEP}+Volumes${SEP}+[^\\/"'<>]+?`,
+  `${SEP}+var`,
+].join('|');
+const DRIVE = '[A-Za-z](?::|%3[Aa])';
+const homeStart = String.raw`file:${SEP}{2,3}(?:localhost)?(?:${DRIVE})?|${DRIVE}|${SEP_START}(?:${homePrefixes})?`;
+const otherHomes = new RegExp(String.raw`${NOT_BEFORE}(?:${homeStart})${SEP}+(?:Users|home)${SEP}+(?:[^\\/\s"'<>%]|%20)+`, 'giu');
+// 本機網址：有 http(s)/ws(s) 開頭的整段換掉；沒寫開頭的要有 port 才算（127.0.0.1:4318/…）。
+// 網址只吃到 ASCII 可見字元為止，後面接的中文不會被吃掉。
+const LOCAL_HOST = String.raw`(?:127(?:\.\d{1,3}){3}|localhost|0\.0\.0\.0|\[::1\]|[\w-]+\.local)`;
+const localUrls = new RegExp(String.raw`(?:\b(?:https?|wss?):\/\/${LOCAL_HOST}(?::\d+)?|(?<![\w.-])${LOCAL_HOST}:\d+)[!#-&(-;=?-~]*`, 'gi');
+const codexLinks = /\bcodex:\/\/[!#-&(-;=?-~]*/gi;
+export function portableTextScrubber({ folders = [], home = os.homedir(), secrets = [] } = {}) {
+  const steps = [];
+  for (const secret of new Set(secrets)) if (typeof secret === 'string' && secret.length >= 16) steps.push((text) => text.split(secret).join('[token]'));
+  steps.push((text) => text.replace(codexLinks, '[codex-link]').replace(localUrls, '[local-url]'));
+  // 較深的資料夾先換：專案資料夾 → 資料資料夾 → 家目錄
+  for (const folder of [...new Set(folders.filter((item) => typeof item === 'string' && item))].sort((a, b) => b.length - a.length)) {
+    const pattern = folderPattern(folder);
+    if (pattern) steps.push((text) => text.replace(pattern, (match) => (endsWithSep.test(match) ? '' : '.')));
+  }
+  const homePattern = typeof home === 'string' && home.length > 3 ? folderPattern(home) : null;
+  if (homePattern) steps.push((text) => text.replace(homePattern, (match) => `~${match.match(trailingSeps)?.[0] || ''}`));
+  steps.push((text) => text.replace(otherHomes, '~'));
+  return (text) => (typeof text === 'string' ? steps.reduce((value, step) => step(value), text) : text);
+}
 
 export function imageMime(buffer) {
   if (!Buffer.isBuffer(buffer)) return null;
@@ -33,6 +106,17 @@ export function imageMime(buffer) {
   if (buffer.length >= 12 && buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP') return 'image/webp';
   if (buffer.length >= 6 && ['GIF87a', 'GIF89a'].includes(buffer.toString('ascii', 0, 6))) return 'image/gif';
   return null;
+}
+
+// Windows 上資料夾裡有檔案正被讀取（例如圖片正在送給瀏覽器）時，搬移會暫時失敗；稍等再試幾次。
+async function renameWithRetry(from, to, attempts = 6) {
+  for (let attempt = 1; ; attempt++) {
+    try { return await fs.rename(from, to); }
+    catch (error) {
+      if (attempt >= attempts || !lockedCodes.includes(error?.code)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 150 * attempt));
+    }
+  }
 }
 
 async function atomic(file, content) {
@@ -48,11 +132,106 @@ export class ProjectStore {
     this.assetDir = path.resolve(assetDir);
     this.demo = demo;
     this.locks = new Map();
+    this.decomposing = new Set();
+    this.folderReleaser = null;
+    this.moveAttempts = 6; // 資料夾被佔用時，一輪搬移最多試幾次（約兩秒）。
     this.ready = null;
   }
 
   projectDir(id) { return path.join(this.dataDir, 'projects', validId(id)); }
   jobDir(projectId, jobId) { return path.join(this.projectDir(projectId), 'jobs', validId(jobId)); }
+
+  // 這台電腦的介面偏好（目前只有語言）。桌面版每次啟動的本機網址 port 都不同，瀏覽器的儲存會跟著換，
+  // 所以語言要記在資料資料夾裡，換 port 也記得。
+  // 還沒選過語言、但已經有自己建立的角色：是語系功能之前的安裝，那時介面只有繁中，預設維持繁中（inferred）。
+  async getPreferences() {
+    const saved = await fs.readFile(path.join(this.dataDir, 'preferences.json'), 'utf8').then(JSON.parse, () => ({}));
+    if (preferenceLocales.includes(saved?.locale)) return { locale: saved.locale };
+    const folders = await fs.readdir(path.join(this.dataDir, 'projects'), { withFileTypes: true }).catch(() => []);
+    const ownProjects = folders.some((folder) => folder.isDirectory() && folder.name !== 'rin' && new RegExp(idPattern).test(folder.name));
+    return ownProjects ? { locale: 'zh-TW', inferred: true } : {};
+  }
+  async savePreferences(input = {}) {
+    if (!preferenceLocales.includes(input.locale)) throw new DomainError('不支援這個介面語言。', 422, 'INVALID_LOCALE');
+    await fs.mkdir(this.dataDir, { recursive: true });
+    await atomic(path.join(this.dataDir, 'preferences.json'), JSON.stringify({ locale: input.locale }, null, 2));
+    return { locale: input.locale };
+  }
+
+  // 刪除角色＝把整個角色資料夾移到 <資料夾>/trash/，不直接刪檔：刪除後可以馬上復原，也能從角色選單的「資源回收區」找回。
+  // 刪除、復原都在角色鎖裡做；其他會寫進角色資料夾的地方也要先確認角色還在（withProjectFolder），免得刪除時留下半個資料夾。
+  trashDir(trashId) { return path.join(this.dataDir, 'trash', validTrashId(trashId)); }
+  async withProjectFolder(id, action) {
+    return this._withProject(id, async () => { await this._read(id); return action(this.projectDir(id)); });
+  }
+  markDecomposing(id, running) { if (running) this.decomposing.add(id); else this.decomposing.delete(id); }
+  // 背景 Codex 的整合登記：資料夾搬不動時呼叫，回傳 'released'（放開了）、'busy'（正在忙）或 'none'（沒在跑）。
+  setFolderReleaser(release) { this.folderReleaser = release; }
+  async _moveFolder(from, to) {
+    try { return await renameWithRetry(from, to, this.moveAttempts); }
+    catch (error) {
+      if (!lockedCodes.includes(error?.code) || !this.folderReleaser) throw folderBusy(error);
+      const released = await Promise.resolve().then(() => this.folderReleaser()).catch(() => 'none');
+      if (released !== 'released') throw folderBusy(error, { codexBusy: released === 'busy' });
+      return renameWithRetry(from, to, this.moveAttempts).catch((again) => { throw folderBusy(again); });
+    }
+  }
+  async deleteProject(id) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      const deletedAt = now();
+      const trashId = `${id}--${deletedAt.replace(/[^0-9]/g, '').slice(0, 14)}-${randomUUID().slice(0, 8)}`;
+      // 先寫刪除紀錄再搬：搬移中途出事時，資源回收區裡的資料夾一定認得出是哪個角色。
+      const marker = path.join(this.projectDir(id), 'deleted.json');
+      await atomic(marker, JSON.stringify({ id, name: state.name, deletedAt }, null, 2));
+      await fs.mkdir(path.join(this.dataDir, 'trash'), { recursive: true });
+      try { await this._moveFolder(this.projectDir(id), this.trashDir(trashId)); }
+      catch (error) { await fs.rm(marker, { force: true }); throw error; }
+      return { id, name: state.name, trashId, deletedAt };
+    });
+  }
+  async _trashInfo(trashId) {
+    const source = this.trashDir(trashId);
+    const prefix = trashId.slice(0, trashId.lastIndexOf('--'));
+    const marker = await fs.readFile(path.join(source, 'deleted.json'), 'utf8').then(JSON.parse, () => null);
+    const metadata = await fs.readFile(path.join(source, 'project.json'), 'utf8').then(JSON.parse, () => null);
+    // 角色 ID 以資料夾名稱與 project.json 為準，刪除紀錄只補名稱與時間；對不上就不認。
+    if (!metadata || metadata.id !== prefix || (marker && marker.id !== prefix)) return null;
+    return { trashId, id: prefix, name: marker?.name || metadata.name || prefix, deletedAt: marker?.deletedAt || null, imageCount: (metadata.assets || []).filter((asset) => asset.role === 'design').length };
+  }
+  async listTrash() {
+    await this.init();
+    const entries = await fs.readdir(path.join(this.dataDir, 'trash'), { withFileTypes: true }).catch(() => []);
+    const items = await Promise.all(entries.filter((entry) => entry.isDirectory() && trashIdPattern.test(entry.name)).map((entry) => this._trashInfo(entry.name)));
+    return items.filter(Boolean).sort((a, b) => String(b.deletedAt).localeCompare(String(a.deletedAt)));
+  }
+  async restoreProject(trashId) {
+    const info = await this._trashInfo(validTrashId(trashId));
+    if (!info) throw new DomainError('資源回收區裡找不到這個角色。', 404, 'TRASH_NOT_FOUND');
+    return this._withProject(info.id, async () => {
+      const target = this.projectDir(info.id);
+      if (await exists(target)) {
+        // 原位置只剩不完整的資料夾（沒有 project.json，例如刪除時剛好有東西寫入）：先移到資源回收區旁邊，再復原。
+        if (await exists(path.join(target, 'project.json'))) throw new DomainError('已經有同一個 ID 的角色，無法復原到原位置。', 409, 'PROJECT_EXISTS');
+        await this._moveFolder(target, path.join(this.dataDir, 'trash', `${info.id}--${now().replace(/[^0-9]/g, '').slice(0, 14)}-${randomUUID().slice(0, 8)}-partial`));
+      }
+      await this._moveFolder(this.trashDir(trashId), target);
+      await fs.rm(path.join(target, 'deleted.json'), { force: true });
+      const state = await this._read(info.id);
+      // 刪除期間背景拆解的結果寫不回來；復原時如果沒有還在跑的拆解，就標成中斷，讓使用者可以再拆一次。
+      if (state.decomposition?.status === 'running' && !this.decomposing.has(info.id)) {
+        state.decomposition = { ...state.decomposition, status: 'failed', finishedAt: now(), error: '角色被刪除時拆解中斷，可以再拆一次。', errorCode: 'DECOMPOSE_INTERRUPTED' };
+        await this._saveMetadata(state);
+      }
+      return this._public(state);
+    });
+  }
+  async purgeTrash(trashId) {
+    const info = await this._trashInfo(validTrashId(trashId));
+    if (!info) throw new DomainError('資源回收區裡找不到這個角色。', 404, 'TRASH_NOT_FOUND');
+    await fs.rm(this.trashDir(trashId), { recursive: true, force: true });
+    return { trashId, id: info.id, name: info.name };
+  }
 
   async init() {
     if (!this.ready) this.ready = this._init();
@@ -64,7 +243,9 @@ export class ProjectStore {
     await fs.mkdir(path.join(this.dataDir, 'projects'), { recursive: true });
     const folders = await fs.readdir(path.join(this.dataDir, 'projects'), { withFileTypes: true });
     for (const folder of folders.filter((entry) => entry.isDirectory() && new RegExp(idPattern).test(entry.name))) await this._recover(folder.name);
-    if (this.demo && !folders.some((entry) => entry.isDirectory())) {
+    // 範例角色只在全新安裝時建立；角色都刪光（資源回收區裡有東西）時不再冒出來。
+    const trashed = await fs.readdir(path.join(this.dataDir, 'trash')).then((entries) => entries.some((name) => /--[0-9]{14}-[0-9a-f]{8}/.test(name)), () => false);
+    if (this.demo && !trashed && !folders.some((entry) => entry.isDirectory())) {
       const createdAt = now();
       const character = demoCharacter();
       const assets = ['sheet', 'hair', 'coat', 'pants', 'boots', 'clasp'].map((part) => ({
@@ -73,7 +254,7 @@ export class ProjectStore {
         source: 'demo', sourceFile: `rin-${part}.png`,
       }));
       const state = { id: 'rin', name: '凜', createdAt, updatedAt: createdAt, character, assets, jobs: [], candidates: [], proposals: [], history: [], syncTargets: [], canvasAnnotations: [] };
-      this._history(state, '建立範例角色');
+      this._history(state, '建立範例角色', 'demoCreated');
       await this._save(state);
     }
   }
@@ -154,8 +335,9 @@ export class ProjectStore {
     if (baseRevision !== state.character.revision) throw new DomainError('角色已經更新，請重新載入後再操作。', 409, 'REVISION_CONFLICT', { currentRevision: state.character.revision, baseRevision });
   }
 
-  _history(state, message) {
-    state.history.push({ id: uid('history'), revision: state.character.revision, createdAt: now(), message, character: clone(state.character), syncTargets: [...state.syncTargets] });
+  // message 是繁中原文；messageKey／messageParams 讓介面換成使用者的語言（前端 locales/<語言>/history.json）。
+  _history(state, message, messageKey, messageParams) {
+    state.history.push({ id: uid('history'), revision: state.character.revision, createdAt: now(), message, ...(messageKey ? { messageKey, ...(messageParams ? { messageParams } : {}) } : {}), character: clone(state.character), syncTargets: [...state.syncTargets] });
   }
 
   _target(state, targetId) {
@@ -178,7 +360,13 @@ export class ProjectStore {
   async listProjects() {
     await this.init();
     const folders = await fs.readdir(path.join(this.dataDir, 'projects'), { withFileTypes: true });
-    const projects = await Promise.all(folders.filter((folder) => folder.isDirectory() && new RegExp(idPattern).test(folder.name)).map((folder) => this.getProject(folder.name)));
+    // 一個資料夾讀不到（剛被刪除、只剩半個資料夾）不能讓整個角色選單打不開；資料夾名稱和角色 ID 對不上的也略過。
+    const settled = await Promise.allSettled(folders.filter((folder) => folder.isDirectory() && new RegExp(idPattern).test(folder.name)).map(async (folder) => ({ folder: folder.name, project: await this.getProject(folder.name) })));
+    const projects = [];
+    for (const result of settled) {
+      if (result.status === 'fulfilled') { if (result.value.project.id === result.value.folder) projects.push(result.value.project); continue; }
+      if (result.reason?.code !== 'PROJECT_NOT_FOUND') throw result.reason;
+    }
     return projects.map((project) => {
       const { id, name, createdAt, updatedAt, character, assets } = project;
       const assetUrl = (assetId) => assets.find((asset) => asset.id === assetId)?.url || null;
@@ -186,7 +374,7 @@ export class ProjectStore {
       const attention = Object.keys(character.outfits).flatMap((outfitId) => workspaceSummary(project, outfitId).attentionJobs.map((job) => {
         const view = jobPresentation(project, job, outfitId);
         const targetName = job.targetId === 'character' ? '立繪' : character.components[job.targetId]?.name || '部件';
-        return { jobId: job.id, targetId: job.targetId, targetName, label: view.label, tone: view.tone, action: view.action, createdAt: job.createdAt, thumbnailUrl: assetUrl(view.candidate?.assetId) || assetUrl(character.adopted[job.targetId]) || assetUrl(character.adopted.character) };
+        return { jobId: job.id, targetId: job.targetId, targetName, label: view.label, labelKey: view.labelKey, labelParams: view.labelParams, tone: view.tone, action: view.action, createdAt: job.createdAt, thumbnailUrl: assetUrl(view.candidate?.assetId) || assetUrl(character.adopted[job.targetId]) || assetUrl(character.adopted.character) };
       }));
       const proposals = project.proposals.filter((proposal) => proposal.status === 'pending').length;
       return {
@@ -194,6 +382,7 @@ export class ProjectStore {
         thumbnailUrl: assetUrl(character.adopted.character),
         persona: (character.persona.description || '').slice(0, 120), traits: character.persona.traits.slice(0, 6),
         componentCount: Object.keys(character.components).length, outfitCount: Object.keys(character.outfits).length,
+        imageCount: assets.filter((asset) => asset.role === 'design').length, drawingCount: project.jobs.filter(isDrawing).length + (project.decomposition?.status === 'running' ? 1 : 0),
         attention: attention.sort((a, b) => attentionRank(a) - attentionRank(b) || (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0)).slice(0, 6),
         attentionCount: attention.length + proposals, pendingProposals: proposals,
       };
@@ -201,13 +390,13 @@ export class ProjectStore {
   }
 
   async createProject({ name, brief = '' } = {}) {
-    if (typeof name !== 'string' || !name.trim() || name.length > 160) throw new DomainError('請輸入 1 至 160 字的角色名稱。');
-    if (typeof brief !== 'string' || brief.length > 12000) throw new DomainError('角色簡介長度不可超過 12000 字。');
+    if (typeof name !== 'string' || !name.trim() || name.length > 160) throw new DomainError('請輸入 1 至 160 字的角色名稱。', 422, 'INVALID_NAME');
+    if (typeof brief !== 'string' || brief.length > 12000) throw new DomainError('角色簡介長度不可超過 12000 字。', 422, 'BRIEF_TOO_LONG');
     const id = uid('character');
     return this._withProject(id, async () => {
       const createdAt = now();
       const state = { id, name: name.trim(), createdAt, updatedAt: createdAt, character: newCharacter(id, name.trim(), brief), assets: [], jobs: [], candidates: [], proposals: [], history: [], syncTargets: [], canvasAnnotations: [] };
-      this._history(state, '建立角色草案');
+      this._history(state, '建立角色草案', 'draftCreated');
       await this._save(state);
       return this._public(state);
     });
@@ -257,7 +446,7 @@ export class ProjectStore {
 
   _validateUpdate(state, input) {
     const character = input.yaml !== undefined ? parseCharacterYaml(input.yaml, state.assets.map((asset) => asset.id)) : validateCharacter(clone(input.character), state.assets.map((asset) => asset.id));
-    if (character.id !== state.character.id) throw new DomainError('人物 ID 不可變更。');
+    if (character.id !== state.character.id) throw new DomainError('人物 ID 不可變更。', 422, 'IMMUTABLE_CHARACTER_ID');
     if (character.revision !== state.character.revision) throw new DomainError('YAML 的 revision 必須與目前版本相同；版本由系統更新。', 409, 'REVISION_CONFLICT', { currentRevision: state.character.revision });
     for (const [target, assetId] of Object.entries(character.adopted)) {
       const asset = state.assets.find((item) => item.id === assetId);
@@ -290,7 +479,7 @@ export class ProjectStore {
       state.syncTargets = [...new Set([...state.syncTargets, ...this._changedTargets(state.character, character)])].filter((target) => character.adopted[target]);
       state.character = { ...character, schema_version: 2, revision: state.character.revision + 1 };
       state.name = character.name;
-      this._history(state, '更新人物設定');
+      this._history(state, '更新人物設定', 'settingsUpdated');
       await this._save(state);
       return this._public(state);
     });
@@ -328,7 +517,7 @@ export class ProjectStore {
       state.name = character.name;
       proposal.status = 'accepted';
       proposal.acceptedAt = now();
-      this._history(state, '採用人物設定提案');
+      this._history(state, '採用人物設定提案', 'proposalAccepted');
       await this._save(state);
       return this._public(state);
     });
@@ -398,7 +587,7 @@ export class ProjectStore {
       if (added || updated) {
         const validated = this._validateUpdate(state, { character });
         state.character = { ...validated, schema_version: 2, revision: state.character.revision + 1 };
-        this._history(state, added ? `AI 拆解裝備：新增 ${added} 件` : 'AI 拆解裝備：更新位置');
+        this._history(state, added ? `AI 拆解裝備：新增 ${added} 件` : 'AI 拆解裝備：更新位置', added ? 'decomposeAdded' : 'decomposeMoved', added ? { count: added } : undefined);
       }
       state.decomposition = { status: 'done', assetId, auto: state.decomposition.auto, startedAt: state.decomposition.startedAt, finishedAt, added, updated, summary: String(summary || '').slice(0, 500), ...(threadId ? { threadId } : {}) };
       if (added || updated) await this._save(state); else await this._saveMetadata(state);
@@ -406,11 +595,11 @@ export class ProjectStore {
     });
   }
 
-  async failDecomposition(id, { assetId, message } = {}) {
+  async failDecomposition(id, { assetId, message, code, detail } = {}) {
     return this._withProject(id, async () => {
       const state = await this._read(id);
       if (state.decomposition?.assetId !== assetId || state.decomposition.status !== 'running') return this._public(state);
-      state.decomposition = { ...state.decomposition, status: 'failed', finishedAt: now(), error: String(message || '拆解沒有完成。').slice(0, 500) };
+      state.decomposition = { ...state.decomposition, status: 'failed', finishedAt: now(), error: String(message || '拆解沒有完成。').slice(0, 500), ...(typeof code === 'string' && /^[A-Z_]{1,64}$/.test(code) ? { errorCode: code } : {}), ...(typeof detail === 'string' && detail ? { errorDetail: detail.slice(0, 200) } : {}) };
       await this._saveMetadata(state);
       return this._public(state);
     });
@@ -422,7 +611,11 @@ export class ProjectStore {
       if (!(await exists(destination))) {
         const source = path.join(this.assetDir, path.basename(asset.sourceFile));
         if (await exists(source)) {
-          await fs.mkdir(path.dirname(destination), { recursive: true });
+          // 只建 assets 這一層：角色資料夾不在（剛被刪除）就不要把它建回來。
+          await fs.mkdir(path.dirname(destination)).catch((error) => {
+            if (error.code === 'ENOENT') throw new DomainError('找不到這個角色專案。', 404, 'PROJECT_NOT_FOUND');
+            if (error.code !== 'EEXIST') throw error;
+          });
           await fs.copyFile(source, destination, constants.COPYFILE_EXCL).catch((error) => { if (error.code !== 'EEXIST') throw error; });
         }
       }
@@ -442,8 +635,8 @@ export class ProjectStore {
       if (outfitId === undefined && outfitIds.length > 1) throw new DomainError('角色有多套穿搭，請明確選擇這次工作使用的穿搭。', 422, 'MISSING_OUTFIT');
       const selectedOutfitId = outfitId ?? outfitIds[0] ?? null;
       const selectedOutfit = selectedOutfitId ? clone(state.character.outfits[selectedOutfitId]) : null;
-      if (typeof prompt !== 'string' || !prompt.trim() || prompt.length > 12000) throw new DomainError('請輸入本次設計要求，長度不可超過 12000 字。');
-      if (!['generate', 'refine', 'expand', 'sync'].includes(kind)) throw new DomainError('不支援這種設計工作。');
+      if (typeof prompt !== 'string' || !prompt.trim() || prompt.length > 12000) throw new DomainError('請輸入本次設計要求，長度不可超過 12000 字。', 422, 'INVALID_PROMPT');
+      if (!['generate', 'refine', 'expand', 'sync'].includes(kind)) throw new DomainError('不支援這種設計工作。', 422, 'UNSUPPORTED_JOB_KIND');
       if (!variantCounts.includes(variants)) throw new DomainError(`一次可產生 ${variantCounts.join('、')} 張候選。`, 422, 'INVALID_VARIANTS');
       if (directionId !== undefined && directionId !== null && !Object.hasOwn(state.character.style.directions || {}, directionId)) throw new DomainError('找不到這次指定的畫風方向。', 422, 'UNKNOWN_DIRECTION');
       if (framing !== undefined && framing !== null && !framings.some((item) => item.id === framing)) throw new DomainError('不支援這種取景。', 422, 'INVALID_FRAMING');
@@ -519,11 +712,11 @@ export class ProjectStore {
     return this._withProject(id, async () => {
       const state = await this._read(id);
       this._target(state, targetId);
-      if (!Buffer.isBuffer(buffer) || !buffer.length || buffer.length > 25 * 1024 * 1024) throw new DomainError('圖片不可為空，且必須小於 25 MB。');
+      if (!Buffer.isBuffer(buffer) || !buffer.length || buffer.length > 25 * 1024 * 1024) throw new DomainError('圖片不可為空，且必須小於 25 MB。', 422, 'INVALID_IMAGE_SIZE');
       const actualMime = imageMime(buffer);
       if (!actualMime || (mimeType && actualMime !== mimeType)) throw new DomainError('請提供 PNG、JPEG、WebP 或 GIF 圖片，檔案內容須與格式相符。', 422, 'INVALID_IMAGE');
-      if (!['design', 'reference'].includes(role)) throw new DomainError('圖片用途必須是 design 或 reference。');
-      if (typeof name !== 'string' || name.length > 250) throw new DomainError('圖片名稱過長。');
+      if (!['design', 'reference'].includes(role)) throw new DomainError('圖片用途必須是 design 或 reference。', 422, 'INVALID_ASSET_ROLE');
+      if (typeof name !== 'string' || name.length > 250) throw new DomainError('圖片名稱過長。', 422, 'ASSET_NAME_TOO_LONG');
       const job = jobId ? state.jobs.find((item) => item.id === jobId) : null;
       if (jobId && !job) throw new DomainError('找不到這次設計工作。', 404, 'JOB_NOT_FOUND');
       if (job && (job.targetId !== targetId || role !== 'design')) throw new DomainError('候選圖片必須與指定工作的部件及用途一致。', 422, 'JOB_TARGET_MISMATCH');
@@ -613,7 +806,7 @@ export class ProjectStore {
       candidate.status = 'accepted';
       candidate.acceptedAt = now();
       state.jobs.find((job) => job.id === candidate.jobId).status = 'accepted';
-      this._history(state, `採用${candidate.targetId === 'character' ? '角色設定稿' : `${state.character.components[candidate.targetId].name}${viewLabels[asset.view]}`}候選`);
+      this._history(state, `採用${candidate.targetId === 'character' ? '角色設定稿' : `${state.character.components[candidate.targetId].name}${viewLabels[asset.view]}`}候選`, candidate.targetId === 'character' ? 'sheetAdopted' : 'partAdopted', candidate.targetId === 'character' ? undefined : { name: state.character.components[candidate.targetId].name, view: asset.view });
       await this._save(state);
       return this._public(state);
     });
@@ -631,14 +824,17 @@ export class ProjectStore {
       state.character = { ...character, revision: baseRevision + 1 };
       state.name = character.name;
       state.syncTargets = [...history.syncTargets].filter((target) => character.adopted[target]);
-      this._history(state, `恢復第 ${history.revision} 版設定`);
+      this._history(state, `恢復第 ${history.revision} 版設定`, 'restored', { revision: history.revision });
       await this._save(state);
       return this._public(state);
     });
   }
 
+  // 匯出在角色鎖裡做：匯出途中角色不會被刪除或搬走。
   async exportProject(id) {
-    const state = await this.getProject(id);
+    return this._withProject(id, async () => this._exportProject(id, this._public(await this._read(id))));
+  }
+  async _exportProject(id, state) {
     const archive = new ZipArchive({ zlib: { level: 6 } });
     const chunks = [];
     const completed = new Promise((resolve, reject) => {
@@ -650,14 +846,20 @@ export class ProjectStore {
     archive.append(characterYaml(state.character), { name: 'character.yaml' });
     const lines = [`# ${state.character.name}`, '', state.character.persona.description, '', '## 辨識特徵', '', ...Object.entries(state.character.identity).map(([key, value]) => `- ${key}：${value}`), '', '## 繪風', '', state.character.style.description, '', '## 部件', '', ...Object.values(state.character.components).map((component) => `- ${component.name}：${component.description}`), '', '## 同步狀態', '', state.syncTargets.length ? `待同步：${state.syncTargets.join('、')}` : '目前採用稿已同步。'];
     archive.append(lines.join('\n'), { name: 'character.md' });
+    const scrub = await this._exportScrubber(id, state);
     const manifest = { ...state, assets: [], canvasFile: 'canvas.json', exportedAt: now() };
+    const exportedPaths = new Map();
     for (const asset of state.assets) {
       const assetPath = await this._assetPath(id, asset);
       const available = await exists(assetPath);
       const exportedPath = `images/${asset.id}${asset.source === 'demo' ? '.png' : mimeExtensions[asset.mimeType]}`;
-      manifest.assets.push({ ...asset, ...(available ? { exportedPath } : { missing: true }) });
-      if (available) archive.file(assetPath, { name: exportedPath });
+      manifest.assets.push({ ...asset, name: scrub(asset.name), ...(available ? { exportedPath } : { missing: true }) });
+      if (available) { archive.file(assetPath, { name: exportedPath }); exportedPaths.set(asset.id, exportedPath); }
     }
+    const packed = await Promise.all(state.jobs.map((job) => this._portableJob(id, job, exportedPaths, scrub)));
+    manifest.jobs = packed.map(({ job }) => job);
+    manifest.proposals = state.proposals.map((proposal) => (typeof proposal.summary === 'string' ? { ...proposal, summary: scrub(proposal.summary) } : proposal));
+    if (state.decomposition) manifest.decomposition = { ...state.decomposition, ...Object.fromEntries(['error', 'summary'].filter((key) => typeof state.decomposition[key] === 'string').map((key) => [key, scrub(state.decomposition[key])])) };
     const canvasAssetIds = new Set(state.canvasAnnotations.filter(annotation => annotation.kind === 'reference').map(annotation => annotation.assetId));
     const canvas = {
       schemaVersion: 1, projectId: state.id, exportedAt: manifest.exportedAt,
@@ -665,12 +867,53 @@ export class ProjectStore {
       assets: manifest.assets.filter(asset => canvasAssetIds.has(asset.id)).map(({ id, name, mimeType, sha256, exportedPath, missing }) => ({ id, name, mimeType, sha256, ...(exportedPath ? { exportedPath } : { missing: Boolean(missing) }) })),
     };
     archive.append(JSON.stringify(canvas, null, 2), { name: 'canvas.json' });
-    for (const job of state.jobs) {
+    for (const { job, instructions } of packed) {
       archive.append(job.context.yaml, { name: `jobs/${job.id}/input.yaml` });
+      if (instructions !== null) archive.append(instructions, { name: `jobs/${job.id}/instructions.md` });
       archive.append(JSON.stringify(job, null, 2), { name: `jobs/${job.id}/job.json` });
     }
     archive.append(JSON.stringify(manifest, null, 2), { name: 'manifest.json' });
-    await archive.finalize();
-    return { buffer: await completed, name: `${state.id}-design-pack.zip` };
+    // 打包出錯時 completed 會先失敗、finalize 可能永遠不結束：兩個一起等，任一個失敗就回報。
+    const [, buffer] = await Promise.all([archive.finalize(), completed]);
+    return { buffer, name: `${state.id}-design-pack.zip` };
+  }
+
+  // 要清掉的本機資料夾：目前的專案與資料資料夾，加上工作裡記下的舊位置（資料夾搬過家時）；
+  // 交接 token 只在 handoff.json，萬一 Codex 把它寫進訊息也一併遮掉。
+  async _exportScrubber(projectId, state) {
+    const folders = [this.projectDir(projectId), this.dataDir];
+    const secrets = [];
+    for (const job of state.jobs) {
+      const snapshot = job.context?.snapshotPath;
+      const oldProject = typeof snapshot === 'string' ? /^(.*?)[\\/]+jobs[\\/]+[^\\/]+[\\/]+input\.yaml$/.exec(snapshot)?.[1] : null;
+      for (const dir of [oldProject, job.handoff?.workspace]) if (typeof dir === 'string' && dir) folders.push(dir, dir.replace(/[\\/]+projects[\\/]+[^\\/]+[\\/]*$/, ''));
+      const handoff = await fs.readFile(path.join(this.jobDir(projectId, job.id), 'handoff.json'), 'utf8').then(JSON.parse, () => null);
+      if (typeof handoff?.token === 'string') secrets.push(handoff.token);
+    }
+    return portableTextScrubber({ folders, secrets });
+  }
+
+  // 匯出用的工作副本（本機存檔不變）：快照與說明改成包內路徑、參考圖指向包內 images/，
+  // 交接只留時間（工作區、codex:// 連結與本機回報網址都不帶出去），Codex 寫的文字清過再放。
+  // 說明檔只從這個工作自己的資料夾讀，不跟著存檔裡記的路徑走。
+  async _portableJob(projectId, job, exportedPaths, scrub) {
+    const portable = clone(job);
+    const context = portable.context || (portable.context = {});
+    const pack = { snapshot: `jobs/${job.id}/input.yaml`, instructions: `jobs/${job.id}/instructions.md` };
+    const rawInstructions = await fs.readFile(path.join(this.jobDir(projectId, job.id), 'instructions.md'), 'utf8').catch(() => null);
+    const swaps = [[context.snapshotPath, pack.snapshot], [context.instructionsPath, rawInstructions === null ? '(instructions.md not exported)' : pack.instructions], ...(context.referenceAssets || []).map((asset) => [asset.path, exportedPaths.get(asset.id) || '(missing image)'])]
+      .filter(([local]) => typeof local === 'string' && local).sort((a, b) => b[0].length - a[0].length);
+    const portableText = (text) => scrub(swaps.reduce((value, [local, packed]) => value.split(local).join(packed), text));
+    const instructions = rawInstructions === null ? null : portableText(rawInstructions);
+    context.snapshotPath = pack.snapshot;
+    if (instructions !== null) context.instructionsPath = pack.instructions; else delete context.instructionsPath;
+    if (Array.isArray(context.referenceAssets)) {
+      context.referenceAssets = context.referenceAssets.map(({ path: _local, ...asset }) => ({ ...asset, name: scrub(asset.name), ...(exportedPaths.has(asset.id) ? { path: exportedPaths.get(asset.id) } : { missing: true }) }));
+    }
+    if (Array.isArray(context.styleReferences)) context.styleReferences = context.styleReferences.map((reference) => ({ ...reference, name: scrub(reference.name) }));
+    if (typeof portable.handoffPrompt === 'string') portable.handoffPrompt = portableText(portable.handoffPrompt);
+    if (typeof portable.failure?.message === 'string') portable.failure.message = scrub(portable.failure.message);
+    if (portable.handoff) portable.handoff = portable.handoff.createdAt ? { createdAt: portable.handoff.createdAt } : {};
+    return { job: portable, instructions };
   }
 }

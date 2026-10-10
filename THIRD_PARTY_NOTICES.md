@@ -4,7 +4,7 @@ AIDOL 的程式碼以 [MIT License](LICENSE) 釋出。下列隨附素材各有�
 
 ## 字型
 
-全部是未修改的官方 WOFF2，依 [SIL Open Font License 1.1](https://openfontlicense.org/) 散布；授權全文與原 copyright 放在字型旁，桌面版另外附在 `public/licenses/fonts/`。來源與版本見 [src/assets/fonts/README.md](src/assets/fonts/README.md)，每個檔案的 SHA-256 記錄在同資料夾的 `manifest.json` 與 `manifest-2.0.json`。
+全部是未修改的官方 WOFF2，依 [SIL Open Font License 1.1](https://openfontlicense.org/) 散布；授權全文與原 copyright 放在字型旁，桌面版另外附在 `public/licenses/fonts/`。來源與版本見 [src/assets/fonts/README.md](src/assets/fonts/README.md)，每個檔案的 SHA-256 記錄在同資料夾的 `manifest.json`、`manifest-2.0.json` 與 `manifest-ja.json`。
 
 | 字型 | Copyright | 位置 | 授權全文 |
 |---|---|---|---|
@@ -13,6 +13,8 @@ AIDOL 的程式碼以 [MIT License](LICENSE) 釋出。下列隨附素材各有�
 | Noto Serif TC | Adobe（依字型檔記載；授權檔取自 fontsource 套件） | `src/assets/fonts/noto-serif-tc-variable/` | [OFL.txt](src/assets/fonts/noto-serif-tc-variable/OFL.txt) |
 | 霞鶩文楷 TC（LXGW WenKai TC） | The LXGW WenKai Project Authors | `src/assets/fonts/lxgw-wenkai-tc/` | [OFL.txt](src/assets/fonts/lxgw-wenkai-tc/OFL.txt) |
 | IBM Plex Mono | IBM Corp. | `src/assets/fonts/ibm-plex-mono/` | [OFL.txt](src/assets/fonts/ibm-plex-mono/OFL.txt) |
+| Noto Sans JP（日文介面） | Google（依授權檔記載；授權檔取自 fontsource 套件） | `src/assets/fonts/noto-sans-jp-variable/` | [OFL.txt](src/assets/fonts/noto-sans-jp-variable/OFL.txt) |
+| Noto Serif JP（日文介面） | Google（依授權檔記載；授權檔取自 fontsource 套件） | `src/assets/fonts/noto-serif-jp-variable/` | [OFL.txt](src/assets/fonts/noto-serif-jp-variable/OFL.txt) |
 
 字型不得單獨販售；修改字型時須依 OFL 改名。
 

@@ -8,13 +8,18 @@
 bun run build
 bun test tests
 bun run check:oss
+bun run check:i18n
 ```
 
 `check:oss` 會檢查 git 要公開的每個檔案，擋下本機路徑、帳號名稱、Email、憑證、私人對話連結與不該公開的資料夾，也會確認 commit 用的是 GitHub noreply Email。有問題就修正後再送。
 
+## 介面語言與翻譯
+
+介面原文是繁體中文，另有 English 與日本語；**不提供、也不接受簡體中文翻譯**。介面文字一律放在 `src/locales/<語言>/<命名空間>.json`，不要寫死在程式裡（`check:i18n` 會擋）。新增或修改文字時三種語言要一起改；用語、語氣與寫法見 [src/locales/README.md](src/locales/README.md)。
+
 ## 產品約定
 
-- 介面與文件使用繁體中文。
+- 原始碼註解與文件使用繁體中文；介面文字透過翻譯檔提供三種語言。
 - 角色描述以有版本的 `character.yaml` 為準；人物、部件、穿搭、繪風與圖稿分開，關聯圖由資料產生。
 - 「繪製中」與張數只能來自 AIDOL Skill 的真實回報（`--event started/finished/failed`），送出前不得顯示進度；不可用模擬產圖或假 session 取代實際整合。
 - 圖片資產不可覆寫；候選圖一律由使用者手動採用。

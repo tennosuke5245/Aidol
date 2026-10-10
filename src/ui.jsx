@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, Clock, Sparkle, WarningCircle, CircleDashed, ArrowsClockwise, X } from '@phosphor-icons/react';
+import { Check, Clock, Sparkle, WarningCircle, CircleDashed, ArrowsClockwise, Translate, X } from '@phosphor-icons/react';
 import { lockupMarkTransform, lockupViewBox, lockupWordTransform, markPath, markViewBox, wordmarkPath, wordmarkViewBox } from './brand';
+import { LOCALES, useLocale, useT } from './i18n';
 
 // 品牌（v3）：金色「呆毛」標記＋ΛIDOL 字標；路徑由 scripts/build-brand.py 產生在 brand.js。
 // 小尺寸時加一圈同色描邊，呆毛和髮尾才不會糊掉。
@@ -49,7 +50,9 @@ export function Tile({ selected, onClick, label, sub, children, className = '', 
 }
 
 // 分段滑桿：有順序的選項（年齡、頭身、身高、長度）用拖的；左右鍵也可以。
-export function StepSlider({ label, options, value, onChange, unsetLabel = '未設定' }) {
+export function StepSlider({ label, options, value, onChange, unsetLabel }) {
+  const t = useT();
+  unsetLabel ??= t('ui.unset');
   const index = options.findIndex(option => option.id === value);
   const current = options[index];
   const fill = index < 0 ? 0 : (index / (options.length - 1)) * 100;
@@ -64,8 +67,9 @@ export function StepSlider({ label, options, value, onChange, unsetLabel = '未�
 }
 
 export function SwatchRow({ label, options, value, onChange, allowNone = false, size = 30 }) {
+  const t = useT();
   return <div className="swatches" role="group" aria-label={label}>
-    {allowNone && <button type="button" className="swatch swatch-none" aria-label="不使用" title="不使用" aria-pressed={!value} onClick={() => onChange(null)} style={{ width: size, height: size }}><span /></button>}
+    {allowNone && <button type="button" className="swatch swatch-none" aria-label={t('ui.none')} title={t('ui.none')} aria-pressed={!value} onClick={() => onChange(null)} style={{ width: size, height: size }}><span /></button>}
     {options.map(option => <button type="button" key={option.id} className="swatch" aria-label={option.label} title={option.label} aria-pressed={option.id === value} onClick={() => onChange(option.id)} style={{ width: size, height: size }}><span style={{ background: option.hex }} /></button>)}
   </div>;
 }
@@ -83,6 +87,7 @@ const clampAngle = (raw, previous) => {
   return Math.abs(raw - (previous ?? 0)) < 180 ? (raw > 0 ? MAX : MIN) : (previous > 0 ? MAX : MIN);
 };
 export function Knob({ control, value, onChange, size = 66, compare, compareLabel }) {
+  const t = useT();
   const ref = useRef(null);
   const [dragAngle, setDragAngle] = useState(null);
   const last = useRef(value);
@@ -122,7 +127,7 @@ export function Knob({ control, value, onChange, size = 66, compare, compareLabe
     <div className="knob-wrap" style={{ width: size + 22, height: size + 22 }}>
       {[0, 1, 2, 3, 4].map(step => {
         const a = (angleOf(step) * Math.PI) / 180, r = size / 2 + 8;
-        return <button type="button" tabIndex={-1} key={step} className={`knob-tick ${step <= value ? 'is-lit' : ''}`} aria-label={`${control.label}：${control.steps[step]}`} title={control.steps[step]}
+        return <button type="button" tabIndex={-1} key={step} className={`knob-tick ${step <= value ? 'is-lit' : ''}`} aria-label={t('ui.knobStep', { control: control.label, step: control.steps[step] })} title={control.steps[step]}
           style={{ left: `calc(50% + ${Math.sin(a) * r}px)`, top: `calc(50% - ${Math.cos(a) * r}px)` }} onClick={() => onChange(step)} />;
       })}
       <div ref={ref} className={`knob ${dragAngle !== null ? 'is-dragging' : ''}`} role="slider" tabIndex={0}
@@ -136,12 +141,13 @@ export function Knob({ control, value, onChange, size = 66, compare, compareLabe
     <div className="knob-copy">
       <span className="knob-name">{control.label}</span>
       <span className="knob-value">{control.steps[value]}</span>
-      {differs && <span className="knob-compare">{compareLabel}：{control.steps[compare]}</span>}
+      {differs && <span className="knob-compare">{t('ui.knobCompare', { label: compareLabel, step: control.steps[compare] })}</span>}
     </div>
   </div>;
 }
 
 export function Drawer({ title, onClose, children }) {
+  const t = useT();
   const box = useRef(null);
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
@@ -154,8 +160,28 @@ export function Drawer({ title, onClose, children }) {
   return <>
     <div className="drawer-backdrop" onClick={onClose} />
     <aside className="drawer" ref={box} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title}>
-      <header className="drawer-head"><h2>{title}</h2><button type="button" className="icon-btn" aria-label="關閉" onClick={onClose}><X size={18} /></button></header>
+      <header className="drawer-head"><h2>{title}</h2><button type="button" className="icon-btn" aria-label={t('ui.close')} onClick={onClose}><X size={18} /></button></header>
       <div className="drawer-body">{children}</div>
     </aside>
   </>;
+}
+
+// 語言選項：語言名稱一律用該語言自己的寫法，看不懂目前語言的人也找得到自己的語言。
+export function LanguageOptions({ onPicked }) {
+  const { locale, setLocale } = useLocale();
+  return LOCALES.map(option => <button type="button" key={option.id} role="menuitemradio" aria-checked={option.id === locale} lang={option.htmlLang}
+    onClick={event => { setLocale(option.id); onPicked?.(event); }}>
+    <span>{option.label}</span>{option.id === locale && <Check size={14} weight="bold" className="menu-check" />}
+  </button>);
+}
+
+export function LanguageMenu({ className = '' }) {
+  const { locale, t } = useLocale();
+  const current = LOCALES.find(option => option.id === locale);
+  const close = event => { event.currentTarget.closest('details').open = false; };
+  const title = locale === 'en' ? t('ui.language') : `${t('ui.language')} · Language`;
+  return <details className={`menu lang-menu ${className}`}>
+    <summary className="top-btn" aria-label={title} title={title}><Translate size={16} /><span>{current?.label}</span></summary>
+    <div className="menu-panel" role="menu" aria-label={title}><LanguageOptions onPicked={close} /></div>
+  </details>;
 }

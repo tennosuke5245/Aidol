@@ -1,0 +1,74 @@
+{
+  "back": "Back to character",
+  "title": "Gallery",
+  "count_one": "{{count}} image",
+  "count_other": "{{count}} images",
+  "filterLabel": "Filter",
+  "filter": {
+    "all": "All",
+    "main": "Main",
+    "gear": "Pieces"
+  },
+  "live": {
+    "label": "Drawings in progress",
+    "failed": "Didn't work this time",
+    "notSent": "Not sent",
+    "pressSend": "Press send in Codex",
+    "view": "View",
+    "importTitle": "Choose an image from your computer to add to this drawing",
+    "import": "Add manually",
+    "importInput": "Choose an image to add"
+  },
+  "olderSettings": "Older settings",
+  "adopted": {
+    "main": "Adopted",
+    "design": "Adopted",
+    "front": "Adopted · front",
+    "full": "Adopted · full",
+    "back": "Adopted · back",
+    "detail": "Adopted · detail"
+  },
+  "empty": {
+    "title": "No images yet",
+    "body": "Go to Creator and press Start drawing. Finished images show up here."
+  },
+  "view": {
+    "front": "Front",
+    "full": "Full",
+    "back": "Back",
+    "detail": "Detail"
+  },
+  "lightbox": {
+    "label": "Image",
+    "request": "Request",
+    "olderHint": "This image was drawn with older settings. You can still adopt it, and adopting it won't change your current settings.",
+    "adoptMain": "Use as main illustration",
+    "adoptPart": "Use as this piece's design",
+    "refine": "Edit an area",
+    "redraw": "Draw again with the same request"
+  },
+  "compare": {
+    "this": "This one",
+    "current": "Current",
+    "split": "Comparison divider",
+    "start": "Compare with current",
+    "stop": "Stop comparing"
+  },
+  "refine": {
+    "title": "Edit an area",
+    "subtitle": "Drag on the image to mark what to change (or skip it to change the whole image), then describe the change.",
+    "imageAlt": "Image to edit",
+    "note": "What should change?",
+    "notePlaceholder": "e.g. Make the buckle a brass crescent",
+    "count": "Images",
+    "clear": "Clear selection",
+    "preparing": "Preparing…",
+    "submit": "Start drawing"
+  },
+  "preview": {
+    "hint": "Drag to move. Zoom in to check details.",
+    "zoomOut": "Zoom out",
+    "zoomIn": "Zoom in",
+    "fit": "Fit to window"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "save": {
+    "saved": "已自動存檔",
+    "saving": "存檔中",
+    "error": "存檔失敗，點這裡重試"
+  },
+  "backToCanvas": "回到畫布",
+  "characters": "角色選單",
+  "undo": "復原",
+  "undoShortcut": "復原（Ctrl＋Z）",
+  "redo": "重做",
+  "redoShortcut": "重做（Ctrl＋Shift＋Z）",
+  "view": "檢視",
+  "canvas": "畫布",
+  "creator": "捏角色",
+  "characterActions": "角色",
+  "gallery": "圖鑑",
+  "galleryCount_other": "圖鑑，{{count}} 張圖",
+  "more": "更多",
+  "menu": {
+    "history": "存檔紀錄",
+    "export": "匯出角色資料（ZIP）",
+    "settings": "原始設定檔與 Codex 連線",
+    "delete": "刪除角色…"
+  },
+  "select": {
+    "title": "選擇角色",
+    "open": "打開 {{name}}",
+    "new": "創造新角色",
+    "delete": "刪除「{{name}}」",
+    "trash_other": "資源回收區（{{count}}）"
+  }
+}

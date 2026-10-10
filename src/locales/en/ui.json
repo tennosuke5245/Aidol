@@ -1,0 +1,8 @@
+{
+  "unset": "Not set",
+  "none": "None",
+  "knobStep": "{{control}}: {{step}}",
+  "knobCompare": "{{label}}: {{step}}",
+  "close": "Close",
+  "language": "Language"
+}

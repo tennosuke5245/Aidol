@@ -76,8 +76,8 @@ test('重新拆解更新既有裝備的位置；過期或失敗的結果不套�
 test('採用正式立繪會在背景請 Codex 讀圖拆解，畫布輪詢帶回裝備', async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'aidol-decompose-http-'));
   const seen = [];
-  const client = { close() {}, async freshTurn({ prompt, images, outputSchema }) {
-    seen.push({ prompt, images, outputSchema });
+  const client = { close() {}, async freshTurn({ prompt, images, outputSchema, cwd }) {
+    seen.push({ prompt, images, outputSchema, cwd });
     return { threadId: 'thread-decompose', turnId: 'turn-1', text: JSON.stringify({ summary: '拆出一件斗篷', parts: [{ id: 'cape', name: '短斗篷', kind: 'garment', description: '灰色短斗篷。', anchor: '肩上', bbox: { x: 0.2, y: 0.2, width: 0.5, height: 0.3 }, existingId: '' }] }) };
   } };
   const running = await startServer({ dataDir: directory, demo: false, port: 0, announce: false, registerIntegrations: (app, store) => registerCodexRoutes(app, store, { client, version: async () => 'test' }) });
@@ -102,6 +102,8 @@ test('採用正式立繪會在背景請 Codex 讀圖拆解，畫布輪詢帶回�
     assert.equal(seen.length, 1);
     assert.equal(seen[0].images.length, 1);
     assert.ok(seen[0].images[0].endsWith('.png'), '附上正式立繪的本機路徑');
+    assert.ok(seen[0].images[0].startsWith(running.store.projectDir(project.id)), '圖片以完整路徑附上');
+    assert.ok(seen[0].cwd && !path.resolve(seen[0].cwd).startsWith(path.resolve(directory)), '背景 Codex 不在角色資料夾裡工作，刪除角色時才搬得動');
     assert.ok(seen[0].outputSchema.properties.parts);
     const again = await post(`/api/projects/${project.id}/decompose`);
     assert.equal(again.decomposition.status, 'running', '也可以手動重新拆解');

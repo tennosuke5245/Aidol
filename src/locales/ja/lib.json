@@ -1,0 +1,295 @@
+{
+  "ages": {
+    "child": "子ども",
+    "preteen": "少年少女",
+    "teen": "ティーン",
+    "youngAdult": "青年",
+    "adult": "大人",
+    "elder": "年配"
+  },
+  "headRatios": {
+    "2.5": "2.5頭身",
+    "4": "4頭身",
+    "5.5": "5.5頭身",
+    "6.5": "6.5頭身",
+    "7.5": "7.5頭身",
+    "8": "8頭身"
+  },
+  "builds": {
+    "delicate": "華奢",
+    "slim": "細身",
+    "average": "標準",
+    "soft": "やわらか",
+    "athletic": "筋肉質",
+    "sturdy": "がっしり"
+  },
+  "heights": {
+    "petite": "小柄",
+    "short": "低め",
+    "average": "普通",
+    "tall": "高め",
+    "veryTall": "長身"
+  },
+  "hairTags": {
+    "soft": "やさしい",
+    "cool": "クール",
+    "wild": "ワイルド",
+    "prince": "王子",
+    "sporty": "スポーティ",
+    "youthful": "あどけない",
+    "elegant": "上品"
+  },
+  "hairStyles": {
+    "soft-short": "ソフト短髪",
+    "airy-bangs": "シースルー",
+    "side-part": "サイド分け",
+    "sleepy-messy": "無造作",
+    "fluffy-idol": "ふわふわ",
+    "round-soft": "丸み短髪",
+    "clean-student": "学生風",
+    "cool-straight": "クール直毛",
+    "layered": "レイヤー",
+    "layered-wolf": "ウルフ",
+    "gentle-prince": "王子風",
+    "sporty-crop": "スポーツ",
+    "bob": "ボブ",
+    "long-straight": "ロング",
+    "ponytail": "ポニーテール",
+    "twin-tails": "ツインテール"
+  },
+  "hairLengths": {
+    "short": "短め",
+    "medium": "中くらい",
+    "long": "長め"
+  },
+  "hairVolumes": {
+    "flat": "ぺたんこ",
+    "natural": "自然",
+    "fluffy": "ふんわり"
+  },
+  "hairBangs": {
+    "center": "センター分け",
+    "side": "斜め分け",
+    "full": "ぱっつん",
+    "airy": "シースルー",
+    "none": "なし"
+  },
+  "hairTextures": {
+    "smooth": "さらさら",
+    "soft": "やわらか",
+    "spiky": "ツンツン",
+    "wispy": "軽やか",
+    "wavy": "ウェーブ"
+  },
+  "hairColors": {
+    "black": "墨黒",
+    "ash": "アッシュ",
+    "brown": "ココア",
+    "blonde": "ハニー",
+    "silver": "銀白",
+    "red": "赤褐色",
+    "blue": "藍",
+    "lavender": "ラベンダー",
+    "pink": "桜色",
+    "moss": "苔色"
+  },
+  "moods": {
+    "gentle": "穏やか",
+    "sleepy": "眠たげ",
+    "bright": "明るい",
+    "cool": "冷静",
+    "mischievous": "小悪魔",
+    "serious": "真剣",
+    "shy": "照れ屋",
+    "fierce": "鋭い"
+  },
+  "eyeShapes": {
+    "soft": "やわらか",
+    "round": "丸目",
+    "sharp": "つり目",
+    "droopy": "たれ目",
+    "narrow": "切れ長"
+  },
+  "brows": {
+    "soft": "やわらか",
+    "straight": "平行",
+    "arched": "上がり眉"
+  },
+  "eyeColors": {
+    "brown": "ココア",
+    "amber": "琥珀",
+    "green": "若葉",
+    "teal": "青緑",
+    "blue": "空色",
+    "gray": "灰色",
+    "violet": "紫",
+    "red": "紅"
+  },
+  "outfitStyles": {
+    "soft-casual": {
+      "label": "カジュアル",
+      "hint": "やわらかいトップスとストレートパンツ、すっきりした普段着"
+    },
+    "academy": {
+      "label": "学園制服",
+      "hint": "現代的な制服、ジャケットは控えめな構成"
+    },
+    "street-layer": {
+      "label": "ストリート",
+      "hint": "短めのアウターを重ねた今どきのストリート"
+    },
+    "traveler": {
+      "label": "旅装",
+      "hint": "実用的な旅の服に、コンパクトな機能ジャケット"
+    },
+    "workshop": {
+      "label": "工房",
+      "hint": "袖をまくった作業着に丈夫なエプロン"
+    },
+    "formal": {
+      "label": "フォーマル",
+      "hint": "控えめなフォーマル、ロングジャケットのすっきりした線"
+    },
+    "fantasy": {
+      "label": "冒険者",
+      "hint": "重ね着が見分けやすい冒険者の装備"
+    },
+    "idol-stage": {
+      "label": "アイドル",
+      "hint": "ひとつの象徴的なモチーフだけを残したステージ衣装"
+    }
+  },
+  "silhouettes": {
+    "fitted": "ぴったり",
+    "balanced": "バランス",
+    "oversized": "ゆったり"
+  },
+  "layerOptions": {
+    "single": "一枚",
+    "layered": "重ね着",
+    "coat": "ロングコート"
+  },
+  "detailOptions": {
+    "clean": "すっきり",
+    "functional": "機能的",
+    "statement": "ポイント"
+  },
+  "paletteUses": {
+    "hair": "髪",
+    "eyes": "目",
+    "skin": "肌",
+    "primary": "メイン",
+    "secondary": "サブ",
+    "accent": "差し色",
+    "metal": "金属"
+  },
+  "mixerControls": {
+    "composition": {
+      "label": "構図",
+      "steps": [
+        "ミニマル",
+        "簡潔",
+        "バランス",
+        "重層",
+        "密集"
+      ]
+    },
+    "detail": {
+      "label": "細部",
+      "steps": [
+        "大まか",
+        "すっきり",
+        "バランス",
+        "細やか",
+        "緻密"
+      ]
+    },
+    "hairDetail": {
+      "label": "髪束",
+      "steps": [
+        "かたまり",
+        "大きな束",
+        "バランス",
+        "細い束",
+        "毛先まで"
+      ]
+    },
+    "rendering": {
+      "label": "塗り",
+      "steps": [
+        "ベタ塗り",
+        "軽め",
+        "標準",
+        "豊か",
+        "厚塗り"
+      ]
+    },
+    "background": {
+      "label": "背景",
+      "steps": [
+        "余白",
+        "うっすら",
+        "シンプル",
+        "情景",
+        "作り込み"
+      ]
+    },
+    "accessories": {
+      "label": "小物",
+      "steps": [
+        "なし",
+        "少なめ",
+        "バランス",
+        "多め",
+        "豪華"
+      ]
+    },
+    "saturation": {
+      "label": "彩度",
+      "steps": [
+        "渋め",
+        "やわらか",
+        "自然",
+        "鮮やか",
+        "強烈"
+      ]
+    },
+    "value": {
+      "label": "明度",
+      "steps": [
+        "暗い",
+        "低め",
+        "中間",
+        "明るい",
+        "透明感"
+      ]
+    },
+    "contrast": {
+      "label": "コントラスト",
+      "steps": [
+        "やわらか",
+        "低め",
+        "バランス",
+        "強め",
+        "グラフィック"
+      ]
+    }
+  },
+  "mixerGroups": {
+    "form": "形",
+    "render": "描",
+    "color": "色"
+  },
+  "mixerPresets": {
+    "less": "引き算",
+    "casual": "日常アニメ",
+    "key": "一枚絵"
+  },
+  "framings": {
+    "sheet": "設定画",
+    "full": "全身",
+    "threeQuarter": "七分身",
+    "half": "半身",
+    "closeup": "アップ"
+  }
+}

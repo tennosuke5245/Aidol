@@ -1,0 +1,194 @@
+{
+  "separator": "・",
+  "retry": "再試一次",
+  "cancel": "取消",
+  "kind": {
+    "garment": "衣物",
+    "footwear": "鞋",
+    "accessory": "配件",
+    "weapon": "武器",
+    "hair": "頭髮",
+    "body": "身體",
+    "other": "其他"
+  },
+  "view": {
+    "front": "正面",
+    "back": "背面",
+    "detail": "細節"
+  },
+  "status": {
+    "newImages_other": "新圖 {{count}}",
+    "drawing": "繪製中",
+    "failed": "這次沒畫成",
+    "sendInCodex": "到 Codex 按送出",
+    "notWorn": "沒穿",
+    "changed": "設定改過",
+    "adopted": "已採用",
+    "notDrawn": "還沒畫"
+  },
+  "graph": {
+    "character": {
+      "open": "打開「{{name}}」的捏角色",
+      "portraitAlt": "{{name}}的正式立繪",
+      "emptyTitle": "還沒有正式立繪",
+      "emptyHint": "點這裡開始捏角色，畫好的第一張會放在這裡",
+      "zoom": "放大正式立繪",
+      "zoomTitle": "放大",
+      "previewTitle": "{{name}}・正式立繪",
+      "openCreator": "捏角色"
+    },
+    "decompose": {
+      "running": "正在拆解裝備",
+      "failed": "拆解沒完成・再試一次",
+      "hint": "請 AI 從立繪找出裝備，變成畫布上的節點",
+      "action": "拆解裝備"
+    },
+    "reference": {
+      "style": "繪風參考",
+      "identity": "角色特徵參考",
+      "color": "色彩參考",
+      "clothing": "服裝參考",
+      "composition": "構圖參考",
+      "material": "材質參考",
+      "design": "設計參考"
+    },
+    "edge": {
+      "accessory": "配件",
+      "piece": "裝備",
+      "aria": "{{name}}：{{label}}"
+    },
+    "positionRetry": "請重新連線後再試一次。",
+    "create": {
+      "error": "尚未加入畫布，請再試一次。",
+      "addingReference": "正在加入參考圖…",
+      "addingNote": "正在加入便利貼…",
+      "addingText": "正在加入說明…"
+    },
+    "toolbar": {
+      "label": "畫布工具",
+      "chooseReference": "選擇畫布參考圖片",
+      "select": "選取工具",
+      "selectShortcut": "選取（V）",
+      "pan": "平移工具",
+      "panShortcut": "平移（H）",
+      "addPiece": "裝備",
+      "addPieceHint": "新增一件裝備",
+      "addNote": "加入便利貼",
+      "noteShortcut": "便利貼（N）",
+      "addText": "加入說明",
+      "addReference": "加入畫布參考圖",
+      "reference": "參考圖",
+      "zoomOut": "縮小畫布",
+      "zoomIn": "放大畫布",
+      "focus": "聚焦選取內容",
+      "fitAll": "顯示全部",
+      "tidy": "整理",
+      "tidyHint": "把裝備節點重新排回人物兩側"
+    }
+  },
+  "part": {
+    "designAlt": "{{name}}的設計圖",
+    "cropAlt": "{{name}}在立繪上的位置",
+    "fromPortrait": "從立繪拆出",
+    "draft": "草案"
+  },
+  "formalReference": {
+    "label": "出圖參考",
+    "fallback": "已設定為本次繪風參考"
+  },
+  "annotation": {
+    "kind": {
+      "reference": "畫布參考",
+      "note": "便利貼",
+      "text": "說明"
+    },
+    "tone": {
+      "gold": "米金",
+      "blue": "霧藍",
+      "rose": "灰粉",
+      "neutral": "石墨"
+    },
+    "toneGroup": "卡片色調",
+    "toneAria": "{{name}}色調",
+    "image": "參考圖片",
+    "zoom": "放大{{name}}",
+    "zoomImage": "放大參考圖片",
+    "imageMissing": "找不到參考圖片",
+    "edit": {
+      "reference": "編輯參考圖卡",
+      "note": "編輯便利貼",
+      "text": "編輯說明"
+    },
+    "editTitle": "編輯",
+    "remove": {
+      "reference": "移除參考圖卡",
+      "note": "移除便利貼",
+      "text": "移除說明"
+    },
+    "removeTitle": "移除這張卡片",
+    "title": "標題",
+    "titleAria": "參考圖卡標題",
+    "titlePlaceholder": "這張圖的參考重點",
+    "description": "說明",
+    "descriptionAria": "參考圖卡說明",
+    "descriptionPlaceholder": "寫下想參考的細節",
+    "textAria": {
+      "note": "便利貼文字",
+      "text": "畫布說明文字"
+    },
+    "placeholder": {
+      "note": "寫下一個想法…",
+      "text": "補充設計說明…"
+    },
+    "saving": "保存中",
+    "done": "完成",
+    "untitled": "未命名參考",
+    "contentAria": "{{kind}}：{{text}}",
+    "empty": "尚未填寫",
+    "emptyHint": {
+      "note": "雙擊寫下想法",
+      "text": "雙擊寫下說明"
+    },
+    "removing": "正在移除…",
+    "saveError": "註記尚未保存，文字仍保留在這裡。",
+    "saveErrorHint": "文字尚未保存，草稿仍保留。",
+    "deleteError": "尚未移除這張註記。",
+    "deleteErrorHint": "卡片仍保留在畫布。",
+    "savingPosition": "正在保存位置…",
+    "positionError": "位置尚未保存：{{error}}"
+  },
+  "addPiece": {
+    "title": "新增裝備",
+    "subtitle": "先寫下名字和樣子，之後可以單獨畫出設計圖。"
+  },
+  "inspector": {
+    "aria": "裝備：{{name}}",
+    "proposed": "AI 從立繪拆出的裝備",
+    "piece": "裝備",
+    "cropNote": "這是從正式立繪裁出的位置，還不是設計圖。畫一張設計圖，就能看清楚正面、背面和細節。",
+    "noDesign": "還沒有設計圖。寫下樣子後畫一張。",
+    "openJob": "點這裡看這次的圖",
+    "anchor": "穿戴位置",
+    "anchorPlaceholder": "例如：腰間",
+    "defaultAnchor": "身上",
+    "descriptionPlaceholder": "顏色、材質、細節",
+    "previewTitle": "{{name}}・{{view}}",
+    "draw": "畫設計圖",
+    "whichView": "畫哪一面",
+    "notePlaceholder": "這次想畫什麼？（可不填）",
+    "noteAria": "這次想畫什麼",
+    "count": "張數",
+    "needPortrait": "先有正式立繪，才能照著立繪畫裝備",
+    "preparing": "準備中…",
+    "needPortraitNote": "先在「捏角色」畫出正式立繪，裝備才能照著立繪單獨畫。",
+    "takeOff": "脫下",
+    "putOn": "穿上",
+    "worn": "穿著",
+    "removeKeepHint": "已經畫過圖的裝備會保留，只是脫下",
+    "removeHint": "從角色移除這件裝備",
+    "remove": "不要這件"
+  },
+  "rack": {
+    "label": "繪製進度"
+  }
+}

@@ -38,6 +38,7 @@ AIDOL（AI + IDOL）是給角色設計師用的桌面 App。你可以像玩遊�
 - **AI 幫忙寫設定**：寫下大概的想法，讓 AI 補完人設。每一項改動都會先給你看，按了才會套用。
 - **不怕弄丟**：自動存檔，可以復原、重做，也能讀取以前的存檔。圖片不會被覆蓋。
 - **匯出**：把角色打包成 ZIP，裡面有 YAML、好讀的人設和所有圖片。
+- **三種語言**：繁體中文、English、日本語，第一次打開依系統語言，之後可在語言選單切換；日文介面用日文字型。AI 寫的人設目前仍是繁體中文。
 
 <div align="center">
 <img src="assets/screenshots/creator.png" alt="AIDOL 捏角色：右邊是髮型縮圖，中間是正式立繪" width="100%">
@@ -100,6 +101,7 @@ AIDOL 產出的是設計圖，不是分好圖層的 PSD、Live2D 模型或打版
 bun run build        # 先建置，有一個測試會檢查建置結果
 bun test tests
 bun run check:oss    # 發佈前檢查有沒有不該公開的東西
+bun run check:i18n   # 檢查介面文字沒有寫死在程式裡、三種語言的 key 一致
 ```
 
 | 路徑 | 內容 |

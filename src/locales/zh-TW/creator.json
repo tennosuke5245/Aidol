@@ -1,0 +1,190 @@
+{
+  "rail": "捏角色分類",
+  "categories": {
+    "persona": "角色",
+    "body": "身形",
+    "hair": "髮型",
+    "face": "五官",
+    "outfit": "服裝",
+    "color": "色彩",
+    "gear": "裝備",
+    "style": "畫風"
+  },
+  "hints": {
+    "persona": "名字、個性和故事。不知道怎麼寫，就交給 AI。",
+    "body": "年齡、頭身和體型。",
+    "hair": "點一下就換上，顏色在下面。",
+    "face": "神情、眼型、眉毛和眼睛的顏色。",
+    "outfit": "選風格，再從角色的色票挑顏色。",
+    "color": "角色專屬的顏色，服裝與配件都從這裡挑。",
+    "gear": "每件裝備可以穿脫，也能單獨畫出設計圖。",
+    "style": "轉動旋鈕，調整畫面的感覺。"
+  },
+  "stage": {
+    "label": "角色",
+    "previewTitle": "{{name}}・正式立繪",
+    "zoom": "放大正式立繪",
+    "portraitAlt": "{{name}}的正式立繪",
+    "changedTitle": "外觀設定在這張立繪之後改過",
+    "changedHint": "按「開始繪製」用新設定重畫",
+    "portraitTitle": "正式立繪",
+    "portraitHint": "點一下放大；在右邊調整外觀後，按「開始繪製」畫新的一張",
+    "emptyTitle": "還沒有正式立繪",
+    "emptyHint": "先在右邊挑外觀，再按「畫第一張立繪」"
+  },
+  "draw": {
+    "notePlaceholder": "這次想畫什麼？例如：帥氣的站姿、拿著信件（可不填）",
+    "notePlaceholderFirst": "想要的感覺？例如：站在雨中的城市（可不填）",
+    "noteLabel": "這次想畫什麼",
+    "framing": "取景",
+    "count": "一次畫幾張",
+    "preparing": "準備中…",
+    "start": "開始繪製",
+    "first": "畫第一張立繪"
+  },
+  "gear": {
+    "add": "新增裝備",
+    "addSubtitle": "先寫下名字和樣子，之後可以單獨畫出設計圖。",
+    "edit": "編輯「{{name}}」",
+    "zoom": "放大「{{name}}」",
+    "defaultAnchor": "身上",
+    "noDesign": "還沒有設計圖",
+    "takeOff": "脫下",
+    "putOn": "穿上",
+    "worn": "穿著",
+    "notWorn": "沒穿",
+    "draw": "繪製",
+    "drawTitle": "單獨畫出這件裝備的設計圖",
+    "needPortrait": "先有正式立繪，才能單獨畫裝備",
+    "needPortraitHint": "先畫出正式立繪，裝備才能照著立繪單獨畫。"
+  },
+  "drawPart": {
+    "title": "繪製「{{name}}」",
+    "subtitle": "照著正式立繪，單獨畫出這件裝備的設計圖。",
+    "note": "這次想畫什麼？（可不填）",
+    "notePlaceholder": "例如：材質改成黃銅，邊緣磨舊一點",
+    "view": "畫哪一面",
+    "views": {
+      "front": "正面",
+      "back": "背面",
+      "detail": "細節"
+    },
+    "count": "張數"
+  },
+  "reference": {
+    "add": "加入參考圖",
+    "addSubtitle": "說明要參考它的哪裡，之後繪製都會帶上。"
+  },
+  "body": {
+    "age": "年齡感",
+    "headRatio": "頭身比",
+    "height": "身高",
+    "build": "體型"
+  },
+  "hair": {
+    "tags": "髮型分類",
+    "all": "全部",
+    "color": "髮色",
+    "accent": "挑染",
+    "length": "長度",
+    "volume": "蓬度",
+    "bangs": "瀏海",
+    "texture": "髮質"
+  },
+  "face": {
+    "mood": "神情",
+    "eyeShape": "眼型",
+    "brows": "眉毛",
+    "eyeColor": "眼睛顏色"
+  },
+  "outfit": {
+    "tabs": "套裝",
+    "defaultName": "套裝 {{number}}",
+    "untitled": "未命名套裝",
+    "add": "新增套裝",
+    "none": "這個角色還沒有套裝。",
+    "name": "套裝名稱",
+    "style": "風格",
+    "styleTitle": "{{label}}：{{hint}}",
+    "colors": "配色",
+    "colorOrder": "依序：{{roles}}",
+    "roles": {
+      "outer": "外套／上衣",
+      "inner": "內搭／下身",
+      "accent": "點綴"
+    },
+    "addColor": "加入配色",
+    "noPalette": "還沒有色票。先到「色彩」定下角色的顏色，再回來挑。",
+    "goPalette": "去設定色彩",
+    "silhouette": "輪廓",
+    "layers": "層次",
+    "detail": "細節"
+  },
+  "palette": {
+    "changeColor": "換顏色",
+    "name": "顏色名稱",
+    "untitled": "未命名",
+    "use": "用途",
+    "general": "一般",
+    "delete": "刪除「{{name}}」",
+    "empty": "還沒有顏色。角色專屬的 4–8 個顏色，服裝與配件都從這裡挑。",
+    "defaultName": "顏色 {{number}}",
+    "add": "新增顏色",
+    "importHint": "先在「髮型」或「五官」選顏色",
+    "import": "從髮色和眼色帶入"
+  },
+  "style": {
+    "presets": "快速套用",
+    "presetNotes": {
+      "less": "線條乾淨、背景留白",
+      "casual": "電視動畫般的平衡",
+      "key": "細節豐富，適合宣傳圖"
+    },
+    "groups": {
+      "form": "造型",
+      "render": "畫面",
+      "color": "色調"
+    },
+    "references": "參考圖",
+    "addReference": "加入",
+    "referenceFallback": "參考",
+    "removeReference": "移除這張參考",
+    "referenceEmpty": "放一張參考圖，說明要參考它的哪裡（線條、配色、材質…）",
+    "roles": {
+      "style": "畫風",
+      "identity": "外觀特徵",
+      "color": "配色",
+      "clothing": "服裝結構",
+      "material": "材質",
+      "composition": "構圖"
+    }
+  },
+  "persona": {
+    "aiReady": "AI 寫好了",
+    "suggestion": "AI 的建議",
+    "changeCount_other": "{{count}} 項",
+    "showLess": "收起",
+    "more_other": "還有 {{count}} 項",
+    "applyAll": "全部套用",
+    "applyAndDraw": "套用並畫第一張",
+    "applyOnly": "只套用",
+    "dismiss": "不要",
+    "name": "名字",
+    "story": "人設與故事",
+    "storyPlaceholder": "例如：在軌道城市之間送件的信使，沉著、守信。",
+    "traits": "個性",
+    "traitsPlaceholder": "輸入後按 Enter",
+    "locks": "一定要保留的特徵",
+    "locksNote": "每張圖都會帶上",
+    "locksPlaceholder": "例如：銀白短髮",
+    "suggestHair": "{{color}}{{style}}",
+    "suggestEyes": "{{color}}色眼睛",
+    "remove": "移除「{{name}}」",
+    "ask": "讓 AI 幫忙",
+    "askPlaceholder": "想加什麼？例如：補完背景故事、給一個招牌配件。不填就依目前人設補完。",
+    "asking": "AI 正在寫，約半分鐘…",
+    "askButton": "讓 AI 補完設定",
+    "askHint": "AI 寫好的內容會先列出來，你按「套用」才會改。",
+    "fillRequest": "依照目前的人設「{{profile}}」，幫我補完這個角色的設定與外觀。"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "close": "Close",
+  "closeForNow": "Close for now",
+  "waiting": {
+    "title": "Press send in Codex",
+    "sub": "Codex has a new chat open with the prompt filled in. Press send and the cards here start flipping."
+  },
+  "drawing": {
+    "title": "Drawing {{returned}}/{{expected}}",
+    "sub": "Each card flips as soon as its image is ready. No need to wait for all of them."
+  },
+  "adopted": {
+    "titleMain": "Adopted as the main illustration",
+    "titlePart": "Adopted as the design for \"{{name}}\"",
+    "sub": "The rest stay in the Gallery. You can switch anytime."
+  },
+  "pick": {
+    "titleMain": "Pick a main illustration",
+    "titlePart": "Pick a design for \"{{name}}\"",
+    "subDrawing": "A few are still drawing. You can pick now.",
+    "sub": "The rest stay in the Gallery, and you can switch later."
+  },
+  "failed": {
+    "title": "Didn't work this time",
+    "reported": "Codex reported: {{message}}",
+    "sub": "Codex reported a failure. Your request and settings are still here, so you can try again."
+  },
+  "card": {
+    "waiting": "Waiting to send",
+    "failed": "Not drawn",
+    "drawing": "Drawing",
+    "previewTitle": "{{target}} · image {{number}}",
+    "zoom": "Enlarge image {{number}}",
+    "alt": "Image {{number}}",
+    "pickedMain": "Main illustration",
+    "picked": "Adopted",
+    "adoptMain": "Use as main",
+    "adopt": "Adopt this one",
+    "older": "Drawn with older settings"
+  },
+  "opening": "Opening…",
+  "reopen": "Reopen Codex",
+  "copyPrompt": "Copy prompt",
+  "tryAgain": "Try again",
+  "progressInCodex": "See progress in Codex",
+  "openGallery": "Open Gallery",
+  "prompt": {
+    "summary": "What was sent to the AI",
+    "inputs": "Images sent to the AI",
+    "briefHeading": "Character description"
+  },
+  "reference": {
+    "label": "{{role}}: {{focus}}",
+    "role": {
+      "style": "Style reference",
+      "identity": "Character feature reference",
+      "color": "Color reference",
+      "clothing": "Clothing construction reference",
+      "material": "Material reference",
+      "composition": "Composition reference",
+      "other": "Reference image"
+    },
+    "overall": "overall feel",
+    "main": "Main illustration (look and clothing)",
+    "partDesign": "{{name}} design"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "saved": "Settings saved.",
+  "adopted": {
+    "part": "Adopted as this piece's design.",
+    "mainDecomposing": "Adopted as the main illustration. Breaking down the outfit…",
+    "main": "Adopted as the main illustration."
+  },
+  "imported": "Imported the image. You'll find it in the Gallery.",
+  "referenceSaved": "Saved the reference image and what it's for.",
+  "defaultFocus": {
+    "lines": "line art",
+    "coloring": "coloring",
+    "look": "look",
+    "colors": "colors"
+  },
+  "copied": "Copied.",
+  "clipboardFailed": "Can't use the clipboard. Select the text and copy it instead.",
+  "detailSeparator": "; ",
+  "autosaveFailed": "Couldn't save automatically: {{message}}"
+}

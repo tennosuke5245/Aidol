@@ -4,20 +4,23 @@ import { candidateComparison, jobPresentation, jobProgress } from '../shared/age
 import { dateLabel, targetLabel } from './api';
 import { StatusPill } from './ui';
 import { Busy, Modal } from './Panels';
-import * as L from '../shared/libraries.mjs';
+import { L } from './lib-i18n';
+import { sharedText, useT } from './i18n';
 
-const filters = [['all', '全部'], ['main', '立繪'], ['gear', '裝備']];
-const viewNames = { front: '正面', full: '完整', back: '背面', detail: '細節' };
+const filters = ['all', 'main', 'gear'];
+const viewNames = new Set(['front', 'full', 'back', 'detail']);
 
+// 回傳 gallery.adopted 底下的 key（正式立繪、設計圖或某個視角的設計圖）；文字在畫面上依目前語言取。
 function adoptedFor(project, asset) {
-  if (project.character.adopted?.[asset.targetId] === asset.id) return asset.targetId === 'character' ? '正式立繪' : '設計圖';
+  if (project.character.adopted?.[asset.targetId] === asset.id) return asset.targetId === 'character' ? 'main' : 'design';
   const part = project.character.components?.[asset.targetId];
-  if (part && Object.values(part.views || {}).includes(asset.id)) return `${viewNames[asset.view] || ''}設計圖`;
+  if (part && Object.values(part.views || {}).includes(asset.id)) return viewNames.has(asset.view) ? asset.view : 'design';
   return null;
 }
 
 // 圖鑑：這個角色畫過的所有圖。點開可以放大、和目前的比較、設為正式、局部修改或再畫一次。
 export function Gallery({ project, busy, onBack, onAdopt, onPreview, onSummon, onRedraw, onRefine, onImport }) {
+  const t = useT();
   const [filter, setFilter] = useState('all');
   const [openId, setOpenId] = useState(null);
   const items = useMemo(() => project.assets.filter(asset => asset.role === 'design')
@@ -34,21 +37,21 @@ export function Gallery({ project, busy, onBack, onAdopt, onPreview, onSummon, o
 
   return <main className="gallery">
     <header className="game-top">
-      <button type="button" className="top-back" onClick={onBack}><CaretLeft size={16} weight="bold" />回到角色</button>
-      <div className="top-title"><h1 className="display">圖鑑</h1><span className="top-sub num">{items.length} 張</span></div>
-      <div className="tabs" role="tablist" aria-label="篩選">{filters.map(([id, label]) => <button type="button" role="tab" key={id} aria-selected={filter === id} onClick={() => setFilter(id)}>{label}</button>)}</div>
+      <button type="button" className="top-back" onClick={onBack}><CaretLeft size={16} weight="bold" />{t('gallery.back')}</button>
+      <div className="top-title"><h1 className="display">{t('gallery.title')}</h1><span className="top-sub num">{t('gallery.count', { count: items.length })}</span></div>
+      <div className="tabs" role="tablist" aria-label={t('gallery.filterLabel')}>{filters.map(id => <button type="button" role="tab" key={id} aria-selected={filter === id} onClick={() => setFilter(id)}>{t(`gallery.filter.${id}`)}</button>)}</div>
     </header>
     <div className="gallery-body">
-      {live.length > 0 && <section className="gallery-live" aria-label="還在進行的繪製">{live.map(({ job, view }) => <article key={job.id} className={`live-card tone-${view.tone}`}>
-        <div><StatusPill tone={view.tone} running={job.status === 'running'}>{job.status === 'failed' ? '這次沒畫成' : view.olderSettings && view.action === 'handoff' ? '沒送出' : view.action === 'handoff' ? '到 Codex 按送出' : view.label}</StatusPill>{view.olderSettings && <span className="shot-note">較早的設定</span>}<p>{targetLabel(project, job.targetId)}　{job.prompt.length > 48 ? `${job.prompt.slice(0, 48)}…` : job.prompt}</p></div>
+      {live.length > 0 && <section className="gallery-live" aria-label={t('gallery.live.label')}>{live.map(({ job, view }) => <article key={job.id} className={`live-card tone-${view.tone}`}>
+        <div><StatusPill tone={view.tone} running={job.status === 'running'}>{job.status === 'failed' ? t('gallery.live.failed') : view.olderSettings && view.action === 'handoff' ? t('gallery.live.notSent') : view.action === 'handoff' ? t('gallery.live.pressSend') : sharedText(view.labelKey, view.labelParams, view.label)}</StatusPill>{view.olderSettings && <span className="shot-note">{t('gallery.olderSettings')}</span>}<p>{targetLabel(project, job.targetId)}{t('common.gap')}{job.prompt.length > 48 ? `${job.prompt.slice(0, 48)}…` : job.prompt}</p></div>
         <div className="live-actions">
-          <button type="button" className="btn btn-secondary btn-sm" onClick={() => onSummon(job.id)}>查看</button>
-          <button type="button" className="btn btn-quiet btn-sm" title="從電腦選一張圖放進這次繪製" onClick={() => { importJob.current = job; file.current?.click(); }}><UploadSimple size={14} />手動放入</button>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={() => onSummon(job.id)}>{t('gallery.live.view')}</button>
+          <button type="button" className="btn btn-quiet btn-sm" title={t('gallery.live.importTitle')} onClick={() => { importJob.current = job; file.current?.click(); }}><UploadSimple size={14} />{t('gallery.live.import')}</button>
         </div>
       </article>)}</section>}
-      <input ref={file} className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" tabIndex={-1} aria-label="選擇要放入的圖片" onChange={event => { const picked = event.target.files?.[0]; event.target.value = ''; if (picked && importJob.current) onImport(importJob.current, picked); }} />
-      {visible.length ? <div className="gallery-grid">{visible.map(({ asset, candidate, adopted }) => <Shot key={asset.id} asset={asset} label={asset.targetId === 'character' ? '立繪' : targetLabel(project, asset.targetId)} onOpen={() => setOpenId(asset.id)}
-        status={adopted ? <StatusPill tone="success">{adopted}</StatusPill> : candidate?.olderSettings ? <span className="shot-note">較早的設定</span> : null} adopted={Boolean(adopted)} />)}</div> : <div className="empty-state"><Sparkle size={30} weight="light" /><h3>還沒有圖</h3><p>到「捏角色」按「開始繪製」，畫好的圖都會收在這裡。</p></div>}
+      <input ref={file} className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" tabIndex={-1} aria-label={t('gallery.live.importInput')} onChange={event => { const picked = event.target.files?.[0]; event.target.value = ''; if (picked && importJob.current) onImport(importJob.current, picked); }} />
+      {visible.length ? <div className="gallery-grid">{visible.map(({ asset, candidate, adopted }) => <Shot key={asset.id} asset={asset} label={asset.targetId === 'character' ? t('common.mainIllustration') : targetLabel(project, asset.targetId)} onOpen={() => setOpenId(asset.id)}
+        status={adopted ? <StatusPill tone="success">{t(`gallery.adopted.${adopted}`)}</StatusPill> : candidate?.olderSettings ? <span className="shot-note">{t('gallery.olderSettings')}</span> : null} adopted={Boolean(adopted)} />)}</div> : <div className="empty-state"><Sparkle size={30} weight="light" /><h3>{t('gallery.empty.title')}</h3><p>{t('gallery.empty.body')}</p></div>}
     </div>
     {open && <Lightbox project={project} item={open} busy={busy} onClose={() => setOpenId(null)} onAdopt={onAdopt} onPreview={onPreview} onRedraw={onRedraw} onRefine={onRefine} />}
   </main>;
@@ -68,6 +71,7 @@ function Shot({ asset, label, status, adopted, onOpen }) {
 }
 
 function Lightbox({ project, item, busy, onClose, onAdopt, onRedraw, onRefine }) {
+  const t = useT();
   const { asset, candidate, adopted, job } = item;
   const [compare, setCompare] = useState(false);
   const [split, setSplit] = useState(50);
@@ -80,28 +84,28 @@ function Lightbox({ project, item, busy, onClose, onAdopt, onRedraw, onRefine })
     window.addEventListener('keydown', handle);
     return () => window.removeEventListener('keydown', handle);
   }, [onClose]);
-  return <div className="lightbox" role="dialog" aria-modal="true" aria-label="圖片">
-    <button type="button" className="lightbox-close icon-btn" aria-label="關閉" onClick={onClose}><X size={20} /></button>
+  return <div className="lightbox" role="dialog" aria-modal="true" aria-label={t('gallery.lightbox.label')}>
+    <button type="button" className="lightbox-close icon-btn" aria-label={t('ui.close')} onClick={onClose}><X size={20} /></button>
     <div className="lightbox-stage">
       {compare && current ? <div className="compare-wipe">
-        <img src={asset.url} alt="這張" draggable="false" />
-        <div className="compare-top" style={{ clipPath: `inset(0 ${100 - split}% 0 0)` }}><img src={current.url} alt="目前的" draggable="false" /></div>
+        <img src={asset.url} alt={t('gallery.compare.this')} draggable="false" />
+        <div className="compare-top" style={{ clipPath: `inset(0 ${100 - split}% 0 0)` }}><img src={current.url} alt={t('gallery.compare.current')} draggable="false" /></div>
         <div className="compare-line" style={{ left: `${split}%` }} />
-        <span className="compare-tag left">目前的</span><span className="compare-tag right">這張</span>
-        <input className="compare-range" type="range" min="0" max="100" value={split} aria-label="比較分割位置" onChange={event => setSplit(Number(event.target.value))} />
+        <span className="compare-tag left">{t('gallery.compare.current')}</span><span className="compare-tag right">{t('gallery.compare.this')}</span>
+        <input className="compare-range" type="range" min="0" max="100" value={split} aria-label={t('gallery.compare.split')} onChange={event => setSplit(Number(event.target.value))} />
       </div> : <img className="lightbox-img" src={asset.url} alt="" />}
     </div>
     <aside className="lightbox-side">
-      <h2 className="display">{isMain ? '立繪' : targetLabel(project, asset.targetId)}</h2>
-      <p className="muted">{dateLabel(asset.createdAt || candidate?.createdAt || Date.now())}{asset.view && !isMain ? `　${viewNames[asset.view] || ''}` : ''}</p>
-      {adopted && <StatusPill tone="success">{adopted}</StatusPill>}
-      {job?.prompt && <div className="lightbox-prompt"><span>這次的要求</span><p>{job.prompt}</p></div>}
-      {candidate?.olderSettings && <p className="hint">這張是用較早的設定畫的，照樣可以採用；採用不會改動目前的設定。</p>}
+      <h2 className="display">{isMain ? t('common.mainIllustration') : targetLabel(project, asset.targetId)}</h2>
+      <p className="muted">{dateLabel(asset.createdAt || candidate?.createdAt || Date.now())}{asset.view && !isMain ? `${t('common.gap')}${viewNames.has(asset.view) ? t(`gallery.view.${asset.view}`) : ''}` : ''}</p>
+      {adopted && <StatusPill tone="success">{t(`gallery.adopted.${adopted}`)}</StatusPill>}
+      {job?.prompt && <div className="lightbox-prompt"><span>{t('gallery.lightbox.request')}</span><p>{job.prompt}</p></div>}
+      {candidate?.olderSettings && <p className="hint">{t('gallery.lightbox.olderHint')}</p>}
       <div className="lightbox-actions">
-        {candidate && !adopted && <button type="button" className="btn btn-primary btn-lg btn-block" disabled={busy} onClick={() => onAdopt(candidate)}>{busy ? <Busy>處理中…</Busy> : <><Check size={17} weight="bold" />{isMain ? '設為正式立繪' : '設為這件的設計圖'}</>}</button>}
-        {current && <button type="button" className="btn btn-secondary btn-block" aria-pressed={compare} onClick={() => setCompare(value => !value)}><SquareSplitHorizontal size={16} />{compare ? '結束比較' : '和目前的比較'}</button>}
-        {adopted && <button type="button" className="btn btn-secondary btn-block" onClick={() => setRefine(true)}><Crosshair size={16} />框選局部修改</button>}
-        {job && <button type="button" className="btn btn-quiet btn-block" disabled={busy} onClick={() => onRedraw(job)}><ArrowClockwise size={16} />用一樣的要求再畫</button>}
+        {candidate && !adopted && <button type="button" className="btn btn-primary btn-lg btn-block" disabled={busy} onClick={() => onAdopt(candidate)}>{busy ? <Busy /> : <><Check size={17} weight="bold" />{isMain ? t('gallery.lightbox.adoptMain') : t('gallery.lightbox.adoptPart')}</>}</button>}
+        {current && <button type="button" className="btn btn-secondary btn-block" aria-pressed={compare} onClick={() => setCompare(value => !value)}><SquareSplitHorizontal size={16} />{compare ? t('gallery.compare.stop') : t('gallery.compare.start')}</button>}
+        {adopted && <button type="button" className="btn btn-secondary btn-block" onClick={() => setRefine(true)}><Crosshair size={16} />{t('gallery.lightbox.refine')}</button>}
+        {job && <button type="button" className="btn btn-quiet btn-block" disabled={busy} onClick={() => onRedraw(job)}><ArrowClockwise size={16} />{t('gallery.lightbox.redraw')}</button>}
       </div>
     </aside>
     {refine && <RefineModal asset={asset} busy={busy} onClose={() => setRefine(false)} onSubmit={async options => { const done = await onRefine(asset, options); if (done) { setRefine(false); onClose(); } }} />}
@@ -109,6 +113,7 @@ function Lightbox({ project, item, busy, onClose, onAdopt, onRedraw, onRefine })
 }
 
 function RefineModal({ asset, busy, onClose, onSubmit }) {
+  const t = useT();
   const [region, setRegion] = useState(null);
   const [note, setNote] = useState('');
   const [count, setCount] = useState(1);
@@ -116,17 +121,17 @@ function RefineModal({ asset, busy, onClose, onSubmit }) {
   const point = event => { const rect = box.current.getBoundingClientRect(); return { x: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)), y: Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)) }; };
   const move = event => { if (!start.current) return; const end = point(event); setRegion({ x: Math.min(start.current.x, end.x), y: Math.min(start.current.y, end.y), width: Math.abs(end.x - start.current.x), height: Math.abs(end.y - start.current.y) }); };
   const ready = note.trim() && (!region || (region.width > 0.01 && region.height > 0.01));
-  return <Modal title="局部修改" subtitle="在圖上拖曳框出要改的地方（不框就是整張），再寫要怎麼改。" onClose={onClose} wide>
+  return <Modal title={t('gallery.refine.title')} subtitle={t('gallery.refine.subtitle')} onClose={onClose} wide>
     <div className="refine-layout">
       <div className="region-stage"><div className="region-image" ref={box} onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); start.current = point(event); setRegion(null); }} onPointerMove={move} onPointerUp={event => { move(event); start.current = null; }}>
-        <img src={asset.url} alt="要修改的圖" draggable="false" />
+        <img src={asset.url} alt={t('gallery.refine.imageAlt')} draggable="false" />
         {region && <span className="region-box" style={{ left: `${region.x * 100}%`, top: `${region.y * 100}%`, width: `${region.width * 100}%`, height: `${region.height * 100}%` }} />}
       </div></div>
       <form className="form-stack" onSubmit={event => { event.preventDefault(); if (ready) onSubmit({ note, region: region && region.width > 0.01 ? region : null, variants: count }); }}>
-        <label className="field"><span>要怎麼改？</span><textarea autoFocus rows={5} value={note} maxLength={2000} onChange={event => setNote(event.target.value)} placeholder="例如：扣具改成月牙形，黃銅材質" /></label>
-        <div className="field"><span>張數</span><div className="count-seg" role="group">{L.variantCounts.map(value => <button type="button" key={value} aria-pressed={count === value} onClick={() => setCount(value)}>×{value}</button>)}</div></div>
-        {region && <button type="button" className="btn btn-text" onClick={() => setRegion(null)}>清除框選</button>}
-        <button type="submit" className="btn btn-primary btn-lg" disabled={busy || !ready}>{busy ? <Busy>準備中…</Busy> : <><Sparkle size={16} weight="fill" />開始繪製</>}</button>
+        <label className="field"><span>{t('gallery.refine.note')}</span><textarea autoFocus rows={5} value={note} maxLength={2000} onChange={event => setNote(event.target.value)} placeholder={t('gallery.refine.notePlaceholder')} /></label>
+        <div className="field"><span>{t('gallery.refine.count')}</span><div className="count-seg" role="group">{L.variantCounts.map(value => <button type="button" key={value} aria-pressed={count === value} onClick={() => setCount(value)}>×{value}</button>)}</div></div>
+        {region && <button type="button" className="btn btn-text" onClick={() => setRegion(null)}>{t('gallery.refine.clear')}</button>}
+        <button type="submit" className="btn btn-primary btn-lg" disabled={busy || !ready}>{busy ? <Busy>{t('gallery.refine.preparing')}</Busy> : <><Sparkle size={16} weight="fill" />{t('gallery.refine.submit')}</>}</button>
       </form>
     </div>
   </Modal>;

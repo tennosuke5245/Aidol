@@ -1,0 +1,67 @@
+{
+  "close": "閉じる",
+  "closeForNow": "いったん閉じる",
+  "waiting": {
+    "title": "Codex で送信してください",
+    "sub": "Codex に新しいチャットを開き、プロンプトも入力してあります。送信を押すと、ここでカードがめくれ始めます。"
+  },
+  "drawing": {
+    "title": "描画中 {{returned}}／{{expected}}",
+    "sub": "1枚描けるたびに1枚ずつめくれます。全部描き終わるのを待つ必要はありません。"
+  },
+  "adopted": {
+    "titleMain": "立ち絵に採用しました",
+    "titlePart": "「{{name}}」のデザイン画に採用しました",
+    "sub": "ほかの画像はギャラリーに残ります。あとからいつでも差し替えられます。"
+  },
+  "pick": {
+    "titleMain": "立ち絵にする1枚を選ぶ",
+    "titlePart": "「{{name}}」のデザイン画にする1枚を選ぶ",
+    "subDrawing": "まだ描いている画像がありますが、先に選べます。",
+    "sub": "ほかの画像はギャラリーに残り、あとから差し替えることもできます。"
+  },
+  "failed": {
+    "title": "今回は描けませんでした",
+    "reported": "Codex からの報告：{{message}}",
+    "sub": "Codex から失敗の報告がありました。指示と設定はそのまま残っているので、もう一度試せます。"
+  },
+  "card": {
+    "waiting": "送信待ち",
+    "failed": "描けませんでした",
+    "drawing": "描画中",
+    "previewTitle": "{{target}}・{{number}}枚目",
+    "zoom": "{{number}}枚目を拡大",
+    "alt": "{{number}}枚目",
+    "pickedMain": "立ち絵に採用済み",
+    "picked": "採用済み",
+    "adoptMain": "立ち絵に採用",
+    "adopt": "これを採用",
+    "older": "以前の設定で描いたもの"
+  },
+  "opening": "開いています…",
+  "reopen": "Codex をもう一度開く",
+  "copyPrompt": "プロンプトをコピー",
+  "tryAgain": "もう一度試す",
+  "progressInCodex": "Codex で進捗を見る",
+  "openGallery": "ギャラリーを開く",
+  "prompt": {
+    "summary": "今回 AI に渡した内容",
+    "inputs": "AI に一緒に渡した画像",
+    "briefHeading": "キャラクターの説明"
+  },
+  "reference": {
+    "label": "{{role}}：{{focus}}",
+    "role": {
+      "style": "画風リファレンス",
+      "identity": "特徴リファレンス",
+      "color": "配色リファレンス",
+      "clothing": "服の構造リファレンス",
+      "material": "素材リファレンス",
+      "composition": "構図リファレンス",
+      "other": "参考画像"
+    },
+    "overall": "全体の雰囲気",
+    "main": "立ち絵（顔立ちと服装）",
+    "partDesign": "{{name}}のデザイン画"
+  }
+}

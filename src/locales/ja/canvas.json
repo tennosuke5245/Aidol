@@ -1,0 +1,194 @@
+{
+  "separator": "・",
+  "retry": "もう一度試す",
+  "cancel": "キャンセル",
+  "kind": {
+    "garment": "服",
+    "footwear": "靴",
+    "accessory": "小物",
+    "weapon": "武器",
+    "hair": "髪",
+    "body": "体",
+    "other": "その他"
+  },
+  "view": {
+    "front": "正面",
+    "back": "背面",
+    "detail": "細部"
+  },
+  "status": {
+    "newImages_other": "新しい画像 {{count}}",
+    "drawing": "描画中",
+    "failed": "今回は描けませんでした",
+    "sendInCodex": "Codex で送信",
+    "notWorn": "未着用",
+    "changed": "設定変更あり",
+    "adopted": "採用済み",
+    "notDrawn": "未描画"
+  },
+  "graph": {
+    "character": {
+      "open": "「{{name}}」をキャラクリで開く",
+      "portraitAlt": "{{name}}の立ち絵",
+      "emptyTitle": "立ち絵はまだありません",
+      "emptyHint": "ここをクリックしてキャラクリを始めましょう。最初に描けた1枚がここに表示されます。",
+      "zoom": "立ち絵を拡大",
+      "zoomTitle": "拡大",
+      "previewTitle": "{{name}}・立ち絵",
+      "openCreator": "キャラクリ"
+    },
+    "decompose": {
+      "running": "衣装を分解中",
+      "failed": "分解未完了・再試行",
+      "hint": "AI に立ち絵からパーツを探してもらい、キャンバスのノードにします",
+      "action": "衣装を分解"
+    },
+    "reference": {
+      "style": "画風リファレンス",
+      "identity": "特徴リファレンス",
+      "color": "配色リファレンス",
+      "clothing": "服装リファレンス",
+      "composition": "構図リファレンス",
+      "material": "素材リファレンス",
+      "design": "デザインリファレンス"
+    },
+    "edge": {
+      "accessory": "小物",
+      "piece": "パーツ",
+      "aria": "{{name}}：{{label}}"
+    },
+    "positionRetry": "接続し直してから、もう一度お試しください。",
+    "create": {
+      "error": "キャンバスに追加できませんでした。もう一度お試しください。",
+      "addingReference": "参考画像を追加中…",
+      "addingNote": "付箋を追加中…",
+      "addingText": "テキストを追加中…"
+    },
+    "toolbar": {
+      "label": "キャンバスツール",
+      "chooseReference": "キャンバスに置く参考画像を選ぶ",
+      "select": "選択ツール",
+      "selectShortcut": "選択（V）",
+      "pan": "手のひらツール",
+      "panShortcut": "手のひら（H）",
+      "addPiece": "パーツ",
+      "addPieceHint": "パーツを追加",
+      "addNote": "付箋を追加",
+      "noteShortcut": "付箋（N）",
+      "addText": "テキストを追加",
+      "addReference": "参考画像を追加",
+      "reference": "参考画像",
+      "zoomOut": "縮小",
+      "zoomIn": "拡大",
+      "focus": "選択範囲にズーム",
+      "fitAll": "全体を表示",
+      "tidy": "整列",
+      "tidyHint": "パーツをキャラクターの両側に並べ直す"
+    }
+  },
+  "part": {
+    "designAlt": "{{name}}のデザイン画",
+    "cropAlt": "立ち絵での{{name}}の位置",
+    "fromPortrait": "立ち絵から分解",
+    "draft": "下書き"
+  },
+  "formalReference": {
+    "label": "描画に使用",
+    "fallback": "現在の画風リファレンスに設定済み"
+  },
+  "annotation": {
+    "kind": {
+      "reference": "参考画像",
+      "note": "付箋",
+      "text": "テキスト"
+    },
+    "tone": {
+      "gold": "シャンパンゴールド",
+      "blue": "ミストブルー",
+      "rose": "スモーキーピンク",
+      "neutral": "グラファイト"
+    },
+    "toneGroup": "カードの色",
+    "toneAria": "{{name}}の色",
+    "image": "参考画像",
+    "zoom": "{{name}}を拡大",
+    "zoomImage": "参考画像を拡大",
+    "imageMissing": "参考画像が見つかりません",
+    "edit": {
+      "reference": "参考画像カードを編集",
+      "note": "付箋を編集",
+      "text": "テキストを編集"
+    },
+    "editTitle": "編集",
+    "remove": {
+      "reference": "参考画像カードを削除",
+      "note": "付箋を削除",
+      "text": "テキストを削除"
+    },
+    "removeTitle": "このカードを削除",
+    "title": "タイトル",
+    "titleAria": "参考画像カードのタイトル",
+    "titlePlaceholder": "この画像で参考にしたい点",
+    "description": "説明",
+    "descriptionAria": "参考画像カードの説明",
+    "descriptionPlaceholder": "参考にしたい細部を書く",
+    "textAria": {
+      "note": "付箋の文字",
+      "text": "キャンバスのテキスト"
+    },
+    "placeholder": {
+      "note": "アイデアをひとつ書く…",
+      "text": "デザインの補足を書く…"
+    },
+    "saving": "保存中",
+    "done": "完了",
+    "untitled": "無題の参考画像",
+    "contentAria": "{{kind}}：{{text}}",
+    "empty": "未入力",
+    "emptyHint": {
+      "note": "ダブルクリックでアイデアを書く",
+      "text": "ダブルクリックでテキストを書く"
+    },
+    "removing": "削除中…",
+    "saveError": "メモはまだ保存されていません。文字はここに残っています。",
+    "saveErrorHint": "まだ保存されていません。下書きは残っています。",
+    "deleteError": "このメモを削除できませんでした。",
+    "deleteErrorHint": "カードはキャンバスに残っています。",
+    "savingPosition": "位置を保存中…",
+    "positionError": "位置を保存できませんでした：{{error}}"
+  },
+  "addPiece": {
+    "title": "パーツを追加",
+    "subtitle": "まず名前と見た目を書きます。デザイン画はあとで単独で描けます。"
+  },
+  "inspector": {
+    "aria": "パーツ：{{name}}",
+    "proposed": "AI が立ち絵から分解したパーツ",
+    "piece": "パーツ",
+    "cropNote": "立ち絵から切り出した範囲で、まだデザイン画ではありません。デザイン画を描くと、正面・背面・細部がはっきり見えます。",
+    "noDesign": "デザイン画はまだありません。見た目を書いてから描きましょう。",
+    "openJob": "クリックして今回の画像を見る",
+    "anchor": "着用位置",
+    "anchorPlaceholder": "例：腰",
+    "defaultAnchor": "身に着ける",
+    "descriptionPlaceholder": "色、素材、細部",
+    "previewTitle": "{{name}}・{{view}}",
+    "draw": "デザイン画を描く",
+    "whichView": "描く面",
+    "notePlaceholder": "今回描きたいもの（任意）",
+    "noteAria": "今回描きたいもの",
+    "count": "枚数",
+    "needPortrait": "パーツは立ち絵に合わせて描くので、先に立ち絵が必要です",
+    "preparing": "準備中…",
+    "needPortraitNote": "先に「キャラクリ」で立ち絵を描くと、パーツを立ち絵に合わせて単独で描けます。",
+    "takeOff": "外す",
+    "putOn": "着ける",
+    "worn": "着用",
+    "removeKeepHint": "画像のあるパーツは残し、外すだけにします",
+    "removeHint": "このパーツをキャラクターから削除",
+    "remove": "削除"
+  },
+  "rack": {
+    "label": "描画の進行状況"
+  }
+}

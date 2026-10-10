@@ -1,0 +1,73 @@
+{
+  "back": "回到角色",
+  "title": "圖鑑",
+  "count_other": "{{count}} 張",
+  "filterLabel": "篩選",
+  "filter": {
+    "all": "全部",
+    "main": "立繪",
+    "gear": "裝備"
+  },
+  "live": {
+    "label": "還在進行的繪製",
+    "failed": "這次沒畫成",
+    "notSent": "沒送出",
+    "pressSend": "到 Codex 按送出",
+    "view": "查看",
+    "importTitle": "從電腦選一張圖放進這次繪製",
+    "import": "手動放入",
+    "importInput": "選擇要放入的圖片"
+  },
+  "olderSettings": "較早的設定",
+  "adopted": {
+    "main": "正式立繪",
+    "design": "設計圖",
+    "front": "正面設計圖",
+    "full": "完整設計圖",
+    "back": "背面設計圖",
+    "detail": "細節設計圖"
+  },
+  "empty": {
+    "title": "還沒有圖",
+    "body": "到「捏角色」按「開始繪製」，畫好的圖都會收在這裡。"
+  },
+  "view": {
+    "front": "正面",
+    "full": "完整",
+    "back": "背面",
+    "detail": "細節"
+  },
+  "lightbox": {
+    "label": "圖片",
+    "request": "這次的要求",
+    "olderHint": "這張是用較早的設定畫的，照樣可以採用；採用不會改動目前的設定。",
+    "adoptMain": "設為正式立繪",
+    "adoptPart": "設為這件的設計圖",
+    "refine": "框選局部修改",
+    "redraw": "用一樣的要求再畫"
+  },
+  "compare": {
+    "this": "這張",
+    "current": "目前的",
+    "split": "比較分割位置",
+    "start": "和目前的比較",
+    "stop": "結束比較"
+  },
+  "refine": {
+    "title": "局部修改",
+    "subtitle": "在圖上拖曳框出要改的地方（不框就是整張），再寫要怎麼改。",
+    "imageAlt": "要修改的圖",
+    "note": "要怎麼改？",
+    "notePlaceholder": "例如：扣具改成月牙形，黃銅材質",
+    "count": "張數",
+    "clear": "清除框選",
+    "preparing": "準備中…",
+    "submit": "開始繪製"
+  },
+  "preview": {
+    "hint": "拖曳移動，放大檢查細節",
+    "zoomOut": "縮小圖稿",
+    "zoomIn": "放大圖稿",
+    "fit": "圖稿適合視窗"
+  }
+}

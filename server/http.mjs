@@ -48,7 +48,7 @@ export async function createApp({ dataDir, assetDir, demo = true, registerIntegr
   app.get('/api/projects/:id/jobs', asyncRoute(async (req, res) => res.json(await store.listJobs(req.params.id))));
   app.get('/api/projects/:id/jobs/:jobId', asyncRoute(async (req, res) => res.json(await store.getJob(req.params.id, req.params.jobId))));
   app.post('/api/projects/:id/assets', upload.single('file'), asyncRoute(async (req, res) => {
-    if (!req.file) throw new DomainError('請選擇要匯入的圖片。');
+    if (!req.file) throw new DomainError('請選擇要匯入的圖片。', 422, 'IMAGE_REQUIRED');
     const { role, targetId, jobId, view } = req.body;
     res.status(201).json(await store.addAsset(req.params.id, { buffer: req.file.buffer, name: req.body.name || req.file.originalname, mimeType: req.file.mimetype, role, targetId, ...(jobId ? { jobId } : {}), view }));
   }));
@@ -69,6 +69,12 @@ export async function createApp({ dataDir, assetDir, demo = true, registerIntegr
     }
     res.json(project);
   }));
+  app.delete('/api/projects/:id', asyncRoute(async (req, res) => res.json(await store.deleteProject(req.params.id))));
+  app.get('/api/trash', asyncRoute(async (_req, res) => res.json(await store.listTrash())));
+  app.post('/api/trash/:trashId/restore', asyncRoute(async (req, res) => res.json(await store.restoreProject(req.params.trashId))));
+  app.delete('/api/trash/:trashId', asyncRoute(async (req, res) => res.json(await store.purgeTrash(req.params.trashId))));
+  app.get('/api/preferences', asyncRoute(async (_req, res) => res.json(await store.getPreferences())));
+  app.put('/api/preferences', asyncRoute(async (req, res) => res.json(await store.savePreferences(req.body))));
   app.post('/api/projects/:id/proposals', asyncRoute(async (req, res) => res.status(201).json(await store.saveProposal(req.params.id, req.body))));
   app.post('/api/projects/:id/proposals/:proposalId/dismiss', asyncRoute(async (req, res) => res.json(await store.dismissProposal(req.params.id, req.params.proposalId))));
   app.post('/api/projects/:id/proposals/:proposalId/accept', asyncRoute(async (req, res) => res.json(await store.acceptProposal(req.params.id, req.params.proposalId, req.body))));
