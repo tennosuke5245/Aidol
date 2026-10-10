@@ -29,8 +29,8 @@ bun run check:i18n
 ## 發版（維護者）
 
 1. 版本號三處要一致：`src-tauri/tauri.conf.json`、`src-tauri/Cargo.toml`、`src-tauri/Cargo.lock` 裡 `aidol` 的版本（測試會檢查）。
-2. 推到 `main` 之後，在 GitHub 的 Actions 分頁執行「Release」；或推同版本的標籤，例如 `git tag v0.1.4` 再 `git push origin v0.1.4`。
-3. GitHub 會在 Windows 主機上跑完檢查與測試、打包安裝檔，建立**草稿** Release。下載安裝試過，在草稿裡補上這版的更新內容，再按 Publish。
+2. 推到 `main` 之後，在 GitHub 的 Actions 分頁執行「Release」。
+3. GitHub 會在 Windows 主機上跑完檢查與測試、打包安裝檔，建立**草稿** Release。下載安裝試過，在草稿裡補上這版的更新內容，再按 Publish。不用自己打標籤：Publish 時 GitHub 會自動建立 `vX.Y.Z` 標籤。
 
 ## 不要提交的東西
 
