@@ -56,6 +56,12 @@ Your character lives in a plain YAML file, so nothing is locked inside a chat hi
 | Codex App | Drawing. It uses your own subscription; AIDOL never switches to the separately billed Image API. |
 | Rust + MSVC build tools | Only for building the desktop app ([Tauri prerequisites](https://tauri.app/start/prerequisites/)) |
 
+## Download
+
+Windows installers are on the [Releases page](https://github.com/tennosuke5245/Aidol/releases). The installer isn't code-signed yet, so Windows SmartScreen may warn you: choose **More info → Run anyway**.
+
+To run AIDOL from source instead, see Getting started below.
+
 ## Getting started
 
 ```powershell

@@ -26,6 +26,12 @@ bun run check:i18n
 - 訂閱產圖由 Codex App 交接，不得默默改用另行計費的 Image API。
 - 每次新的 agent 修訂使用全新 thread，只攜帶挑選過的設定與真實參考圖。
 
+## 發版（維護者）
+
+1. 版本號三處要一致：`src-tauri/tauri.conf.json`、`src-tauri/Cargo.toml`、`src-tauri/Cargo.lock` 裡 `aidol` 的版本（測試會檢查）。
+2. 推到 `main` 之後，在 GitHub 的 Actions 分頁執行「Release」；或推同版本的標籤，例如 `git tag v0.1.4` 再 `git push origin v0.1.4`。
+3. GitHub 會在 Windows 主機上跑完檢查與測試、打包安裝檔，建立**草稿** Release。下載安裝試過，在草稿裡補上這版的更新內容，再按 Publish。
+
 ## 不要提交的東西
 
 根目錄的 `.gitignore` 採白名單：新增根目錄檔案或資料夾時，確定可以公開才加進白名單。

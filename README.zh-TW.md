@@ -54,6 +54,12 @@ AIDOL（AI + IDOL）是給角色設計師用的桌面 App。你可以像玩遊�
 | Codex App | 畫圖。用的是你自己的訂閱；AIDOL 不會偷偷改用另外計費的 Image API。 |
 | Rust + MSVC 建置工具 | 只有要自己打包桌面版才需要（[Tauri 環境需求](https://tauri.app/start/prerequisites/)） |
 
+## 下載
+
+Windows 安裝檔在 [Releases 頁面](https://github.com/tennosuke5245/Aidol/releases)。安裝檔還沒有程式碼簽章，Windows 可能會跳出「Windows 已保護您的電腦」：按「其他資訊」→「仍要執行」即可。
+
+想從原始碼執行，看下面的「開始使用」。
+
 ## 開始使用
 
 ```powershell

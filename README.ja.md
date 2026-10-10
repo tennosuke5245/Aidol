@@ -56,6 +56,12 @@ AIDOL（AI + IDOL）は、キャラクターデザインをする人のための
 | Codex App | 画像の生成。ご自身のサブスクリプションを使います。別料金の Image API に勝手に切り替えることはありません。 |
 | Rust + MSVC ビルドツール | デスクトップ版を自分でビルドするときだけ（[Tauri の前提条件](https://tauri.app/start/prerequisites/)） |
 
+## ダウンロード
+
+Windows インストーラーは [Releases ページ](https://github.com/tennosuke5245/Aidol/releases) にあります。インストーラーはまだコード署名されていないため、SmartScreen の警告が出たら「詳細情報」→「実行」を選んでください。
+
+ソースから動かす場合は、下の「はじめかた」を見てください。
+
 ## はじめかた
 
 ```powershell

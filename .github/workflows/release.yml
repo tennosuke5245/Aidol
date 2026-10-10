@@ -1,0 +1,102 @@
+# 發版：打包 Windows 安裝檔，放進「草稿」Release。草稿不會公開，維護者下載試過後再按 Publish。
+# 兩種觸發方式：
+#   1. 在 Actions 分頁選「Release」→「Run workflow」（只能從 main 跑）
+#   2. 推版本標籤，例如 git tag v0.1.4 && git push origin v0.1.4（標籤要和 src-tauri/tauri.conf.json 的版本一致）
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    if: github.ref == 'refs/heads/main' || github.ref_type == 'tag'
+    runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      # Windows 主機預設會把換行改成 CRLF；保持和 repo 一樣的 LF，檢查與測試才和 Linux 上的 CI 一致
+      - run: git config --global core.autocrlf false
+      # 不把可以寫入 repo 的權杖留在 git 設定裡；只有建立 Release 那一步拿得到
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: 'src-tauri -> target'
+
+      - name: Tag matches the app version
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          version=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match the app version v$version in src-tauri/tauri.conf.json"
+            exit 1
+          fi
+
+      - run: bun install --frozen-lockfile
+      # 和 CI 一樣的檢查，這次在 Windows 上跑，Windows 專用的測試也會跑到
+      - run: bun run check:oss
+        env:
+          OSS_CHECK_SKIP_GIT_EMAIL: '1'
+      - run: bun run check:i18n
+      - run: bun run build
+      # 先打包本機核心，讓「封裝後的核心能啟動」的 Windows 測試也一起跑
+      - run: bun scripts/build-sidecar.mjs
+      - run: bun test tests
+
+      # tauri.conf.json 的 beforeBuildCommand 會重新打包介面與本機核心（sidecar），再產生 NSIS 安裝檔
+      - name: Build installer and draft release
+        id: build
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tauriScript: bun tauri
+          tagName: v__VERSION__
+          releaseName: AIDOL v__VERSION__
+          releaseDraft: true
+          prerelease: false
+          uploadUpdaterJson: false
+          releaseBody: |
+            Windows 桌面版。安裝檔還沒有程式碼簽章，Windows 可能會跳出「Windows 已保護您的電腦」：按「其他資訊」→「仍要執行」即可。畫圖需要先安裝並登入 Codex App。
+
+            Windows desktop app. The installer is not code-signed yet, so Windows SmartScreen may warn you: choose "More info" → "Run anyway". Drawing needs Codex App installed and signed in.
+
+            Windows 版デスクトップアプリです。インストーラーはまだコード署名されていないため、SmartScreen の警告が出たら「詳細情報」→「実行」を選んでください。描画には Codex App のインストールとログインが必要です。
+
+      # 在這次執行的摘要列出安裝檔的 SHA-256，方便和 Release 頁上的數字對照
+      - name: Summary
+        shell: pwsh
+        env:
+          ARTIFACTS: ${{ steps.build.outputs.artifactPaths }}
+          RELEASE_URL: ${{ steps.build.outputs.releaseHtmlUrl }}
+        run: |
+          "## AIDOL draft release" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          "Review and publish: $env:RELEASE_URL" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          "" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          "| File | SHA-256 |" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          "| --- | --- |" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          foreach ($file in ($env:ARTIFACTS | ConvertFrom-Json)) {
+            if (Test-Path -PathType Leaf $file) {
+              $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower()
+              "| $(Split-Path -Leaf $file) | ``$hash`` |" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+            }
+          }
