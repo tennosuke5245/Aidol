@@ -3,7 +3,8 @@
   "adopted": {
     "part": "已設為這件裝備的設計圖。",
     "mainDecomposing": "已設為正式立繪，正在從立繪拆解裝備…",
-    "main": "已設為正式立繪。"
+    "main": "已設為正式立繪。",
+    "view": "已放進三視圖的{{view}}"
   },
   "imported": "已匯入這張圖，放在圖鑑裡。",
   "referenceSaved": "參考圖片與用途已儲存。",

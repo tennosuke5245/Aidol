@@ -341,3 +341,32 @@
 .trash-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
 .btn-text.btn-danger { color: var(--rose); }
 
+
+/* 定稿：「這張圖怎麼用」的兩張選項卡、參考圖上的鎖、畫圖列上的提示。
+   定稿的標記用反白小標（像蓋在稿上的貼紙），和金色（選取）、藍、綠、紅的狀態色分開。 */
+.use-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.use-card { display: flex; align-items: flex-start; gap: 10px; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--text-2); text-align: left; transition: border-color var(--dur) var(--ease); }
+.use-card:hover { border-color: var(--line-3); }
+.use-card > svg { flex: none; margin-top: 2px; }
+.use-card span { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.use-card b { font-size: 14px; font-weight: 600; color: var(--text); }
+.use-card small { font-size: 12px; line-height: 1.5; color: var(--text-3); }
+.use-card[aria-checked="true"] { border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); color: var(--gold-2); }
+.use-card[aria-checked="true"] b { color: var(--gold-2); }
+@media (max-width: 520px) { .use-choice { grid-template-columns: 1fr; } }
+
+.ref-lock { position: absolute; top: 5px; left: 5px; display: inline-flex; align-items: center; gap: 3px; min-width: 22px; height: 22px; padding: 0 6px; border: 0; border-radius: 999px; background: rgba(13, 15, 28, .82); color: var(--text-2); font-size: 11px; font-weight: 600; opacity: 0; transition: opacity var(--dur) var(--ease); }
+.ref:hover .ref-lock, .ref-lock:focus-visible, .ref-lock[aria-pressed="true"] { opacity: 1; }
+.ref-lock[aria-pressed="true"] { background: var(--text); color: var(--night); }
+.ref.is-canon > button:first-child { border-color: var(--text-2); }
+.ref.is-canon figcaption { color: var(--text); font-weight: 600; }
+@media (hover: none) { .ref-lock { opacity: 1; } }
+
+.drawbar-canon { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 2px 4px 0; font-size: 12.5px; color: var(--text-2); }
+.canon-note { display: inline-flex; align-items: baseline; gap: 6px; max-width: 100%; }
+.canon-note > svg { flex: none; align-self: center; color: var(--text); }
+.canon-changes { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.canon-changes b { font-weight: 600; color: var(--text); }
+.canon-chip { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: var(--surface-3); color: var(--text); font-size: 12px; }
+.stage-portrait.is-canon img { opacity: .94; outline: 1px dashed var(--line-3); outline-offset: 6px; }
+.canon-note.is-plain { color: var(--text-3); }

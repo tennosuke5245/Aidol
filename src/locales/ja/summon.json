@@ -36,7 +36,8 @@
     "picked": "採用済み",
     "adoptMain": "立ち絵に採用",
     "adopt": "これを採用",
-    "older": "以前の設定で描いたもの"
+    "older": "以前の設定で描いたもの",
+    "staleView": "三面図が変わりました"
   },
   "opening": "開いています…",
   "reopen": "Codex をもう一度開く",
@@ -62,6 +63,10 @@
     },
     "overall": "全体の雰囲気",
     "main": "立ち絵（顔立ちと服装）",
-    "partDesign": "{{name}}のデザイン画"
-  }
+    "partDesign": "{{name}}のデザイン画",
+    "canon": "決定稿：この絵のとおりに描く",
+    "viewFront": "正面：これをもとに描く",
+    "view": "確定済みの{{view}}"
+  },
+  "viewTarget": "三面図・{{view}}"
 }

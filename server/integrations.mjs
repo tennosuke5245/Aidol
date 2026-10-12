@@ -4,7 +4,7 @@ import os from 'node:os';
 import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
 import multer from 'multer';
 import { CodexClient, codexVersion } from './codex/client.mjs';
-import { characterYaml, parseCharacterYaml, characterSchema, DomainError } from '../shared/domain.mjs';
+import { characterYaml, parseCharacterYaml, characterSchema, DomainError, turnaroundLabels } from '../shared/domain.mjs';
 import { skillSource, skillStatus, installSkill } from '../scripts/install-skill.mjs';
 
 const route = handler => (request, response, next) => Promise.resolve(handler(request, response)).catch(next);
@@ -71,6 +71,9 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
     if (typeof message !== 'string' || !message.trim() || message.length > 12000) throw new DomainError('請輸入 1 至 12000 字的角色設計要求。', 400, 'INVALID_MESSAGE');
     const project = await store.getProject(request.params.id);
     const baseRevision = project.character.revision;
+    // 照定稿填設定：把定稿圖一起交給 Codex，看得到的外觀照圖填，文字設定和圖就不會打架。
+    const canonImages = request.body.readCanon ? await store.canonImages(project.id) : [];
+    if (request.body.readCanon && !canonImages.length) throw new DomainError('這個角色還沒有定稿圖。', 422, 'NO_CANON');
     const prompt = [
       '你是 AIDOL 的角色設計協作者。依使用者需求，提出完整人物 YAML 草案；只回應 JSON 中的 yaml 與 summary。',
       '保留角色 id、schema_version、revision 與所有既有 asset ID。使用繁體中文，保持穩定部件 ID。',
@@ -80,10 +83,11 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
       `資料 schema：\n${JSON.stringify(characterSchema)}`,
       `目前已採用設定（revision ${baseRevision}）：\n${characterYaml(project.character)}`,
       `可引用的素材 ID：${project.assets.map(asset => asset.id).join(', ') || '無'}`,
+      ...(canonImages.length ? ['附圖是這個角色的定稿（長相的正確答案）。照圖把看得到的外觀填進設定：髮型、髮色、瀏海、眼睛的顏色與形狀、膚色、體型與頭身、服裝、配色、配件；圖上看不到或不確定的保持原樣，不要猜。名字、人設與故事除非使用者要求，否則不要改。summary 寫出從圖上讀到了哪些外觀。'] : []),
       `使用者本次要求：\n${message}`,
     ].join('\n\n');
     const result = await client.freshTurn({
-      cwd: await codexWorkDir(), prompt, model: request.body.model,
+      cwd: await codexWorkDir(), prompt, model: request.body.model, ...(canonImages.length ? { images: canonImages } : {}),
       outputSchema: { type: 'object', additionalProperties: false, properties: { yaml: { type: 'string' }, summary: { type: 'string' } }, required: ['yaml', 'summary'] },
     });
     let output;
@@ -95,10 +99,13 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
 
   // 自動拆解裝備：Codex 讀正式立繪，列出可單獨設計的裝備與在圖上的位置。在背景執行，畫面以輪詢看狀態。
   const partKinds = ['garment', 'footwear', 'accessory', 'weapon', 'other'];
+  const box = { type: 'object', additionalProperties: false, required: ['x', 'y', 'width', 'height'], properties: { x: { type: 'number' }, y: { type: 'number' }, width: { type: 'number' }, height: { type: 'number' } } };
   const decompositionSchema = {
-    type: 'object', additionalProperties: false, required: ['parts', 'summary'],
+    type: 'object', additionalProperties: false, required: ['parts', 'summary', 'views'],
     properties: {
       summary: { type: 'string' },
+      // 三視圖：圖上每個全身人物是哪個角度、在哪裡；核心之後在畫面上依這些位置裁成正面、側面、背面三張。
+      views: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['view', 'bbox'], properties: { view: { type: 'string', enum: ['front', 'side', 'back'] }, bbox: box } } },
       parts: { type: 'array', items: {
         type: 'object', additionalProperties: false, required: ['id', 'name', 'kind', 'description', 'anchor', 'bbox', 'existingId'],
         properties: {
@@ -122,6 +129,7 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
       '找出圖中可以單獨設計的裝備與配件（例如外套、上衣、褲子或裙子、鞋子、髮飾、耳環、項鍊、手套、包包、腰帶、武器）。不要列身體部位、臉或頭髮本身（髮飾可以）。',
       '每件回傳：id（英文小寫與底線的穩定代號，例如 black_hooded_jacket）、name（繁體中文名稱）、kind（garment 衣物、footwear 鞋、accessory 配件或飾品或包包或髮飾、weapon 武器、other）、description（一到兩句繁體中文外觀描述：顏色、材質、細節）、anchor（穿戴位置，例如「上身」「腰間」「左耳」「腳」）、bbox（這件在圖中的位置框，以圖片寬高為 1：x、y 是左上角，width、height 是寬高）、existingId（和下方已有裝備是同一件時填它的 id，否則空字串）。',
       '如果是多視角設定稿（同一角色出現多次），只框選最大、最完整的正面全身那一個。最多 10 件，從頭到腳排序。summary 用一句繁體中文說明拆出了什麼。',
+      'views：另外找出圖中每一個全身人物是哪個角度（front 正面、side 側面、back 背面），各給一個剛好包住整個人（含頭髮、披風、武器等延伸物，不要包到旁邊的人）的位置框 bbox（以圖片寬高為 1）。同一個角度只回傳最大、最完整的那一個；四分之三側算 side；不是全身或看不出角度的不要回傳；整張只有一個人時只回傳那一個。',
       `已有的裝備：\n${existing}`,
     ].join('\n\n');
     store.markDecomposing(id, true);
@@ -130,7 +138,7 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
         const result = await client.freshTurn({ cwd: await codexWorkDir(), prompt, images: [imagePath], outputSchema: decompositionSchema, timeoutMs: 240000 });
         let output;
         try { output = JSON.parse(result.text); } catch { throw new DomainError('Codex 有回覆，但格式不正確；可以再試一次。', 422, 'INVALID_CODEX_OUTPUT'); }
-        await store.finishDecomposition(id, { assetId: asset.id, parts: output.parts, summary: output.summary, threadId: result.threadId });
+        await store.finishDecomposition(id, { assetId: asset.id, parts: output.parts, views: output.views, summary: output.summary, threadId: result.threadId });
       } catch (error) {
         await store.failDecomposition(id, { assetId: asset.id, ...friendly(error) }).catch(() => {});
       } finally {
@@ -141,6 +149,37 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
   }
   app.post('/api/projects/:id/decompose', route(async (request, response) => {
     const started = await decompose(request.params.id, { assetId: request.body?.assetId });
+    response.json(started.project);
+  }));
+
+  // 拆出三視圖：只找圖上的正面、側面、背面（不動裝備）。給舊角色、或這個功能加入前就採用的圖用。
+  const viewsSchema = { type: 'object', additionalProperties: false, required: ['views'], properties: { views: decompositionSchema.properties.views } };
+  const viewsFriendly = (error) => /逾時|timeout/i.test(error?.message || '') ? { code: 'DECOMPOSE_TIMEOUT', message: 'Codex 讀圖逾時，請稍後再試一次。' }
+    : /ENOENT|spawn|Executable not found|not found in \$PATH|連線|connect/i.test(error?.message || '') ? { code: 'VIEWS_NEEDS_CODEX', message: '需要已安裝並登入的 Codex CLI 才能自動找出三視圖；也可以自己框。' }
+    : error instanceof DomainError ? { code: error.code, message: error.message } : { code: 'VIEWS_DETECT_FAILED', message: `沒有找到三視圖：${String(error?.message || '未知原因').slice(0, 200)}` };
+  app.post('/api/projects/:id/views/detect', route(async (request, response) => {
+    const id = request.params.id;
+    const started = await store.startViewDetection(id);
+    if (!started.skipped) {
+      const { project, asset, path: imagePath } = started;
+      const prompt = [
+        `你是 AIDOL 的角色設計助理。附圖是角色「${project.character.name}」目前的正式立繪。`,
+        '找出圖中每一個全身人物是哪個角度（front 正面、side 側面、back 背面），各給一個剛好包住整個人（含頭髮、披風、武器等延伸物，不要包到旁邊的人）的位置框 bbox（以圖片寬高為 1：x、y 是左上角，width、height 是寬高）。',
+        '同一個角度只回傳最大、最完整的那一個；四分之三側算 side；不是全身或看不出角度的不要回傳；整張只有一個人時只回傳那一個。',
+      ].join('\n\n');
+      (async () => {
+        try {
+          const result = await client.freshTurn({ cwd: await codexWorkDir(), prompt, images: [imagePath], outputSchema: viewsSchema, timeoutMs: 180000 });
+          let output;
+          try { output = JSON.parse(result.text); } catch { throw new DomainError('Codex 有回覆，但格式不正確；可以再試一次。', 422, 'INVALID_CODEX_OUTPUT'); }
+          await store.finishViewDetection(id, { assetId: asset.id, views: output.views });
+        } catch (error) {
+          await store.failViewDetection(id, { assetId: asset.id, ...viewsFriendly(error) }).catch(() => {});
+        } finally {
+          store.markDetectingViews(id, false);
+        }
+      })();
+    }
     response.json(started.project);
   }));
 
@@ -167,12 +206,16 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
     // 貼進 Codex 的交接訊息只寫「畫什麼、資料在哪」：工作資料夾用相對於工作區的路徑，
     // 回報與回收規則在 AIDOL skill、細節在 instructions.md，不在這裡重複（太長會把 Codex 輸入框塞爆）。
     const project = await store.getProject(id);
-    const target = job.targetId === 'character' ? '立繪' : project.character.components?.[job.targetId]?.name || job.targetId;
+    const redrawView = job.targetId === 'character' && job.outputView !== 'front' ? turnaroundLabels[job.outputView] : '';
+    const target = redrawView ? `三視圖的${redrawView}` : job.targetId === 'character' ? (job.framing === 'frontView' ? '正面全身' : '立繪') : project.character.components?.[job.targetId]?.name || job.targetId;
     const count = (job.variants || 1) > 1 ? `，畫 ${job.variants} 張` : '';
     const styled = (job.context?.styleReferences || []).some((reference) => reference.role === 'style');
+    const canon = (job.context?.styleReferences || []).some((reference) => reference.canon);
     const prompt = [
       `$aidol 請完成 AIDOL 工作：${project.character.name || project.name}・${target}${count}。`,
       `工作資料夾：${path.relative(workspace, directory)}（先讀 instructions.md；input.yaml 與 handoff.json 也在這裡）`,
+      ...(canon ? ['這次有定稿：設計照定稿，不要改。'] : []),
+      ...(redrawView ? [job.viewRedo ? `這次重畫${redrawView}：原本那張有問題，沒有附上；設計照正面，不要改。` : `這次畫${redrawView}：設計照正面，不要改。`] : []),
       ...(styled ? ['這次附了繪風參考，畫法以它為準。'] : []),
     ].join('\n');
     const url = buildHandoffUrl(workspace, prompt);

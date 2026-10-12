@@ -36,7 +36,8 @@
     "picked": "已採用",
     "adoptMain": "設為立繪",
     "adopt": "採用這張",
-    "older": "用較早的設定畫的"
+    "older": "用較早的設定畫的",
+    "staleView": "三視圖已經換過"
   },
   "opening": "開啟中…",
   "reopen": "重新開啟 Codex",
@@ -62,6 +63,10 @@
     },
     "overall": "整體感覺",
     "main": "正式立繪（長相與服裝）",
-    "partDesign": "{{name}}的設計圖"
-  }
+    "partDesign": "{{name}}的設計圖",
+    "canon": "定稿：設計照這張畫",
+    "viewFront": "正面：照這張畫",
+    "view": "已確認的{{view}}"
+  },
+  "viewTarget": "三視圖・{{view}}"
 }

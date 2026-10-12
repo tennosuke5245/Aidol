@@ -216,6 +216,10 @@ export const defaultMixer = () => ({ ...mixerPresets[1].values });
 
 // 生成時的取景（屬於這次工作，不屬於角色）。
 export const framings = [
+  // 正面全身：第一張圖的預設（2026-10-12 起分開畫）。選好之後在畫布上一張張補畫側面、背面，自動對齊成三視圖。
+  { id: 'frontView', label: '正面全身', prompt: 'single character, full-body front view, orthographic, neutral A-pose, feet parallel, arms slightly away from the body, plain light gray background, whole body in frame with margin above the head and below the feet, no text' },
+  // 三視圖一張畫完：畫好後自動拆成正面、側面、背面三張（一張畫三個人比較容易畫壞，所以不是預設）。
+  { id: 'turnaround', label: '三視圖（一張畫完）', prompt: 'character turnaround sheet: front view, side profile facing left and back view of the same character side by side, orthographic, same scale, aligned on one ground line, neutral A-pose, plain light gray background, generous spacing between the figures, no text' },
   { id: 'sheet', label: '設定稿', prompt: 'clean character design sheet layout' },
   { id: 'full', label: '全身', prompt: 'full-body character framing' },
   { id: 'threeQuarter', label: '七分身', prompt: 'three-quarter body framing' },

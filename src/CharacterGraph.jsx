@@ -1,11 +1,14 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ReactFlow, Background, BaseEdge, EdgeLabelRenderer, Handle, Position, useReactFlow, useUpdateNodeInternals, ReactFlowProvider, applyNodeChanges } from '@xyflow/react';
-import { Plus, Minus, CornersOut, Sparkle, EyeSlash, Crosshair, Cursor, Hand, Note, TextT, Image, CircleNotch, ArrowClockwise, Check, Clock, CircleDashed, MagnifyingGlassPlus, WarningCircle, Scissors, TShirt, Sneaker, Diamond, Sword, PersonSimple, Package } from '@phosphor-icons/react';
+import { Plus, Minus, CornersOut, Sparkle, EyeSlash, Crosshair, Cursor, Hand, Note, TextT, Image, CircleNotch, ArrowClockwise, Check, Clock, CircleDashed, MagnifyingGlassPlus, WarningCircle, Scissors, LockSimple, TShirt, Sneaker, Diamond, Sword, PersonSimple, Package, Crop, UsersThree, PaintBrush, PushPin, Columns, X } from '@phosphor-icons/react';
 import { workspaceSummary } from '../shared/agent-workspace.mjs';
+import { canonReferences } from '../shared/canon.mjs';
+import { allViews, extraViews, turnaroundViews } from '../shared/domain.mjs';
+import { heightDrift } from '../shared/turnaround.mjs';
 import { assetFor, errorText } from './api';
 import { CanvasAnnotationNode, CanvasFormalReferenceNode } from './CanvasAnnotationNodes';
 import { mergeGraphNodes } from './canvas-node-state.mjs';
-import { characterNodeSize, columnX, containBox, layoutPorts, partNodeSize, placeParts, portraitBox } from './canvas-layout.mjs';
+import { characterNodeSize, columnX, containBox, cropInFrame, layoutPorts, partNodeSize, placeParts, portraitBox, viewAddSize, viewNodeSize, viewPosition, viewRowOrigin, viewRowRect, viewRowWidth, viewSlotPosition, viewSlotSize } from './canvas-layout.mjs';
 import { CropThumb } from './CropThumb';
 import { getLocale, t, useT } from './i18n';
 import '@xyflow/react/dist/style.css';
@@ -45,15 +48,17 @@ const CharacterNode = memo(function CharacterNode({ id, data, selected }) {
   return <article className={`char-node ${selected ? 'is-selected' : ''} ${data.asset ? '' : 'is-empty'}`}>
     <button type="button" className="char-art nodrag" onClick={event => { event.stopPropagation(); data.onOpen(); }} aria-label={t('canvas.graph.character.open', { name: data.name })}>
       {data.asset ? <img ref={image} src={data.asset.url} alt={t('canvas.graph.character.portraitAlt', { name: data.name })} draggable="false" onLoad={measure} />
+        : data.canonAsset ? <><img className="char-placeholder is-canon" src={data.canonAsset.url} alt={t('canvas.graph.character.canonAlt', { name: data.name })} draggable="false" /><span className="char-empty"><b>{t('canvas.graph.character.emptyTitle')}</b><small>{t('canvas.graph.character.canonEmptyHint')}</small></span></>
         : <><img className="char-placeholder" src={data.placeholder} alt="" draggable="false" /><span className="char-empty"><b>{t('canvas.graph.character.emptyTitle')}</b><small>{t('canvas.graph.character.emptyHint')}</small></span></>}
       {region && <i className="char-region" style={region} aria-hidden="true" />}
     </button>
-    {data.asset && <button type="button" className="char-zoom icon-btn nodrag" aria-label={t('canvas.graph.character.zoom')} title={t('canvas.graph.character.zoomTitle')} onClick={event => { event.stopPropagation(); data.onPreview(data.asset, t('canvas.graph.character.previewTitle', { name: data.name })); }}><MagnifyingGlassPlus size={17} /></button>}
+    {data.asset && <button type="button" className="char-zoom icon-btn nodrag" aria-label={data.sheet ? t('canvas.graph.character.zoomSheet') : t('canvas.graph.character.zoom')} title={data.sheet ? t('canvas.graph.character.zoomSheet') : t('canvas.graph.character.zoomTitle')} onClick={event => { event.stopPropagation(); if (data.sheet) data.onPreview(data.sheet, t('canvas.graph.character.sheetPreview', { name: data.name })); else data.onPreview(data.asset, t('canvas.graph.character.previewTitle', { name: data.name })); }}><MagnifyingGlassPlus size={17} /></button>}
     <footer className="char-foot">
       <div className="char-id"><h2 className="display" title={data.name}>{data.name}</h2>{data.traits?.length > 0 && <p title={joinDot(data.traits)}>{joinDot(data.traits)}</p>}</div>
       <div className="char-row">
         <div className="char-states">
           {data.status && <NodeStatus status={data.status} />}
+          {data.canon && <span className="node-status tone-canon" title={t('canvas.graph.character.canonHint')}><LockSimple size={12} weight="fill" />{t('canvas.graph.character.canon')}</span>}
           {decomposition?.status === 'running' && <span className="node-status tone-blue"><CircleNotch size={12} weight="bold" className="spin" />{t('canvas.graph.decompose.running')}</span>}
           {decomposition?.status === 'failed' && <button type="button" className="node-status tone-error nodrag" title={errorText(decomposition.errorCode || 'DECOMPOSE_FAILED', decomposition.error, decomposition.errorDetail)} onClick={event => { event.stopPropagation(); data.onDecompose(); }}><WarningCircle size={12} weight="bold" />{t('canvas.graph.decompose.failed')}</button>}
         </div>
@@ -64,6 +69,90 @@ const CharacterNode = memo(function CharacterNode({ id, data, selected }) {
       </div>
     </footer>
     {ports.map(port => <Handle key={port.id} id={`port-${port.id}`} type="source" position={port.side === 'left' ? Position.Left : Position.Right} style={{ top: port.offset }} />)}
+    <Handle id="views" type="source" position={Position.Bottom} />
+  </article>;
+});
+
+// 視角節點（三視圖的正面／側面／背面與加的角度）：排在人物下方一排。點圖打開「並排看」（所有角度並排比對、加標註）。
+// 三張的人物高度差太多時，在圖上標出來（比例可能畫跑了）；有標註的角度在角落顯示標註數。
+// 還沒有的角度放空位：照正面「畫X」；沒有正面（裁切時拿掉了、或 AI 只找到側面背面）就給「調整裁切」把正面框回來，因為其他角度都要照正面畫。
+// 加的角度（斜前方、斜後方、另一側）還沒畫時可以直接拿掉；畫好的要到「並排看」裡拿掉（會再確認一次）。基本三個角度不行。
+const ViewNode = memo(function ViewNode({ data }) {
+  const t = useT();
+  const label = t(`canvas.views.view.${data.view}`);
+  const stop = action => event => { event.stopPropagation(); action(); };
+  const remove = data.extra && <button type="button" className="icon-btn view-adjust nodrag" aria-label={t('canvas.views.remove', { view: label })} title={t('canvas.views.remove', { view: label })} onClick={stop(() => data.onRemove(data.view))}><X size={16} /></button>;
+  return <article className={`view-node is-${data.state}${data.extra ? ' is-extra' : ''}`}>
+    <Handle id="top" type="target" position={Position.Top} />
+    {data.asset ? <button type="button" className="view-art nodrag" aria-label={t('canvas.views.open', { view: label })} onClick={stop(() => data.onOpen(data.view))}>
+      <img src={data.asset.url} alt={t('canvas.views.alt', { name: data.name, view: label })} draggable="false" />
+      {data.drift ? <span className="view-flag" title={t('canvas.views.driftHint')}><WarningCircle size={12} weight="bold" />{t(data.drift > 0 ? 'canvas.views.driftTaller' : 'canvas.views.driftShorter', { percent: Math.abs(data.drift) })}</span> : null}
+      {data.notes ? <span className="view-notes-count" title={t('canvas.views.notesCount', { count: data.notes })}><PushPin size={12} weight="fill" />{data.notes}</span> : null}
+      <span className="view-open-hint"><Columns size={13} />{t('canvas.views.openShort')}</span>
+    </button> : data.state === 'missing' ? <div className="view-art is-missing">
+      <PersonSimple size={28} weight="light" />
+      <small>{data.view === 'front' ? t('canvas.views.missingFront') : data.canDraw ? t(data.extra ? `canvas.views.extraHint.${data.view}` : 'canvas.views.missingHint', { view: label }) : t('canvas.views.needFront')}</small>
+      {data.view === 'front' ? <button type="button" className="btn btn-secondary btn-sm nodrag" onClick={stop(data.onAdjust)}>{t('canvas.views.adjust')}</button>
+        : data.canDraw && <button type="button" className="btn btn-secondary btn-sm nodrag" onClick={stop(() => data.onDraw(data.view))}>{t('canvas.views.draw', { view: label })}</button>}
+    </div> : <div className="view-art is-pending" role={data.state === 'error' ? 'alert' : 'status'}>
+      {data.state === 'error' ? <><WarningCircle size={22} /><small title={data.error || ''}>{t('canvas.views.splitFailed')}</small><button type="button" className="btn btn-quiet btn-sm nodrag" onClick={stop(data.onAdjust)}>{t('canvas.views.manual')}</button></>
+        : <><CircleNotch size={22} className="spin" /><small>{t('canvas.views.splitting')}</small></>}
+    </div>}
+    <footer className="view-foot">
+      <b>{label}</b>
+      <span className="view-actions">
+        {data.state === 'done' && data.view !== 'front' && <button type="button" className="icon-btn view-adjust nodrag" aria-label={t('canvas.views.redraw', { view: label })} title={t('canvas.views.redrawHint', { view: label })} onClick={stop(() => data.onDraw(data.view))}><PaintBrush size={16} /></button>}
+        {data.state === 'done' && data.cropped && <button type="button" className="icon-btn view-adjust nodrag" aria-label={t('canvas.views.adjust')} title={t('canvas.views.adjustHint')} onClick={stop(data.onAdjust)}><Crop size={16} /></button>}
+        {data.state !== 'done' && remove}
+      </span>
+    </footer>
+  </article>;
+});
+
+// 一排最後的「加角度」：斜前方、斜後方、另一側（左右不一樣的設計，另一側才看得到右邊的東西）。點了先選角度，接著照正面畫。
+const ViewsAddNode = memo(function ViewsAddNode({ data }) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  return <article className={`views-add${open ? ' is-open' : ''}`}>
+    <Handle id="top" type="target" position={Position.Top} />
+    {open ? <div className="views-add-menu" role="group" aria-label={t('canvas.views.add')}>
+      <b>{t('canvas.views.addWhich')}</b>
+      {data.options.map(view => <button type="button" key={view} className="views-add-option nodrag" onClick={event => { event.stopPropagation(); setOpen(false); data.onAdd(view); }}>
+        <span>{t(`canvas.views.view.${view}`)}</span><small>{t(`canvas.views.extraHint.${view}`)}</small>
+      </button>)}
+      <button type="button" className="btn btn-quiet btn-sm nodrag" onClick={event => { event.stopPropagation(); setOpen(false); }}>{t('canvas.cancel')}</button>
+    </div> : <button type="button" className="views-add-button nodrag" onClick={event => { event.stopPropagation(); setOpen(true); }}>
+      <Plus size={22} /><b>{t('canvas.views.add')}</b><small>{t('canvas.views.addHint')}</small>
+    </button>}
+  </article>;
+});
+
+// 還沒拆成三視圖時，人物下方的提示卡：
+// 還沒有正式圖（畫正面／匯入三視圖／定稿就是三視圖）、舊角色（拆出三視圖、當正面）、剛採用正在看這張圖（拆裝備時順便看是不是正面或三視圖）、
+// 正在找三視圖、只有一個角度（當正面）、沒找到（再試一次）。
+// 金色實心按鈕留給人物節點的「捏角色」，這裡用次要按鈕。
+const ViewsSlotNode = memo(function ViewsSlotNode({ data }) {
+  const t = useT();
+  const { state } = data;
+  const busyState = state === 'detecting' || state === 'reading';
+  const Icon = busyState ? CircleNotch : state === 'failed' ? WarningCircle : UsersThree;
+  const actions = {
+    empty: [[t('canvas.views.slot.drawFront'), data.onDrawFront], [t('canvas.views.slot.import'), data.onImport]],
+    emptyCanon: [[t('canvas.views.slot.drawFront'), data.onDrawFront], [t('canvas.views.slot.useCanon'), data.onUseCanon]],
+    offer: [[t('canvas.views.slot.offer'), data.onDetect], [t('canvas.views.slot.asFront'), data.onAsFront]],
+    none: [[t('canvas.views.slot.asFront'), data.onAsFront], [t('canvas.views.slot.import'), data.onImport], [t('canvas.views.manual'), data.onAdjust]],
+    failed: [[t('canvas.views.slot.retry'), data.onDetect], [t('canvas.views.manual'), data.onAdjust]],
+  }[state] || [];
+  return <article className={`views-slot is-${state}`} role={busyState ? 'status' : undefined}>
+    <Handle id="top" type="target" position={Position.Top} />
+    <span className="views-slot-icon"><Icon size={22} className={busyState ? 'spin' : ''} /></span>
+    <div className="views-slot-copy">
+      <b>{t(`canvas.views.slot.${state}Title`)}</b>
+      <small>{state === 'failed' && data.error ? data.error : t(`canvas.views.slot.${state}Hint`)}</small>
+      {actions.length > 0 && <div className="views-slot-actions">
+        {actions.map(([label, action], index) => <button type="button" key={label} className={`btn ${index ? 'btn-quiet' : 'btn-secondary'} btn-sm nodrag`} disabled={data.busy} onClick={event => { event.stopPropagation(); action(); }}>{label}</button>)}
+      </div>}
+    </div>
   </article>;
 });
 
@@ -107,9 +196,20 @@ const LinkEdge = memo(function LinkEdge({ id, sourceX, sourceY, targetX, targetY
   </>;
 });
 
-const nodeTypes = { character: CharacterNode, part: PartNode, annotation: CanvasAnnotationNode, formalReference: CanvasFormalReferenceNode };
-const edgeTypes = { link: LinkEdge };
+// 人物到視角節點的線：從人物下緣往下拉的平滑曲線（裝備的線是左右拉出，一眼分得出來）。
+const ViewEdge = memo(function ViewEdge({ id, sourceX, sourceY, targetX, targetY, data = {} }) {
+  const pull = Math.max(24, Math.abs(targetY - sourceY) / 2);
+  const path = `M ${sourceX},${sourceY} C ${sourceX},${sourceY + pull} ${targetX},${targetY - pull} ${targetX},${targetY}`;
+  return <g className={`link-edge view-edge${data.dashed ? ' is-dashed' : ''}`}><BaseEdge id={id} path={path} interactionWidth={12} /></g>;
+});
+
+const nodeTypes = { character: CharacterNode, part: PartNode, view: ViewNode, viewsAdd: ViewsAddNode, viewsSlot: ViewsSlotNode, annotation: CanvasAnnotationNode, formalReference: CanvasFormalReferenceNode };
+const edgeTypes = { link: LinkEdge, view: ViewEdge };
+// 找三視圖超過這麼久還沒回來，當成中斷（核心重開過），讓使用者可以再試一次。
+const detectStaleMs = 10 * 60 * 1000;
 const referenceTitle = role => ({ style: t('canvas.graph.reference.style'), identity: t('canvas.graph.reference.identity'), color: t('canvas.graph.reference.color'), clothing: t('canvas.graph.reference.clothing'), composition: t('canvas.graph.reference.composition'), material: t('canvas.graph.reference.material') })[role] || t('canvas.graph.reference.design');
+// 放進畫面時下方多留工具列的高度，人物下方的三視圖不會被工具列蓋住。
+const fitPadding = { top: 0.08, left: 0.1, right: 0.1, bottom: '96px' };
 const motionDuration = duration => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : duration;
 const annotationNodeId = id => `annotation:${id}`;
 const characterOrigin = { x: 0, y: 0 };
@@ -135,7 +235,7 @@ function nodeStatus(project, targetId, outfitId, summary, equipped) {
   return { tone: 'neutral', label: t('canvas.status.notDrawn') };
 }
 
-function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, onDecompose, onAdd, onPreview, placeholder, onCreateAnnotation, onUpdateAnnotation, onDeleteAnnotation, onAddCanvasReference }) {
+function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, onDecompose, onAdd, onPreview, placeholder, onCreateAnnotation, onUpdateAnnotation, onDeleteAnnotation, onAddCanvasReference, viewSplit, onDetectViews, onDrawFront, onAdjustViews, onDrawView, onImportSheet, onUseCanon, onAsFront, onOpenViews, onAddView, onRemoveView }) {
   const t = useT();
   // 換語言時重建節點與關聯線上的文字。
   const locale = getLocale();
@@ -208,24 +308,78 @@ function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, o
   useEffect(() => { setSelectedCanvasId(null); }, [selectedId]);
 
   const portrait = assetFor(project, 'character', outfitId);
-  // 立繪的原始尺寸：用來知道圖在人物節點裡實際佔哪一塊（橫式設定稿上下會留白）。
+  // 三視圖：正式圖拆好之後，人物節點顯示「正面」那張（整張三視圖用放大鈕看），下方一排是三個視角。
+  const views = portrait && project.views?.assetId === portrait.id ? project.views : null;
+  const viewItems = useMemo(() => (views?.status === 'done' ? views.items || {} : {}), [views]);
+  const frontAsset = viewItems.front?.frame ? project.assets.find(asset => asset.id === viewItems.front.assetId) : null;
+  const frontFrame = frontAsset ? viewItems.front.frame : null;
+  const shown = frontAsset || portrait;
+  // 人物節點上那張圖的原始尺寸：用來知道圖在人物節點裡實際佔哪一塊（橫式設定稿上下會留白）。
   const [portraitSize, setPortraitSize] = useState(null);
   useEffect(() => {
-    if (!portrait?.url) return undefined;
+    if (!shown?.url) return undefined;
     let cancelled = false;
     const probe = new window.Image();
-    probe.onload = () => { if (!cancelled) setPortraitSize({ id: portrait.id, width: probe.naturalWidth, height: probe.naturalHeight }); };
-    probe.src = portrait.url;
+    probe.onload = () => { if (!cancelled) setPortraitSize({ id: shown.id, width: probe.naturalWidth, height: probe.naturalHeight }); };
+    probe.src = shown.url;
     return () => { cancelled = true; };
-  }, [portrait?.id, portrait?.url]);
-  const sizeReady = !portrait || portraitSize?.id === portrait.id;
-  const imageBox = useMemo(() => portrait && portraitSize?.id === portrait.id ? portraitBox(portraitSize.width, portraitSize.height) : null, [portrait, portraitSize]);
-  const cropOf = useCallback(part => part?.crop && portrait && part.crop.assetId === portrait.id ? part.crop : null, [portrait]);
-  // 排新裝備時要避開的其他節點（參考圖、便利貼、說明）。
+  }, [shown?.id, shown?.url]);
+  // 三視圖還在拆：人物節點等一下會換成正面那張，新裝備的位置先不記下來，等換好再排。
+  const sizeReady = (!shown || portraitSize?.id === shown.id) && views?.status !== 'boxes';
+  const imageBox = useMemo(() => shown && portraitSize?.id === shown.id ? portraitBox(portraitSize.width, portraitSize.height) : null, [shown, portraitSize]);
+  // 裝備的位置框記在整張正式圖上；人物節點顯示正面那張時，換算到正面圖上。
+  const frameKey = frontFrame ? `${frontFrame.x},${frontFrame.y},${frontFrame.width},${frontFrame.height}` : '';
+  const cropOf = useCallback(part => {
+    if (!part?.crop || !portrait || part.crop.assetId !== portrait.id) return null;
+    return frontFrame ? cropInFrame(part.crop, frontFrame) : part.crop;
+  }, [portrait, frameKey]);
+  // 人物下方那一排有哪些角度：拆好後是基本三個角度＋加的角度（照轉台順序）；拆分中是 AI 找到的那幾個。最後要不要放「加角度」。
+  const viewRow = useMemo(() => {
+    if (!views || !['done', 'boxes'].includes(views.status)) return null;
+    const done = views.status === 'done';
+    const list = done ? allViews.filter(view => turnaroundViews.includes(view) || (views.extra || []).includes(view) || viewItems[view]) : (views.boxes || []).map(box => box.view);
+    const options = done && viewItems.front ? extraViews.filter(view => !list.includes(view)) : [];
+    return { done, list, options, width: viewRowWidth(list.length, options.length > 0) };
+  }, [views, viewItems]);
+  // 排新裝備時要避開的其他節點（參考圖、便利貼、說明，以及拖過位置的角度那一排）。
   const obstaclesFor = useCallback((saved, origin) => [
+    ...(saved['views-row'] && viewRow ? [viewRowRect(saved['views-row'], viewRow.width)] : []),
     ...(project.character.style.references || []).map((reference, index) => ({ ...(saved[`formal-reference:${reference.id}`] || referencePosition(origin, index)), width: 205, height: 300 })),
     ...(project.canvasAnnotations || []).map(annotation => ({ ...annotation.position, width: annotation.kind === 'note' ? 210 : 240, height: annotation.kind === 'reference' ? 450 : annotation.kind === 'text' ? 310 : 270 })),
-  ], [project.character.style.references, project.canvasAnnotations]);
+  ], [project.character.style.references, project.canvasAnnotations, viewRow]);
+  // 人物下方的三視圖：拆好（或拆分中）是一排視角節點；還沒拆時是一張提示卡。沒有正式圖就不顯示。
+  // 這一排整排一起擺：拖其中一個，放開後整排跟著移過去（位置記在 views-row）；兩側裝備往下壓到時，預設位置往下讓開。
+  const viewNodes = useCallback((saved, origin, obstacles) => {
+    const draggable = tool !== 'pan';
+    if (!portrait) {
+      const state = canonReferences(project.character).length ? 'emptyCanon' : 'empty';
+      return [{ id: 'views-slot', type: 'viewsSlot', position: saved['views-slot'] || viewSlotPosition(origin), style: { width: viewSlotSize.width }, draggable, selectable: false,
+        data: { state, onDrawFront, onImport: onImportSheet, onUseCanon } }];
+    }
+    if (viewRow) {
+      // 拆好之後三個角度都排出來：還沒有的是空格，可以照正面畫（分開畫的第一張只有正面）；加的角度排在轉台順序的位置。
+      const { done, list, options, width } = viewRow;
+      const drift = heightDrift(viewItems);
+      const row = saved['views-row'] || viewRowOrigin(origin, width, obstacles);
+      const notes = project.viewNotes || [];
+      const nodes = list.map((view, index) => {
+        const id = `view:${view}`, item = viewItems[view], position = viewPosition(row, index);
+        return { id, type: 'view', position, style: { width: viewNodeSize.width, height: viewNodeSize.height }, draggable, selectable: false,
+          data: { view, rowOffset: position.x - row.x, name: project.character.name, asset: item ? project.assets.find(asset => asset.id === item.assetId) : null, state: item ? 'done' : done ? 'missing' : viewSplit?.error ? 'error' : 'splitting', canDraw: Boolean(viewItems.front), cropped: Boolean(item?.crop), extra: extraViews.includes(view), notes: notes.filter(note => note.view === view).length, error: viewSplit?.error, drift: drift[view], onOpen: onOpenViews, onAdjust: onAdjustViews, onDraw: onDrawView, onRemove: onRemoveView } };
+      });
+      if (options.length) {
+        const position = viewPosition(row, list.length);
+        nodes.push({ id: 'views-add', type: 'viewsAdd', position, style: { width: viewAddSize.width, height: viewAddSize.height }, draggable, selectable: false, data: { rowOffset: position.x - row.x, options, onAdd: onAddView } });
+      }
+      return nodes;
+    }
+    const decomposing = project.decomposition?.status === 'running' && project.decomposition.assetId === portrait.id;
+    const stale = views?.status === 'detecting' && Date.now() - Date.parse(views.startedAt) > detectStaleMs;
+    // 剛採用、正在拆裝備：AI 順便看這張是正面全身還是三視圖（只有一個正面全身時會直接當正面）。
+    const state = views?.status === 'detecting' && !stale ? 'detecting' : !views && decomposing ? 'reading' : views?.status === 'none' ? 'none' : views?.status === 'failed' || stale ? 'failed' : 'offer';
+    return [{ id: 'views-slot', type: 'viewsSlot', position: saved['views-slot'] || viewSlotPosition(origin), style: { width: viewSlotSize.width }, draggable, selectable: false,
+      data: { state, error: views?.status === 'failed' ? errorText(views.errorCode || 'VIEWS_DETECT_FAILED', views.error) : '', busy: decomposing, onDetect: onDetectViews, onAsFront, onImport: onImportSheet, onAdjust: onAdjustViews } }];
+  }, [portrait, views, viewItems, viewRow, project.assets, project.character, project.decomposition, project.viewNotes, viewSplit, tool, onOpenViews, onAdjustViews, onDetectViews, onDrawFront, onDrawView, onAddView, onRemoveView, onImportSheet, onUseCanon, onAsFront]);
   const buildNodes = useCallback(() => {
     const saved = readSaved();
     const character = project.character;
@@ -240,7 +394,7 @@ function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, o
     const focusId = selectedCanvasId ? null : selectedId;
     const nodes = [
       { id: 'character', type: 'character', position: origin, style: { width: characterNodeSize.width, height: characterNodeSize.height }, selected: false, draggable: tool !== 'pan',
-        data: { name: character.name, traits: character.persona.traits, asset: portrait, placeholder, status: nodeStatus(project, 'character', outfitId, summary, equipped), decomposition: project.decomposition, focusCrop: focusId ? cropOf(character.components[focusId]) : null, onOpen: onOpenCreator, onPreview, onDecompose } },
+        data: { name: character.name, traits: character.persona.traits, asset: shown, sheet: frontAsset ? portrait : null, placeholder, status: nodeStatus(project, 'character', outfitId, summary, equipped), decomposition: project.decomposition, canon: canonReferences(character).length > 0, canonAsset: portrait ? null : project.assets.find(asset => asset.id === canonReferences(character)[0]?.assetId), focusCrop: focusId ? cropOf(character.components[focusId]) : null, onOpen: onOpenCreator, onPreview, onDecompose } },
       ...parts.map(part => {
         const slot = equipped.find(item => item.componentId === part.id);
         const cropAsset = part.crop && project.assets.find(asset => asset.id === part.crop.assetId);
@@ -249,15 +403,16 @@ function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, o
       }),
       ...(character.style.references || []).map((reference, index) => {
         const id = `formal-reference:${reference.id}`;
-        return { id, type: 'formalReference', selected: selectedCanvasId === id, position: saved[id] || referencePosition(origin, index), style: { width: 205 }, draggable: tool !== 'pan', data: { asset: project.assets.find(asset => asset.id === reference.assetId), title: referenceTitle(reference.role), description: joinDot(reference.focus), onPreview } };
+        return { id, type: 'formalReference', selected: selectedCanvasId === id, position: saved[id] || referencePosition(origin, index), style: { width: 205 }, draggable: tool !== 'pan', data: { asset: project.assets.find(asset => asset.id === reference.assetId), title: reference.canon ? t('canvas.graph.reference.canon') : referenceTitle(reference.role), description: reference.canon ? t('canvas.graph.reference.canonHint') : joinDot(reference.focus), canon: Boolean(reference.canon), onPreview } };
       }),
+      ...viewNodes(saved, origin, parts.flatMap(part => { const position = saved[part.id] || auto[part.id]; return position ? [{ ...position, ...partNodeSize }] : []; })),
       ...(project.canvasAnnotations || []).map(annotation => {
         const id = annotationNodeId(annotation.id), draft = positionDrafts[annotation.id];
         return { id, type: 'annotation', selected: selectedCanvasId === id, position: draft?.position || annotation.position, style: { width: annotation.kind === 'note' ? 210 : 240 }, draggable: tool !== 'pan', data: { annotation, asset: annotation.kind === 'reference' ? project.assets.find(asset => asset.id === annotation.assetId) : null, onUpdate: onUpdateAnnotation, onDelete: onDeleteAnnotation, onPreview, editRequested: editRequestedId === id, onEditRequestConsumed: () => setEditRequestedId(current => current === id ? null : current), positionStatus: draft, onRetryPosition: () => saveAnnotationPosition(annotation.id, positionDraftsRef.current[annotation.id]?.position || annotation.position) } };
       }),
     ];
     return { nodes, auto };
-  }, [project, outfitId, portrait, selectedId, onOpenCreator, onDecompose, onPreview, placeholder, readSaved, selectedCanvasId, editRequestedId, tool, positionDrafts, onUpdateAnnotation, onDeleteAnnotation, saveAnnotationPosition, freshParts, layoutVersion, cropOf, obstaclesFor, imageBox, locale]);
+  }, [project, outfitId, portrait, shown, frontAsset, selectedId, onOpenCreator, onDecompose, onPreview, placeholder, readSaved, selectedCanvasId, editRequestedId, tool, positionDrafts, onUpdateAnnotation, onDeleteAnnotation, saveAnnotationPosition, freshParts, layoutVersion, cropOf, obstaclesFor, imageBox, viewNodes, locale]);
   useEffect(() => {
     const { nodes: built, auto } = buildNodes();
     // 圖片尺寸確定後才把新排的位置記下來，之後就固定。
@@ -267,11 +422,11 @@ function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, o
   }, [buildNodes, readSaved, writeSaved, sizeReady]);
 
   // 第一次打開與裝備數量改變時，把整個關係圖放進畫面。
-  const fitAll = useCallback(() => flow.fitView({ padding: 0.14, duration: motionDuration(380), maxZoom: 1 }), [flow]);
+  const fitAll = useCallback(() => flow.fitView({ padding: fitPadding, duration: motionDuration(380), maxZoom: 1 }), [flow]);
   useEffect(() => {
     const timer = setTimeout(fitAll, 160);
     return () => clearTimeout(timer);
-  }, [project.id, Object.keys(project.character.components).length, fitAll]);
+  }, [project.id, Object.keys(project.character.components).length, nodes.filter(node => node.type === 'view').length, fitAll]);
 
   const characterNode = nodes.find(node => node.id === 'character');
   // 接點跟著裝備節點目前的位置走：拖曳時即時換邊、上下順序不交錯。
@@ -294,14 +449,17 @@ function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, o
       const label = !worn ? t('canvas.status.notWorn') : slot?.anchor || (part.kind === 'accessory' ? t('canvas.graph.edge.accessory') : t('canvas.graph.edge.piece'));
       return [{ id: `edge-${part.id}`, source: 'character', sourceHandle: `port-${part.id}`, target: part.id, targetHandle: port.side === 'left' ? 'right' : 'left', type: 'link', ariaLabel: t('canvas.graph.edge.aria', { name: part.name, label }),
         data: { focused: focusId === part.id, muted: Boolean(focusId && focusId !== part.id), dashed: !worn, showLabel: !worn, label, isNew: freshParts.includes(part.id) } }];
-    });
-  }, [project.character.components, project.character.outfits, outfitId, selectedId, selectedCanvasId, ports, freshParts, locale]);
+    }).concat(nodes.filter(node => node.type === 'view' || node.type === 'viewsSlot').map(node => ({ id: `edge-${node.id}`, source: 'character', sourceHandle: 'views', target: node.id, targetHandle: 'top', type: 'view', selectable: false, focusable: false,
+      data: { dashed: node.type === 'viewsSlot' || node.data.state !== 'done' } })));
+  }, [project.character.components, project.character.outfits, outfitId, selectedId, selectedCanvasId, ports, freshParts, nodes, locale]);
 
   const changeNodes = changes => setNodes(current => applyNodeChanges(changes.filter(change => change.type !== 'select'), current));
   const savePositions = (_, node, dragged) => {
     const saved = readSaved();
     for (const item of dragged || [node]) {
       if (item.type === 'annotation') saveAnnotationPosition(item.data.annotation.id, item.position);
+      // 視角那一排整排一起移：記下這一排的左上角，其他角度跟著排過去。
+      else if (item.type === 'view' || item.type === 'viewsAdd') saved['views-row'] = { x: Math.round(item.position.x - item.data.rowOffset), y: Math.round(item.position.y) };
       else saved[item.id] = item.position;
     }
     writeSaved(saved);
@@ -374,9 +532,9 @@ function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, o
   }, []);
   return <div className={`graph-canvas ${tool === 'pan' ? 'is-panning' : ''} ${zoom < 0.5 ? 'is-far' : ''}`} ref={canvas}>
     <ReactFlow nodes={renderedNodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes} onNodesChange={changeNodes} onNodeDragStop={savePositions}
-      onNodeClick={(_, node) => { if (tool === 'pan') return; if (node.type === 'part') { setSelectedCanvasId(null); onSelect(node.id); } else if (node.type !== 'character') setSelectedCanvasId(node.id); }}
+      onNodeClick={(_, node) => { if (tool === 'pan') return; if (node.type === 'part') { setSelectedCanvasId(null); onSelect(node.id); } else if (!['character', 'view', 'viewsSlot'].includes(node.type)) setSelectedCanvasId(node.id); }}
       onPaneClick={() => { setSelectedCanvasId(null); if (tool !== 'pan') onSelect(null); }} onMove={(_, viewport) => setZoom(viewport.zoom)}
-      fitView fitViewOptions={{ padding: 0.14, maxZoom: 1 }} minZoom={0.15} maxZoom={1.8} panOnDrag={tool === 'pan' ? true : [1, 2]} zoomOnDoubleClick={false} nodesConnectable={false} deleteKeyCode={null} colorMode="dark" proOptions={{ hideAttribution: true }}>
+      fitView fitViewOptions={{ padding: fitPadding, maxZoom: 1 }} minZoom={0.15} maxZoom={1.8} panOnDrag={tool === 'pan' ? true : [1, 2]} zoomOnDoubleClick={false} nodesConnectable={false} deleteKeyCode={null} colorMode="dark" proOptions={{ hideAttribution: true }}>
       <Background gap={26} size={1.1} color="#262B47" />
     </ReactFlow>
     <input ref={referenceInput} className="sr-only" tabIndex={-1} type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label={t('canvas.graph.toolbar.chooseReference')} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) createCard({ file, position: newPosition('reference') }); }} />

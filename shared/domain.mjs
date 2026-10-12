@@ -12,8 +12,27 @@ export class DomainError extends Error {
 }
 
 export const idPattern = '^(?!(?:__proto__|constructor|prototype)$)[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$';
+// 側面只出現在三視圖的角度（allViews）；部件的輸出視角還沒有側面。
 export const outputViews = ['front', 'full', 'back', 'detail'];
-export const viewLabels = { front: '正面主圖', full: '完整主圖', back: '背面', detail: '細節' };
+export const viewLabels = { front: '正面主圖', full: '完整主圖', back: '背面', detail: '細節', side: '側面' };
+// 三視圖的基本三個角度（人物節點下方的「視角」節點；可以從一張三視圖裁出來）。
+export const turnaroundViews = ['front', 'side', 'back'];
+// 加角度：使用者自己加的角度，只能照正面一張張畫，不從三視圖裁。
+export const extraViews = ['frontQuarter', 'backQuarter', 'otherSide'];
+// 所有角度的排列順序：像轉台一樣正面→斜前方→側面→斜後方→背面，最後是另一側。
+export const allViews = ['front', 'frontQuarter', 'side', 'backQuarter', 'back', 'otherSide'];
+// 三視圖裡正面以外的角度（只能照正面一張張畫的那些）。
+export const isAngleView = (view) => view !== 'front' && allViews.includes(view);
+export const turnaroundLabels = { front: '正面', side: '側面', back: '背面', frontQuarter: '斜前方', backQuarter: '斜後方', otherSide: '另一側' };
+// 每個角度怎麼轉、看得到哪一邊（寫進交給 AI 的說明）。左右一律以角色自己為準，避免把左右兩邊不一樣的東西畫反。
+export const viewSpecs = {
+  front: '正面：臉和身體正對畫面；角色的右手在畫面左邊、左手在畫面右邊。',
+  frontQuarter: '斜前方：臉和身體朝畫面左前方（斜 45 度），看得到正面和角色的左半邊。',
+  side: '側面：臉朝畫面左的正側面輪廓，看到的是角色的左半邊（左手、左腰、左腳那一側）。',
+  backQuarter: '斜後方：背對畫面、臉朝畫面左後方（斜 45 度），看得到背面和角色的左半邊。',
+  back: '背面：背對畫面；角色的左手在畫面左邊、右手在畫面右邊，和正面左右相反（正面時在畫面右邊的東西，背面在畫面左邊）。',
+  otherSide: '另一側：臉朝畫面右的正側面輪廓，看到的是角色的右半邊（右手、右腰、右腳那一側）；只有右邊才有的東西要畫清楚。',
+};
 const id = { type: 'string', pattern: idPattern };
 const text = { type: 'string', maxLength: 12000 };
 const strings = { type: 'array', items: text, maxItems: 100 };
@@ -53,7 +72,8 @@ export const characterSchema = {
         activeDirection: id,
         references: { type: 'array', maxItems: 100, items: {
           type: 'object', additionalProperties: false, required: ['id', 'assetId', 'role', 'focus'],
-          properties: { id, assetId: id, role: { enum: ['style', 'identity', 'color', 'clothing', 'composition', 'material'] }, focus: strings },
+          // canon：定稿。這張圖就是角色長相的正確答案，畫圖時不得改設計（只改視角、姿勢與排版）。
+          properties: { id, assetId: id, role: { enum: ['style', 'identity', 'color', 'clothing', 'composition', 'material'] }, focus: strings, canon: { type: 'boolean' } },
         } },
       },
     },

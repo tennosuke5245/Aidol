@@ -507,7 +507,9 @@ test('細節採用不解除過期主圖提示；完整主圖採用才更新並�
 
 test('拒絕不合法工作視角與以背面冒充主圖的YAML', async (t) => {
   const { store, project } = await setup(t);
-  await assert.rejects(store.createJob(project.id, { prompt: '角色背面', outputView: 'back', baseRevision: 1 }), { code: 'INVALID_OUTPUT_VIEW' });
+  await assert.rejects(store.createJob(project.id, { prompt: '角色細節', outputView: 'detail', baseRevision: 1 }), { code: 'INVALID_OUTPUT_VIEW' });
+  // 角色的背面只用在「重畫三視圖的單一角度」，要先有拆好的三視圖。
+  await assert.rejects(store.createJob(project.id, { prompt: '角色背面', outputView: 'back', baseRevision: 1 }), { code: 'VIEWS_NOT_READY' });
   const character = structuredClone(project.character);
   character.components.coat = { id: 'coat', name: '外套', kind: 'garment', description: '', designStatus: 'proposed' };
   await store.updateCharacter(project.id, { baseRevision: 1, character });

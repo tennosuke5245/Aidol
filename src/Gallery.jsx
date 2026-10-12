@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CaretLeft, Check, Crosshair, ArrowClockwise, X, Sparkle, SquareSplitHorizontal, UploadSimple } from '@phosphor-icons/react';
 import { candidateComparison, jobPresentation, jobProgress } from '../shared/agent-workspace.mjs';
-import { dateLabel, targetLabel } from './api';
+import { dateLabel, targetLabel, viewTargetLabel } from './api';
 import { StatusPill } from './ui';
 import { Busy, Modal } from './Panels';
 import { L } from './lib-i18n';
 import { sharedText, useT } from './i18n';
+import { isAngleView } from '../shared/domain.mjs';
 
 const filters = ['all', 'main', 'gear'];
 const viewNames = new Set(['front', 'full', 'back', 'detail']);
@@ -13,6 +14,8 @@ const viewNames = new Set(['front', 'full', 'back', 'detail']);
 // 回傳 gallery.adopted 底下的 key（正式立繪、設計圖或某個視角的設計圖）；文字在畫面上依目前語言取。
 function adoptedFor(project, asset) {
   if (project.character.adopted?.[asset.targetId] === asset.id) return asset.targetId === 'character' ? 'main' : 'design';
+  // 重畫後放進三視圖的側面／背面。
+  if (asset.targetId === 'character' && isAngleView(asset.view) && project.views?.items?.[asset.view]?.sourceAssetId === asset.id) return `sheet${asset.view[0].toUpperCase()}${asset.view.slice(1)}`;
   const part = project.character.components?.[asset.targetId];
   if (part && Object.values(part.views || {}).includes(asset.id)) return viewNames.has(asset.view) ? asset.view : 'design';
   return null;
@@ -43,14 +46,14 @@ export function Gallery({ project, busy, onBack, onAdopt, onPreview, onSummon, o
     </header>
     <div className="gallery-body">
       {live.length > 0 && <section className="gallery-live" aria-label={t('gallery.live.label')}>{live.map(({ job, view }) => <article key={job.id} className={`live-card tone-${view.tone}`}>
-        <div><StatusPill tone={view.tone} running={job.status === 'running'}>{job.status === 'failed' ? t('gallery.live.failed') : view.olderSettings && view.action === 'handoff' ? t('gallery.live.notSent') : view.action === 'handoff' ? t('gallery.live.pressSend') : sharedText(view.labelKey, view.labelParams, view.label)}</StatusPill>{view.olderSettings && <span className="shot-note">{t('gallery.olderSettings')}</span>}<p>{targetLabel(project, job.targetId)}{t('common.gap')}{job.prompt.length > 48 ? `${job.prompt.slice(0, 48)}…` : job.prompt}</p></div>
+        <div><StatusPill tone={view.tone} running={job.status === 'running'}>{job.status === 'failed' ? t('gallery.live.failed') : view.olderSettings && view.action === 'handoff' ? t('gallery.live.notSent') : view.action === 'handoff' ? t('gallery.live.pressSend') : sharedText(view.labelKey, view.labelParams, view.label)}</StatusPill>{view.olderSettings && <span className="shot-note">{t('gallery.olderSettings')}</span>}<p>{viewTargetLabel(project, job.targetId, job.outputView)}{t('common.gap')}{job.prompt.length > 48 ? `${job.prompt.slice(0, 48)}…` : job.prompt}</p></div>
         <div className="live-actions">
           <button type="button" className="btn btn-secondary btn-sm" onClick={() => onSummon(job.id)}>{t('gallery.live.view')}</button>
           <button type="button" className="btn btn-quiet btn-sm" title={t('gallery.live.importTitle')} onClick={() => { importJob.current = job; file.current?.click(); }}><UploadSimple size={14} />{t('gallery.live.import')}</button>
         </div>
       </article>)}</section>}
       <input ref={file} className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" tabIndex={-1} aria-label={t('gallery.live.importInput')} onChange={event => { const picked = event.target.files?.[0]; event.target.value = ''; if (picked && importJob.current) onImport(importJob.current, picked); }} />
-      {visible.length ? <div className="gallery-grid">{visible.map(({ asset, candidate, adopted }) => <Shot key={asset.id} asset={asset} label={asset.targetId === 'character' ? t('common.mainIllustration') : targetLabel(project, asset.targetId)} onOpen={() => setOpenId(asset.id)}
+      {visible.length ? <div className="gallery-grid">{visible.map(({ asset, candidate, adopted }) => <Shot key={asset.id} asset={asset} label={viewTargetLabel(project, asset.targetId, asset.view)} onOpen={() => setOpenId(asset.id)}
         status={adopted ? <StatusPill tone="success">{t(`gallery.adopted.${adopted}`)}</StatusPill> : candidate?.olderSettings ? <span className="shot-note">{t('gallery.olderSettings')}</span> : null} adopted={Boolean(adopted)} />)}</div> : <div className="empty-state"><Sparkle size={30} weight="light" /><h3>{t('gallery.empty.title')}</h3><p>{t('gallery.empty.body')}</p></div>}
     </div>
     {open && <Lightbox project={project} item={open} busy={busy} onClose={() => setOpenId(null)} onAdopt={onAdopt} onPreview={onPreview} onRedraw={onRedraw} onRefine={onRefine} />}
@@ -78,7 +81,11 @@ function Lightbox({ project, item, busy, onClose, onAdopt, onRedraw, onRefine })
   const [refine, setRefine] = useState(false);
   const comparison = candidate ? candidateComparison(project, candidate) : null;
   const current = comparison?.current && comparison.current.id !== asset.id ? comparison.current : null;
-  const isMain = asset.targetId === 'character';
+  // 重畫的三視圖單一角度（側面／背面）：採用只換掉三視圖裡那一張，不是換正式立繪。
+  const sheetView = asset.targetId === 'character' && isAngleView(asset.view) ? asset.view : null;
+  const isMain = asset.targetId === 'character' && !sheetView;
+  // 照舊的三視圖重畫的角度：三視圖已經換了，不能放進新的三視圖。
+  const staleView = Boolean(sheetView && job?.sheetAssetId && job.sheetAssetId !== project.views?.assetId);
   useEffect(() => {
     const handle = event => { if (event.key === 'Escape' && !document.querySelector('.modal-backdrop')) onClose(); };
     window.addEventListener('keydown', handle);
@@ -96,15 +103,16 @@ function Lightbox({ project, item, busy, onClose, onAdopt, onRedraw, onRefine })
       </div> : <img className="lightbox-img" src={asset.url} alt="" />}
     </div>
     <aside className="lightbox-side">
-      <h2 className="display">{isMain ? t('common.mainIllustration') : targetLabel(project, asset.targetId)}</h2>
-      <p className="muted">{dateLabel(asset.createdAt || candidate?.createdAt || Date.now())}{asset.view && !isMain ? `${t('common.gap')}${viewNames.has(asset.view) ? t(`gallery.view.${asset.view}`) : ''}` : ''}</p>
+      <h2 className="display">{sheetView ? t('summon.viewTarget', { view: t(`canvas.views.view.${sheetView}`) }) : isMain ? t('common.mainIllustration') : targetLabel(project, asset.targetId)}</h2>
+      <p className="muted">{dateLabel(asset.createdAt || candidate?.createdAt || Date.now())}{asset.view && !isMain && !sheetView ? `${t('common.gap')}${viewNames.has(asset.view) ? t(`gallery.view.${asset.view}`) : ''}` : ''}</p>
       {adopted && <StatusPill tone="success">{t(`gallery.adopted.${adopted}`)}</StatusPill>}
       {job?.prompt && <div className="lightbox-prompt"><span>{t('gallery.lightbox.request')}</span><p>{job.prompt}</p></div>}
       {candidate?.olderSettings && <p className="hint">{t('gallery.lightbox.olderHint')}</p>}
       <div className="lightbox-actions">
-        {candidate && !adopted && <button type="button" className="btn btn-primary btn-lg btn-block" disabled={busy} onClick={() => onAdopt(candidate)}>{busy ? <Busy /> : <><Check size={17} weight="bold" />{isMain ? t('gallery.lightbox.adoptMain') : t('gallery.lightbox.adoptPart')}</>}</button>}
+        {staleView && !adopted && <p className="hint">{t('gallery.lightbox.staleView')}</p>}
+        {candidate && !adopted && !staleView && <button type="button" className="btn btn-primary btn-lg btn-block" disabled={busy} onClick={() => onAdopt(candidate)}>{busy ? <Busy /> : <><Check size={17} weight="bold" />{sheetView ? t('gallery.lightbox.adoptView', { view: t(`canvas.views.view.${sheetView}`) }) : isMain ? t('gallery.lightbox.adoptMain') : t('gallery.lightbox.adoptPart')}</>}</button>}
         {current && <button type="button" className="btn btn-secondary btn-block" aria-pressed={compare} onClick={() => setCompare(value => !value)}><SquareSplitHorizontal size={16} />{compare ? t('gallery.compare.stop') : t('gallery.compare.start')}</button>}
-        {adopted && <button type="button" className="btn btn-secondary btn-block" onClick={() => setRefine(true)}><Crosshair size={16} />{t('gallery.lightbox.refine')}</button>}
+        {adopted && !sheetView && <button type="button" className="btn btn-secondary btn-block" onClick={() => setRefine(true)}><Crosshair size={16} />{t('gallery.lightbox.refine')}</button>}
         {job && <button type="button" className="btn btn-quiet btn-block" disabled={busy} onClick={() => onRedraw(job)}><ArrowClockwise size={16} />{t('gallery.lightbox.redraw')}</button>}
       </div>
     </aside>

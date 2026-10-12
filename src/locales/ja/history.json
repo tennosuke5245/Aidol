@@ -12,7 +12,9 @@
     "front": "正面",
     "full": "全体",
     "back": "背面",
-    "detail": "細部"
+    "detail": "細部",
+    "side": "側面"
   },
-  "partAdoptedPlain": "{{name}}を採用"
+  "partAdoptedPlain": "{{name}}を採用",
+  "sheetImported": "三面図を取り込んで立ち絵にしました"
 }

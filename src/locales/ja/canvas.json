@@ -31,11 +31,17 @@
       "open": "「{{name}}」をキャラクリで開く",
       "portraitAlt": "{{name}}の立ち絵",
       "emptyTitle": "立ち絵はまだありません",
-      "emptyHint": "ここをクリックしてキャラクリを始めましょう。最初に描けた1枚がここに表示されます。",
+      "emptyHint": "ここを押してキャラを作りましょう。最初は正面を描きます",
       "zoom": "立ち絵を拡大",
       "zoomTitle": "拡大",
       "previewTitle": "{{name}}・立ち絵",
-      "openCreator": "キャラクリ"
+      "openCreator": "キャラクリ",
+      "canon": "決定稿",
+      "canonHint": "描くときは決定稿のデザインに従います。キャラクリ › 画風 › 参考画像 で解除できます。",
+      "canonAlt": "{{name}} の決定稿",
+      "canonEmptyHint": "この決定稿どおりに正面を描き、ここに入ります",
+      "zoomSheet": "三面図全体を拡大",
+      "sheetPreview": "{{name}}・三面図"
     },
     "decompose": {
       "running": "衣装を分解中",
@@ -50,7 +56,9 @@
       "clothing": "服装リファレンス",
       "composition": "構図リファレンス",
       "material": "素材リファレンス",
-      "design": "デザインリファレンス"
+      "design": "デザインリファレンス",
+      "canon": "決定稿",
+      "canonHint": "この絵のとおりに描く"
     },
     "edge": {
       "accessory": "小物",
@@ -94,7 +102,8 @@
   },
   "formalReference": {
     "label": "描画に使用",
-    "fallback": "現在の画風リファレンスに設定済み"
+    "fallback": "現在の画風リファレンスに設定済み",
+    "canonLabel": "描くときはこの絵のとおり"
   },
   "annotation": {
     "kind": {
@@ -190,5 +199,135 @@
   },
   "rack": {
     "label": "描画の進行状況"
+  },
+  "views": {
+    "view": {
+      "front": "正面",
+      "side": "側面",
+      "back": "背面",
+      "frontQuarter": "斜め前",
+      "backQuarter": "斜め後ろ",
+      "otherSide": "反対側"
+    },
+    "alt": "{{name}}の{{view}}",
+    "splitting": "分割中…",
+    "splitFailed": "自動分割できませんでした",
+    "manual": "手動で囲む",
+    "adjust": "切り抜きを調整",
+    "adjustHint": "枠がずれていたら、ドラッグして切り直せます",
+    "driftTaller": "正面より {{percent}}% 高い",
+    "driftShorter": "正面より {{percent}}% 低い",
+    "driftHint": "三つの角度の身長は同じはずです。差が大きいときは比率がずれている（この角度を描き直す）か、切り抜きの枠がずれています（切り抜きを調整）。",
+    "slot": {
+      "offerTitle": "三面図",
+      "offerHint": "この絵から正面・側面・背面を見つけて切り分けます。一人だけなら正面として使えます",
+      "offer": "三面に分ける",
+      "detectingTitle": "三面を探しています",
+      "detectingHint": "AI が正面・側面・背面を探しています。見つかったら自動で三枚に切り分けます",
+      "noneTitle": "この絵は一つの角度だけです",
+      "noneHint": "この絵は一人だけです。正面にして側面・背面を描き足すか、手持ちの三面図を取り込めます",
+      "failedTitle": "三面が見つかりませんでした",
+      "failedHint": "もう一度試すか、正面・側面・背面を手動で囲んでください",
+      "retry": "もう一度",
+      "emptyTitle": "三面図",
+      "emptyHint": "まず正面を描き、ここで側面・背面を一枚ずつ足します。三面図がすでにあれば取り込めます",
+      "emptyCanonTitle": "三面図",
+      "emptyCanonHint": "決定稿どおりに正面を描き、側面・背面を足します。決定稿がすでに三面図ならそのまま使えます",
+      "import": "三面図を取り込む",
+      "useCanon": "決定稿をそのまま使う",
+      "drawFront": "正面を描く",
+      "asFront": "正面にして側面・背面を描く",
+      "readingTitle": "この絵を読み取っています",
+      "readingHint": "AI がパーツを分けながら、正面の全身か三面図かを確かめています。終わったらほかの向きを描けます"
+    },
+    "editor": {
+      "title": "三面図の切り抜きを調整",
+      "subtitle": "枠をドラッグで移動、角で大きさを調整。適用すると新しい画像に切り直し、元の絵はそのままです",
+      "tip": "人物全体を囲むだけで大丈夫です。自動で人物に合わせ、三枚とも同じ大きさで足元をそろえます。",
+      "include": "切り出す角度",
+      "boxAria": "{{view}}の枠：矢印キーで移動、Shift＋矢印キーで大きさを調整",
+      "apply": "適用",
+      "applying": "切り抜き中…",
+      "done": "三面図を切り直しました",
+      "redrawnNote": "{{views}}は描き直したものです。チェックしなければそのまま残ります。"
+    },
+    "redraw": "{{view}}を描き直す",
+    "redrawHint": "正面をもとに{{view}}を描き直します。直すところを書いてから。採用するとこの一枚だけ入れ替わります",
+    "imported": "三面図を取り込みました。続けて自動で分けます",
+    "draw": "{{view}}を描く",
+    "missingHint": "正面をもとに{{view}}を描くと、自動でそろいます",
+    "needFront": "先に正面が必要です",
+    "dialog": {
+      "drawTitle": "{{view}}を描く",
+      "redrawTitle": "{{view}}を描き直す",
+      "drawSubtitle": "正面をもとに、同じデザイン・同じ身長で描きます。描けたら自動で同じ大きさにそろえます。",
+      "redrawSubtitle": "AI に渡すのは正面と、確認済みのほかの向きだけです。今の{{view}}は渡さないので、崩れたところをまねしません。",
+      "follows": "これをもとに描く（正面）",
+      "alsoSent": "{{view}}（いっしょに参考）",
+      "notSent": "今の{{view}}（AI には渡しません）",
+      "fixLabel": "どこを直しますか？",
+      "fixPlaceholder": "例：しっぽは腰の後ろの真ん中から生やす",
+      "noteLabel": "気をつけることは？（任意）",
+      "notePlaceholder": "例：髪飾りは左耳で、側面から見える",
+      "notesSent": "このメモ {{count}} 件も AI に渡します",
+      "noNotes": "AI にずっと守ってほしいところ（しっぽの付け根など）は、並べて見る画面でメモを追加できます",
+      "moreNotes": "ほか {{count}} 件",
+      "editNotes": "メモを編集",
+      "addNotes": "メモを追加"
+    },
+    "missingFront": "正面がありません。ほかの角度は正面をもとに描くので、まず切り抜き調整で正面を囲んでください",
+    "open": "並べて見る（{{view}}）",
+    "openShort": "並べて見る",
+    "notesCount": "メモ {{count}} 件",
+    "remove": "{{view}}を外す",
+    "notDrawn": "まだ描いていません",
+    "add": "向きを追加",
+    "addHint": "斜め前・斜め後ろ・反対側",
+    "addWhich": "どの向きを追加しますか？",
+    "extraHint": {
+      "frontQuarter": "斜め45度。正面と左側が見える",
+      "backQuarter": "斜め45度。背面と左側が見える",
+      "otherSide": "右向き。右側だけにあるものを描く"
+    },
+    "spec": {
+      "front": "顔と体を正面に向けます。",
+      "side": "左向きで、キャラクターの左側が見えます。",
+      "back": "後ろ向き：キャラクターの左手が画面の左。正面と左右が逆になります。",
+      "frontQuarter": "左前に斜め45度。正面とキャラクターの左側が見えます。",
+      "backQuarter": "後ろ向きで左後ろに斜め45度。背面とキャラクターの左側が見えます。",
+      "otherSide": "右向きで、キャラクターの右側が見えます。右側だけにあるものもはっきり描きます。"
+    }
+  },
+  "viewer": {
+    "title": "{{name}}・三面図",
+    "subtitle": "すべての向きを同じ高さで足元をそろえて並べます。「メモを追加」を押して絵の上の場所をクリックし、注意点を書きます",
+    "headLine": "頭頂",
+    "feetLine": "足元",
+    "guideHint": "ドラッグで移動、ダブルクリックで外す",
+    "addNote": "メモを追加",
+    "placing": "場所をクリック…",
+    "addGuide": "ガイド線を追加",
+    "notes": "メモ",
+    "notesHint": "どの向きを描くときも、これらのメモを AI に渡します。番号をクリックで編集、ドラッグで移動できます。",
+    "placeHint": "メモを付ける場所をクリックしてください。",
+    "empty": "まだメモはありません。たとえば背面のしっぽの付け根に「しっぽ：腰の後ろの真ん中から生える。先は白」と付けられます。",
+    "pinAria": "メモ {{number}}：{{title}}",
+    "removeConfirm": "外す",
+    "newNote": "新しいメモ・{{view}}",
+    "editNote": "メモ・{{view}}",
+    "noteTitle": "名前（省略可）",
+    "noteTitlePlaceholder": "例：しっぽ",
+    "noteText": "説明",
+    "noteTextPlaceholder": "例：腰の後ろの真ん中から生える。先は白で、ふだんは上に巻いている",
+    "noteSent": "これからこのキャラクターの絵を描くたびに、場所と説明を AI に渡します。",
+    "deleteNote": "削除",
+    "back": "戻る",
+    "saving": "保存中…",
+    "saveNote": "メモを保存",
+    "placeOn": "{{view}}の真ん中にメモを追加（あとで矢印キーで動かせます）",
+    "removeConfirmNotes": "メモ {{count}} 件ごと外す",
+    "clearGuides": "ガイド線を消す",
+    "deleteConfirm": "削除する",
+    "titleSep": "："
   }
 }

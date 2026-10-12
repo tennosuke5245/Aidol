@@ -52,6 +52,37 @@ export async function createApp({ dataDir, assetDir, demo = true, registerIntegr
     const { role, targetId, jobId, view } = req.body;
     res.status(201).json(await store.addAsset(req.params.id, { buffer: req.file.buffer, name: req.body.name || req.file.originalname, mimeType: req.file.mimetype, role, targetId, ...(jobId ? { jobId } : {}), view }));
   }));
+  // 三視圖裁好的三張（PNG）：meta 是 JSON（assetId、manual、items[{ view, crop, figure }]），圖檔欄位名稱就是 view。
+  const viewUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024, files: 3, fields: 4, fieldSize: 20000 } });
+  app.post('/api/projects/:id/views', viewUpload.fields([{ name: 'front', maxCount: 1 }, { name: 'side', maxCount: 1 }, { name: 'back', maxCount: 1 }]), asyncRoute(async (req, res) => {
+    let meta;
+    try { meta = JSON.parse(req.body.meta || '{}'); } catch { throw new DomainError('三視圖的裁切資料不正確。', 422, 'INVALID_VIEWS'); }
+    const items = (Array.isArray(meta.items) ? meta.items : []).map((item) => ({ ...item, buffer: req.files?.[item?.view]?.[0]?.buffer }));
+    res.json(await store.saveViews(req.params.id, { assetId: meta.assetId, manual: Boolean(meta.manual), boxes: meta.boxes, items }));
+  }));
+  // 舊角色只有一張立繪：把整張當正面，之後補畫側面、背面。
+  app.post('/api/projects/:id/views/front-only', asyncRoute(async (req, res) => res.json(await store.useMainAsFront(req.params.id))));
+  app.post('/api/projects/:id/views/extra', asyncRoute(async (req, res) => res.json(await store.addExtraView(req.params.id, req.body || {}))));
+  app.delete('/api/projects/:id/views/extra/:view', asyncRoute(async (req, res) => res.json(await store.removeExtraView(req.params.id, req.params.view))));
+  app.post('/api/projects/:id/view-notes', asyncRoute(async (req, res) => res.status(201).json(await store.createViewNote(req.params.id, req.body || {}))));
+  app.patch('/api/projects/:id/view-notes/:noteId', asyncRoute(async (req, res) => res.json(await store.updateViewNote(req.params.id, req.params.noteId, req.body || {}))));
+  app.delete('/api/projects/:id/view-notes/:noteId', asyncRoute(async (req, res) => res.json(await store.deleteViewNote(req.params.id, req.params.noteId))));
+  // 重畫的角度調成和其他兩張一樣大小後送回來（PNG）。
+  app.post('/api/projects/:id/views/:view/normalized', upload.single('file'), asyncRoute(async (req, res) => {
+    if (!req.file) throw new DomainError('請選擇要匯入的圖片。', 422, 'IMAGE_REQUIRED');
+    res.json(await store.saveNormalizedView(req.params.id, { view: req.params.view, sourceAssetId: req.body.sourceAssetId, buffer: req.file.buffer }));
+  }));
+  // 已經有三視圖：上傳的圖（或已有的參考圖 fromAssetId）直接當正式立繪，接著和採用時一樣自動拆解、找三視圖。
+  app.post('/api/projects/:id/import-main', upload.single('file'), asyncRoute(async (req, res) => {
+    const { fromAssetId, outfitId } = req.body;
+    if (!req.file && !fromAssetId) throw new DomainError('請選擇要匯入的圖片。', 422, 'IMAGE_REQUIRED');
+    const { project, asset } = await store.importMainImage(req.params.id, { ...(req.file ? { buffer: req.file.buffer, mimeType: req.file.mimetype, name: req.file.originalname } : { fromAssetId }), ...(outfitId ? { outfitId } : {}), baseRevision: Number(req.body.baseRevision) });
+    const decompose = req.app.locals.integrations?.decompose;
+    if (decompose) {
+      try { return res.json((await decompose(project.id, { assetId: asset.id, auto: true })).project); } catch { /* 沒有 Codex 或已在拆解：照常回傳 */ }
+    }
+    res.json(project);
+  }));
   app.get('/api/projects/:id/assets/:assetId', asyncRoute(async (req, res) => {
     const { asset, buffer } = await store.readAsset(req.params.id, req.params.assetId);
     res.set('X-Content-Type-Options', 'nosniff');

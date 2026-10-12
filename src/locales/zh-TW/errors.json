@@ -5,5 +5,16 @@
   "CODEX_OPEN_FAILED": "沒辦法打開 Codex App。請確認已經安裝並登入 Codex App，再試一次。",
   "DECOMPOSE_TIMEOUT": "Codex 讀圖逾時，請稍後再試一次。",
   "DECOMPOSE_NEEDS_CODEX": "需要已安裝並登入的 Codex CLI 才能自動拆解裝備；也可以在畫布上手動新增。",
-  "DECOMPOSE_FAILED": "拆解沒有完成。"
+  "DECOMPOSE_FAILED": "拆解沒有完成。",
+  "VIEWS_STALE": "正式三視圖已經換過了，這次的裁切沒有存。",
+  "INVALID_VIEWS": "三視圖的裁切資料不正確。",
+  "VIEWS_CROP_FAILED": "讀不到這張三視圖，沒辦法裁切。請重新整理後再試一次。",
+  "VIEWS_NEEDS_CODEX": "需要已安裝並登入的 Codex CLI 才能自動找出三視圖；也可以自己框。",
+  "VIEWS_DETECT_FAILED": "沒有找到三視圖。",
+  "VIEWS_INTERRUPTED": "找三視圖中斷了（核心重新啟動過），可以再試一次。",
+  "NO_CANON": "這個角色還沒有定稿圖。",
+  "VIEWS_NOT_READY": "要先有拆好的正面，才能畫側面或背面。",
+  "INVALID_NOTE": "標註要寫說明（500 字以內），名稱 40 字以內。",
+  "NOTE_NOT_FOUND": "找不到這個標註。",
+  "TOO_MANY_NOTES": "標註最多 40 個。"
 }

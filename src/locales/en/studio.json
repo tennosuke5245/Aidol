@@ -3,7 +3,8 @@
   "adopted": {
     "part": "Adopted as this piece's design.",
     "mainDecomposing": "Adopted as the main illustration. Breaking down the outfit…",
-    "main": "Adopted as the main illustration."
+    "main": "Adopted as the main illustration.",
+    "view": "Placed in the turnaround as the {{view}} view"
   },
   "imported": "Imported the image. You'll find it in the Gallery.",
   "referenceSaved": "Saved the reference image and what it's for.",

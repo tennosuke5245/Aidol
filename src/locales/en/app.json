@@ -1,14 +1,26 @@
 {
   "prompt": {
     "character": "Draw a full main illustration of \"{{name}}\". Follow the current profile, appearance, outfit and art style, and keep every locked feature in each image.",
+    "characterCanon": "Draw \"{{name}}\" exactly as the final design: keep the hair, outfit and colors unchanged and only adjust the framing for this drawing.",
     "part": "Based on the current main illustration, draw a {{view}} design of \"{{name}}\". {{description}}",
     "partFallback": "this piece",
     "view": {
       "front": "front",
       "back": "back",
       "detail": "detail",
-      "full": "full"
-    }
+      "full": "full",
+      "side": "side"
+    },
+    "turnaround": "Draw a turnaround of \"{{name}}\": front, side and back full-body views side by side in one image. Follow the current profile, appearance, outfit and art style, and keep every locked feature in each view.",
+    "turnaroundCanon": "Draw a turnaround of \"{{name}}\" exactly as the final design: keep the hair, outfit and colors unchanged and only lay it out as front, side and back full-body views side by side.",
+    "turnaroundFromPortrait": "Draw a turnaround of \"{{name}}\" based on the current main illustration: keep the design unchanged and only lay it out as front, side and back full-body views side by side.",
+    "redrawView": "Redraw the {{view}} view of \"{{name}}\" from the front view: keep the design exactly and draw one full-body figure at the same height as the front. The previous one was wrong, so don't follow it.",
+    "front": "Draw \"{{name}}\" from the front, full body: one figure facing forward in a neutral A-pose. Follow the current profile, appearance, outfit and art style, and keep every locked feature. The side and back will be drawn from this image later.",
+    "frontCanon": "Draw \"{{name}}\" from the front exactly as the final design: keep the hair, outfit and colors unchanged and draw one full-body figure facing forward in an A-pose.",
+    "frontFromPortrait": "Draw \"{{name}}\" from the front based on the current main illustration: keep the design and draw one full-body figure facing forward in an A-pose.",
+    "drawView": "Draw the {{view}} view of \"{{name}}\" from the front view: keep the design exactly and draw one full-body figure at the same height as the front.",
+    "viewFix": "Fix this time: {{note}}",
+    "viewNote": "Also note: {{note}}"
   },
   "chatFailed": "The AI didn't finish writing: {{message}}",
   "proposalApplied": "Applied the AI's settings.",
@@ -53,5 +65,6 @@
     "purge": "Delete permanently",
     "purgeConfirm": "Really delete?",
     "purged": "Permanently deleted \"{{name}}\"."
-  }
+  },
+  "readingCanon": "The AI is reading the final design to fill in the look…"
 }

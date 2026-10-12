@@ -286,6 +286,8 @@
     "key": "一枚絵"
   },
   "framings": {
+    "frontView": "正面全身",
+    "turnaround": "三面図（一枚で）",
     "sheet": "設定画",
     "full": "全身",
     "threeQuarter": "七分身",

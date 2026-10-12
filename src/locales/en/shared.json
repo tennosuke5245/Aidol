@@ -33,6 +33,10 @@
       "full": "Full main image",
       "back": "Back view",
       "detail": "Detail view",
+      "side": "Side view",
+      "frontQuarter": "Front 3/4 view",
+      "backQuarter": "Back 3/4 view",
+      "otherSide": "Other side view",
       "unknown": "Unknown view"
     }
   },

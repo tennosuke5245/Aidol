@@ -82,5 +82,13 @@
     "saveNumber": "Save {{revision}}",
     "current": "Current",
     "restore": "Load this save"
+  },
+  "use": {
+    "label": "How to use this image",
+    "canon": "Draw exactly as this (final design)",
+    "canonHint": "Face, hair, outfit and colors all follow this image. The AI won't change the design.",
+    "partial": "Use part of it",
+    "partialHint": "Pick what to borrow; your settings decide the rest.",
+    "canonNote": "Every drawing follows this design and only changes the view, pose and layout. You can unlock it on the reference image anytime."
   }
 }

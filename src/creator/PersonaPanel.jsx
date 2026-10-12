@@ -1,13 +1,11 @@
 import { useMemo, useState } from 'react';
 import { LockSimple, MagicWand, Plus, X, Sparkle } from '@phosphor-icons/react';
 import { describeChanges, mergeCharacter } from '../../shared/character-diff.mjs';
-import { formatList, getLocale, sharedText, useT } from '../i18n';
-import { L, optionLabel } from '../lib-i18n';
+import { getLocale, useT } from '../i18n';
+import { diffText, L } from '../lib-i18n';
 import { Section } from '../ui';
 import { Busy } from '../Panels';
 
-// 設定差異的介面文字（欄位名、選項名、旋鈕刻度）依目前語言。
-const diffText = { text: sharedText, option: (listName, id) => optionLabel(listName, id), step: (controlId, index) => L.mixerControls.find(control => control.id === controlId)?.steps[index], list: formatList };
 
 function ChipInput({ items, onAdd, onRemove, placeholder, icon, max }) {
   const t = useT();
@@ -44,6 +42,13 @@ export function PersonaPanel({ draft, edit, project, hasPortrait, asking, onAsk,
     const result = await onAsk(ask.trim() || t('creator.persona.fillRequest', { profile: draft.persona.description }));
     if (result) setAsk('');
   }
+  // 有定稿：請 AI 看定稿圖，把看得到的外觀填進設定（上面框裡有寫要求的話一起帶上）。
+  const canon = (draft.style?.references || []).some(reference => reference.canon);
+  async function readCanon() {
+    if (asking) return;
+    const result = await onAsk([t('creator.persona.readCanonRequest'), ask.trim()].filter(Boolean).join('\n'), { readCanon: true });
+    if (result) setAsk('');
+  }
 
   return <div className="panel-stack">
     {proposal && <div className="ai-card" role="region" aria-label={t('creator.persona.suggestion')}>
@@ -73,6 +78,7 @@ export function PersonaPanel({ draft, edit, project, hasPortrait, asking, onAsk,
     <Section title={t('creator.persona.ask')}>
       <textarea rows={3} maxLength={4000} value={ask} disabled={asking} placeholder={t('creator.persona.askPlaceholder')} onChange={event => setAsk(event.target.value)} />
       <button type="button" className="btn btn-secondary btn-block" disabled={asking} onClick={send}>{asking ? <Busy>{t('creator.persona.asking')}</Busy> : <><MagicWand size={16} />{t('creator.persona.askButton')}</>}</button>
+      {canon && !asking && <button type="button" className="btn btn-quiet btn-block" title={t('creator.persona.readCanonHint')} onClick={readCanon}><LockSimple size={15} />{t('creator.persona.readCanon')}</button>}
       <p className="hint">{t('creator.persona.askHint')}</p>
     </Section>
   </div>;

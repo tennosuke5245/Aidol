@@ -14,7 +14,9 @@ test('first image uses the latest accepted revision and selected outfit', async 
   assert.equal(h.calls.create[0].baseRevision, 3);
   assert.equal(h.calls.create[0].outfitId, 'casual');
   assert.equal(h.calls.create[0].kind, 'generate');
-  assert.match(h.calls.create[0].prompt, /第一張角色設定稿/);
+  // 2026-10-12 起第一張畫正面全身，之後再一張張畫側面、背面（一張畫三個人容易畫壞）。
+  assert.match(h.calls.create[0].prompt, /畫正面全身：正面、A 字站姿的全身一個人/);
+  assert.equal(h.calls.create[0].framing, 'frontView');
 });
 test('reopening first-image flow reuses the work instead of creating another', async () => {
   const h = harness(project()); await prepareFirstImage(h.options); await prepareFirstImage(h.options);

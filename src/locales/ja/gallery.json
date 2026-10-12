@@ -25,7 +25,13 @@
     "front": "採用済み・正面",
     "full": "採用済み・全体",
     "back": "採用済み・背面",
-    "detail": "採用済み・細部"
+    "detail": "採用済み・細部",
+    "side": "採用済み・側面",
+    "sheetSide": "三面図・側面",
+    "sheetBack": "三面図・背面",
+    "sheetFrontQuarter": "三面図・斜め前",
+    "sheetBackQuarter": "三面図・斜め後ろ",
+    "sheetOtherSide": "三面図・反対側"
   },
   "empty": {
     "title": "まだ画像がありません",
@@ -35,7 +41,8 @@
     "front": "正面",
     "full": "全体",
     "back": "背面",
-    "detail": "細部"
+    "detail": "細部",
+    "side": "側面"
   },
   "lightbox": {
     "label": "画像",
@@ -44,7 +51,9 @@
     "adoptMain": "立ち絵に採用",
     "adoptPart": "このパーツのデザイン画に採用",
     "refine": "範囲を選んで部分修正",
-    "redraw": "同じ指示でもう一度描く"
+    "redraw": "同じ指示でもう一度描く",
+    "adoptView": "三面図の{{view}}に使う",
+    "staleView": "以前の三面図をもとに描き直したものです。三面図が変わったため、入れられません。"
   },
   "compare": {
     "this": "この画像",

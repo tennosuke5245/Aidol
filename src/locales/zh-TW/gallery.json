@@ -25,7 +25,13 @@
     "front": "正面設計圖",
     "full": "完整設計圖",
     "back": "背面設計圖",
-    "detail": "細節設計圖"
+    "detail": "細節設計圖",
+    "side": "側面設計圖",
+    "sheetSide": "三視圖・側面",
+    "sheetBack": "三視圖・背面",
+    "sheetFrontQuarter": "三視圖・斜前方",
+    "sheetBackQuarter": "三視圖・斜後方",
+    "sheetOtherSide": "三視圖・另一側"
   },
   "empty": {
     "title": "還沒有圖",
@@ -35,7 +41,8 @@
     "front": "正面",
     "full": "完整",
     "back": "背面",
-    "detail": "細節"
+    "detail": "細節",
+    "side": "側面"
   },
   "lightbox": {
     "label": "圖片",
@@ -44,7 +51,9 @@
     "adoptMain": "設為正式立繪",
     "adoptPart": "設為這件的設計圖",
     "refine": "框選局部修改",
-    "redraw": "用一樣的要求再畫"
+    "redraw": "用一樣的要求再畫",
+    "adoptView": "用在三視圖的{{view}}",
+    "staleView": "這張是照舊的三視圖重畫的；三視圖已經換過，不能放進去。"
   },
   "compare": {
     "this": "這張",

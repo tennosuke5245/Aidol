@@ -12,7 +12,9 @@
     "front": "正面主圖",
     "full": "完整主圖",
     "back": "背面",
-    "detail": "細節"
+    "detail": "細節",
+    "side": "側面"
   },
-  "partAdoptedPlain": "採用{{name}}候選"
+  "partAdoptedPlain": "採用{{name}}候選",
+  "sheetImported": "匯入正式三視圖"
 }

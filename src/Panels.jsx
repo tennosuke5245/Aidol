@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { X, CircleNotch, Sparkle, UploadSimple, FileCode, Crosshair, ClockCounterClockwise, Trash } from '@phosphor-icons/react';
+import { X, CircleNotch, Sparkle, UploadSimple, FileCode, Crosshair, ClockCounterClockwise, Trash, LockSimple, ImagesSquare } from '@phosphor-icons/react';
 import { clone, dateLabel, errorText } from './api';
 import { getLocale, isSource, t, useT } from './i18n';
 import { legacyHistory } from './history-legacy';
@@ -9,7 +9,8 @@ import { Mark } from './ui';
 export function Busy({ children }) { useT(); return <span className="busy-label"><CircleNotch className="spin" size={16} />{children ?? t('panels.busy')}</span>; }
 export function Empty({ title, children }) { return <div className="empty-state"><Sparkle size={28} weight="light" /><h3>{title}</h3><p>{children}</p></div>; }
 
-export function Modal({ title, subtitle, children, onClose, wide }) {
+// actions：標題列右邊、關閉鈕前面的按鈕；className：特殊尺寸（例如全螢幕的並排看）。
+export function Modal({ title, subtitle, children, onClose, wide, actions, className = '' }) {
   useT();
   const box = useRef(null);
   const closeAction = useRef(onClose);
@@ -28,7 +29,7 @@ export function Modal({ title, subtitle, children, onClose, wide }) {
     document.addEventListener('keydown', handle);
     return () => { document.removeEventListener('keydown', handle); prior?.focus?.(); };
   }, []);
-  return <div className="modal-backdrop" onMouseDown={event => event.target === event.currentTarget && onClose()}><section className={`modal ${wide ? 'modal-wide' : ''}`} ref={box} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title}><header className="modal-heading"><div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div><button type="button" className="icon-btn" aria-label={t('panels.closeDialog')} onClick={onClose}><X size={20} /></button></header>{children}</section></div>;
+  return <div className="modal-backdrop" onMouseDown={event => event.target === event.currentTarget && onClose()}><section className={`modal ${wide ? 'modal-wide' : ''} ${className}`} ref={box} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title}><header className="modal-heading"><div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div><div className="modal-heading-actions">{actions}<button type="button" className="icon-btn" aria-label={t('panels.closeDialog')} onClick={onClose}><X size={20} /></button></div></header>{children}</section></div>;
 }
 
 // 選圖區：選好之後直接顯示預覽，點預覽可以換一張（也可以把圖拖進來）；取消選擇時保留原本那張。
@@ -49,14 +50,28 @@ function ImagePick({ file, onChange, label, iconSize = 26 }) {
   </label>;
 }
 
+// 這張圖怎麼用：「照這張畫（定稿）」設計完全照圖；「只參考一部分」再選要參考哪裡。
+function UseChoice({ canon, onChange }) {
+  useT();
+  const option = (value, Icon, title, hint) => <button type="button" role="radio" aria-checked={canon === value} className="use-card" onClick={() => onChange(value)}>
+    <Icon size={20} weight={canon === value ? 'fill' : 'regular'} aria-hidden="true" />
+    <span><b>{title}</b><small>{hint}</small></span>
+  </button>;
+  return <div className="field"><span>{t('panels.use.label')}</span><div className="use-choice" role="radiogroup" aria-label={t('panels.use.label')}>
+    {option(true, LockSimple, t('panels.use.canon'), t('panels.use.canonHint'))}
+    {option(false, ImagesSquare, t('panels.use.partial'), t('panels.use.partialHint'))}
+  </div></div>;
+}
+
 export function NewCharacterForm({ busy, onCreate }) {
   useT();
-  const [name, setName] = useState(''), [brief, setBrief] = useState(''), [file, setFile] = useState(null), [role, setRole] = useState('identity');
-  return <form className="form-stack" onSubmit={event => { event.preventDefault(); if (name.trim()) onCreate({ name: name.trim(), brief: brief.trim(), file, role }); }}>
+  const [name, setName] = useState(''), [brief, setBrief] = useState(''), [file, setFile] = useState(null), [role, setRole] = useState('identity'), [canon, setCanon] = useState(true);
+  return <form className="form-stack" onSubmit={event => { event.preventDefault(); if (name.trim()) onCreate({ name: name.trim(), brief: brief.trim(), file, role: canon ? 'identity' : role, canon: Boolean(file) && canon }); }}>
     <label className="field"><span>{t('panels.newCharacter.name')}</span><input autoFocus required maxLength={160} value={name} onChange={event => setName(event.target.value)} placeholder={t('panels.newCharacter.namePlaceholder')} /></label>
     <label className="field"><span>{t('panels.newCharacter.brief')}</span><textarea rows={3} maxLength={12000} value={brief} onChange={event => setBrief(event.target.value)} placeholder={t('panels.newCharacter.briefPlaceholder')} /></label>
     <ImagePick file={file} onChange={setFile} label={t('panels.newCharacter.reference')} iconSize={24} />
-    {file && <label className="field"><span>{t('panels.newCharacter.useFor')}</span><select value={role} onChange={event => setRole(event.target.value)}><option value="identity">{t('panels.newCharacter.role.identity')}</option><option value="style">{t('panels.newCharacter.role.style')}</option><option value="color">{t('panels.newCharacter.role.color')}</option><option value="clothing">{t('panels.newCharacter.role.clothing')}</option></select></label>}
+    {file && <UseChoice canon={canon} onChange={setCanon} />}
+    {file && !canon && <label className="field"><span>{t('panels.newCharacter.useFor')}</span><select value={role} onChange={event => setRole(event.target.value)}><option value="identity">{t('panels.newCharacter.role.identity')}</option><option value="style">{t('panels.newCharacter.role.style')}</option><option value="color">{t('panels.newCharacter.role.color')}</option><option value="clothing">{t('panels.newCharacter.role.clothing')}</option></select></label>}
     <p className="hint">{brief.trim() ? t('panels.newCharacter.hintWithBrief') : t('panels.newCharacter.hintEmpty')}</p>
     <button className="btn btn-primary btn-lg" disabled={busy || !name.trim()}>{busy ? <Busy>{t('panels.newCharacter.creating')}</Busy> : <><Sparkle size={16} weight="fill" />{t('panels.newCharacter.submit')}</>}</button>
   </form>;
@@ -78,12 +93,13 @@ export function PartForm({ part, busy, onSave }) {
 
 export function ReferenceForm({ busy, onUpload }) {
   useT();
-  const [file, setFile] = useState(null), [role, setRole] = useState('style'), [focus, setFocus] = useState(() => t('panels.reference.focusDefault'));
-  return <form className="form-stack" onSubmit={event => { event.preventDefault(); onUpload(file, role, focus.split(getLocale() === 'ja' ? /[,，、]/ : /[,，]/).map(item => item.trim()).filter(Boolean)); }}>
+  const [file, setFile] = useState(null), [role, setRole] = useState('style'), [focus, setFocus] = useState(() => t('panels.reference.focusDefault')), [canon, setCanon] = useState(false);
+  return <form className="form-stack" onSubmit={event => { event.preventDefault(); onUpload(file, canon ? 'identity' : role, canon ? [t('studio.defaultFocus.look'), t('studio.defaultFocus.colors')] : focus.split(getLocale() === 'ja' ? /[,，、]/ : /[,，]/).map(item => item.trim()).filter(Boolean), canon); }}>
     <ImagePick file={file} onChange={setFile} label={t('panels.reference.choose')} />
-    <label className="field"><span>{t('panels.reference.role')}</span><select value={role} onChange={event => setRole(event.target.value)}>{['style', 'identity', 'color', 'clothing', 'material', 'composition'].map(item => <option key={item} value={item}>{t(`panels.reference.roles.${item}`)}</option>)}</select></label>
-    <label className="field"><span>{t('panels.reference.focus')}</span><input value={focus} onChange={event => setFocus(event.target.value)} placeholder={t('panels.reference.focusPlaceholder')} /></label>
-    <p className="hint">{t('panels.reference.hint')}</p>
+    <UseChoice canon={canon} onChange={setCanon} />
+    {!canon && <><label className="field"><span>{t('panels.reference.role')}</span><select value={role} onChange={event => setRole(event.target.value)}>{['style', 'identity', 'color', 'clothing', 'material', 'composition'].map(item => <option key={item} value={item}>{t(`panels.reference.roles.${item}`)}</option>)}</select></label>
+    <label className="field"><span>{t('panels.reference.focus')}</span><input value={focus} onChange={event => setFocus(event.target.value)} placeholder={t('panels.reference.focusPlaceholder')} /></label></>}
+    <p className="hint">{canon ? t('panels.use.canonNote') : t('panels.reference.hint')}</p>
     <button className="btn btn-primary btn-lg" disabled={busy || !file}>{busy ? <Busy /> : t('panels.reference.add')}</button>
   </form>;
 }

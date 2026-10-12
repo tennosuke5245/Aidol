@@ -30,7 +30,10 @@
     "portraitTitle": "Main illustration",
     "portraitHint": "Click to enlarge. Adjust the look on the right, then press \"Start drawing\" for a new one",
     "emptyTitle": "No main illustration yet",
-    "emptyHint": "Pick a look on the right, then press \"Draw first illustration\""
+    "emptyHint": "Pick a look on the right, then choose \"Draw front\"",
+    "canonAlt": "Final design of {{name}}",
+    "canonTitle": "This is the final design",
+    "canonHint": "No main illustration yet. \"Draw front\" follows this image without changing the design"
   },
   "draw": {
     "notePlaceholder": "What should this one show? e.g. a cool stance, holding a letter (optional)",
@@ -40,7 +43,16 @@
     "count": "Images per run",
     "preparing": "Preparing…",
     "start": "Start drawing",
-    "first": "Draw first illustration"
+    "first": "Draw first illustration",
+    "canon": "Following the final design: no design changes, only this drawing's framing and layout",
+    "canonChanges": "Changing this time:",
+    "canonChange": "{{label}}: {{from}} → {{to}}",
+    "canonMore": "{{count}} more",
+    "firstTurnaround": "Draw turnaround",
+    "turnaroundNote": "Turnaround: front, side and back in one image, split into three automatically once you adopt it",
+    "firstFront": "Draw front",
+    "frontNote": "Draw the front first. Once you pick one, add the side and back on the canvas one at a time; they line up into a turnaround automatically.",
+    "notePlaceholderFront": "Anything to watch for? e.g. sleeves long enough to cover the hands (optional)"
   },
   "gear": {
     "add": "Add piece",
@@ -157,7 +169,11 @@
       "clothing": "Clothing",
       "material": "Materials",
       "composition": "Composition"
-    }
+    },
+    "canon": "Final design · draw as this",
+    "canonOn": "Set as final design: draw as this, no design changes",
+    "canonOff": "Unlock: use as a normal reference",
+    "canonBadge": "Final"
   },
   "persona": {
     "aiReady": "AI suggestions ready",
@@ -187,6 +203,9 @@
     "asking": "The AI is writing (about 30 seconds)…",
     "askButton": "Fill in with AI",
     "askHint": "The AI's suggestions are listed first. Nothing changes until you press Apply.",
-    "fillRequest": "Based on the current profile, \"{{profile}}\", fill in this character's settings and look."
+    "fillRequest": "Based on the current profile, \"{{profile}}\", fill in this character's settings and look.",
+    "readCanon": "Fill in the look from the final design",
+    "readCanonHint": "The AI looks at the final design and fills in what it can see: hair, eyes, outfit, colors and more. You see the changes first and nothing changes until you apply them.",
+    "readCanonRequest": "Fill in the visible appearance from the final design image."
   }
 }

@@ -1,4 +1,4 @@
-import { Plus, Trash, Sparkle, PencilSimple, Image as ImageIcon, X } from '@phosphor-icons/react';
+import { Plus, Trash, Sparkle, PencilSimple, Image as ImageIcon, X, LockSimple, LockSimpleOpen } from '@phosphor-icons/react';
 import { assetFor } from '../api';
 import { useT } from '../i18n';
 import { L } from '../lib-i18n';
@@ -72,6 +72,7 @@ export function StylePanel({ draft, edit, project, onAddReference, onPreview }) 
   const preset = values => edit(next => { const direction = ensureDirection(next); direction.mixer = { ...values }; }, { area: 'style' });
   const matching = L.mixerPresets.find(item => L.mixerKeys.every(key => item.values[key] === mixer[key]))?.id;
   const references = (draft.style.references || []).map(reference => ({ reference, asset: project.assets.find(asset => asset.id === reference.assetId) })).filter(item => item.asset);
+  // 每張參考圖左上角是定稿開關：鎖上＝設計照這張畫；打開＝只當參考。
   return <div className="panel-stack">
     <Section title={t('creator.style.presets')}>
       <div className="preset-row">{L.mixerPresets.map(item => <button type="button" key={item.id} className="preset-card" aria-pressed={matching === item.id} onClick={() => preset(item.values)}><b>{item.label}</b><small>{t(`creator.style.presetNotes.${item.id}`)}</small></button>)}</div>
@@ -80,11 +81,14 @@ export function StylePanel({ draft, edit, project, onAddReference, onPreview }) 
       <div className="knob-row">{L.mixerControls.filter(control => control.group === group.id).map(control => <Knob key={control.id} control={control} value={mixer[control.id] ?? 2} onChange={value => setKnob(control.id, value)} />)}</div>
     </Section>)}
     <Section title={t('creator.style.references')} aside={<button type="button" className="btn btn-text" onClick={onAddReference}><Plus size={14} />{t('creator.style.addReference')}</button>}>
-      {references.length ? <div className="ref-grid">{references.map(({ reference, asset }) => <figure key={reference.id} className="ref">
-        <button type="button" onClick={() => onPreview(asset, roleLabels[reference.role])}><img src={asset.url} alt={roleLabels[reference.role]} /></button>
-        <figcaption>{roleLabels[reference.role] || t('creator.style.referenceFallback')}</figcaption>
+      {references.length ? <div className="ref-grid">{references.map(({ reference, asset }) => { const label = reference.canon ? t('creator.style.canon') : roleLabels[reference.role] || t('creator.style.referenceFallback'); return <figure key={reference.id} className={`ref ${reference.canon ? 'is-canon' : ''}`}>
+        <button type="button" onClick={() => onPreview(asset, label)}><img src={asset.url} alt={label} /></button>
+        <button type="button" className="ref-lock" aria-pressed={Boolean(reference.canon)} title={reference.canon ? t('creator.style.canonOff') : t('creator.style.canonOn')} aria-label={reference.canon ? t('creator.style.canonOff') : t('creator.style.canonOn')} onClick={() => edit(next => { const item = next.style.references.find(entry => entry.id === reference.id); if (item.canon) delete item.canon; else item.canon = true; }, { area: 'style' })}>
+          {reference.canon ? <><LockSimple size={12} weight="fill" />{t('creator.style.canonBadge')}</> : <LockSimpleOpen size={13} />}
+        </button>
+        <figcaption>{label}</figcaption>
         <button type="button" className="ref-remove" aria-label={t('creator.style.removeReference')} onClick={() => edit(next => { next.style.references = next.style.references.filter(item => item.id !== reference.id); })}><X size={12} weight="bold" /></button>
-      </figure>)}</div> : <button type="button" className="empty-drop" onClick={onAddReference}><ImageIcon size={22} /><span>{t('creator.style.referenceEmpty')}</span></button>}
+      </figure>; })}</div> : <button type="button" className="empty-drop" onClick={onAddReference}><ImageIcon size={22} /><span>{t('creator.style.referenceEmpty')}</span></button>}
     </Section>
   </div>;
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Sparkle, Trash, X } from '@phosphor-icons/react';
 import { assetFor } from './api';
 import { CharacterGraph, kindNames } from './CharacterGraph';
@@ -9,7 +9,10 @@ import { L } from './lib-i18n';
 import { figureArt } from './optionArt';
 import { Busy, Modal, PartForm } from './Panels';
 import { Toggle } from './ui';
+import { TurnaroundViewer } from './TurnaroundViewer';
+import { ViewCropEditor } from './ViewCropEditor';
 import { jobPresentation } from '../shared/agent-workspace.mjs';
+import { allViews } from '../shared/domain.mjs';
 import { outfitOf, uid } from './creator/helpers';
 
 const views = ['front', 'back', 'detail'];
@@ -22,7 +25,37 @@ export function CanvasView({ studio, project, outfitId, app, d }) {
   const t = useT();
   const [selected, setSelected] = useState(null);
   const [adding, setAdding] = useState(false);
+  const [cropping, setCropping] = useState(false);
+  const [drawingView, setDrawingView] = useState(null);
+  const [viewing, setViewing] = useState(null);
+  // 從畫圖對話框去編輯標註：寫到一半的內容先記著，關掉並排看後回到同一個對話框。
+  const [drawDraft, setDrawDraft] = useState(null);
   const shown = useMemo(() => ({ ...project, character: d.draft }), [project, d.draft]);
+  // 三視圖：舊角色請 AI 找角度、只有一個角度時補畫三視圖、框錯時手動調整裁切。
+  const sheet = project.assets.find(asset => asset.id === project.character.adopted.character);
+  const { run, detectViews, adjustViews, importMain, mainAsFront, addExtraView, removeExtraView, createViewNote, updateViewNote, deleteViewNote, notify } = studio;
+  const draw = app.draw;
+  const onDetectViews = useCallback(() => run(() => detectViews()), [run, detectViews]);
+  const onDrawFront = useCallback(() => draw({ targetId: 'character', framing: 'frontView', variants: 2 }), [draw]);
+  const onAsFront = useCallback(() => run(() => mainAsFront()), [run, mainAsFront]);
+  const onAdjustViews = useCallback(() => setCropping(true), []);
+  // 畫（或重畫）側面、背面：先問這次要注意或要修正什麼，再照正面畫；採用後只換掉那一張。
+  const onDrawView = useCallback(view => setDrawingView(view), []);
+  // 並排看：所有角度並排比對、加標註（點角度的圖打開，捲到那個角度）。
+  const onOpenViews = useCallback(view => setViewing(view || 'front'), []);
+  // 加角度：先放空位，接著直接問要畫什麼；拿掉加的角度（畫好的那張留在圖鑑）。
+  const onAddView = useCallback(async view => { if (await run(() => addExtraView(view))) setDrawingView(view); }, [run, addExtraView]);
+  const onRemoveView = useCallback(view => run(() => removeExtraView(view)), [run, removeExtraView]);
+  // 已經有三視圖：上傳一張，或直接用建立時附的定稿，當作正式三視圖（接著自動拆）。
+  const sheetInput = useRef(null);
+  const onImportSheet = useCallback(() => sheetInput.current?.click(), []);
+  const canonId = (d.draft.style.references || []).find(reference => reference.canon)?.assetId;
+  const importSheet = useCallback(async source => { if (await run(() => importMain({ ...source, outfitId }))) notify(t('canvas.views.imported')); }, [run, importMain, outfitId, notify, t]);
+  const onUseCanon = useCallback(() => { if (canonId) importSheet({ fromAssetId: canonId }); }, [canonId, importSheet]);
+  const applyCrop = async boxes => {
+    const done = await run(() => adjustViews(boxes));
+    if (done) { setCropping(false); notify(t('canvas.views.editor.done')); }
+  };
   const part = selected && d.draft.components[selected];
   const addPart = value => {
     const id = uid('part');
@@ -35,10 +68,21 @@ export function CanvasView({ studio, project, outfitId, app, d }) {
   return <div className="canvas-view">
     <CharacterGraph project={shown} outfitId={outfitId} selectedId={selected} onSelect={setSelected}
       onOpenCreator={app.goCreator} onDecompose={app.decompose} onAdd={() => setAdding(true)} onPreview={app.preview} placeholder={figureArt}
-      onCreateAnnotation={studio.createAnnotation} onUpdateAnnotation={studio.updateAnnotation} onDeleteAnnotation={studio.deleteAnnotation} onAddCanvasReference={studio.addCanvasReference} />
+      onCreateAnnotation={studio.createAnnotation} onUpdateAnnotation={studio.updateAnnotation} onDeleteAnnotation={studio.deleteAnnotation} onAddCanvasReference={studio.addCanvasReference}
+      viewSplit={studio.viewSplit} onDetectViews={onDetectViews} onDrawFront={onDrawFront} onAdjustViews={onAdjustViews} onDrawView={onDrawView} onImportSheet={onImportSheet} onUseCanon={onUseCanon} onAsFront={onAsFront} onOpenViews={onOpenViews} onAddView={onAddView} onRemoveView={onRemoveView} />
+    <input ref={sheetInput} className="sr-only" tabIndex={-1} type="file" accept="image/png,image/jpeg,image/webp" aria-label={t('canvas.views.slot.import')} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) importSheet({ file }); }} />
     {!part && <DrawRack project={project} onOpen={app.openSummon} />}
     {part && <PartInspector key={part.id} project={project} draft={d.draft} edit={d.edit} outfitId={outfitId} part={part} app={app} onClose={() => setSelected(null)} />}
     {adding && <Modal title={t('canvas.addPiece.title')} subtitle={t('canvas.addPiece.subtitle')} onClose={() => setAdding(false)}><PartForm onSave={addPart} /></Modal>}
+    {drawingView && <ViewDrawDialog key={drawingView} project={project} view={drawingView} busy={studio.busy} initial={drawDraft?.view === drawingView ? drawDraft : null} onClose={() => { setDrawingView(null); setDrawDraft(null); }}
+      onEditNotes={state => { setDrawDraft({ view: drawingView, ...state }); setDrawingView(null); setViewing(drawingView); }}
+      onDraw={async options => { const job = await draw({ targetId: 'character', view: drawingView, ...options }); if (job) { setDrawingView(null); setDrawDraft(null); } }} />}
+    {viewing && project.views?.status === 'done' && <TurnaroundViewer project={project} focus={viewing} busy={studio.busy} onClose={() => { setViewing(null); if (drawDraft) setDrawingView(drawDraft.view); }}
+      onDraw={view => { setViewing(null); if (drawDraft?.view !== view) setDrawDraft(null); setDrawingView(view); }} onAdjust={() => { setViewing(null); setDrawDraft(null); setCropping(true); }} onRemove={onRemoveView}
+      onCreateNote={input => run(() => createViewNote(input))} onUpdateNote={(id, patch) => run(() => updateViewNote(id, patch))} onDeleteNote={id => run(() => deleteViewNote(id))} />}
+    {cropping && sheet && <Modal title={t('canvas.views.editor.title')} subtitle={t('canvas.views.editor.subtitle')} wide onClose={() => setCropping(false)}>
+      <ViewCropEditor key={sheet.id} asset={sheet} views={project.views?.assetId === sheet.id ? project.views : null} busy={studio.busy} onCancel={() => setCropping(false)} onApply={applyCrop} />
+    </Modal>}
   </div>;
 }
 
@@ -108,4 +152,37 @@ function PartInspector({ project, draft, edit, outfitId, part, app, onClose }) {
       <button type="button" className="btn btn-danger btn-sm" onClick={remove} title={hasImages ? t('canvas.inspector.removeKeepHint') : t('canvas.inspector.removeHint')}><Trash size={14} />{hasImages ? t('canvas.inspector.takeOff') : t('canvas.inspector.remove')}</button>
     </footer>
   </aside>;
+}
+
+// 畫（或重畫）三視圖的側面、背面：照正面畫。重畫時先問「哪裡要修」——原本那張不會交給 AI，免得照抄畫壞的地方。
+function ViewDrawDialog({ project, view, busy, initial, onClose, onDraw, onEditNotes }) {
+  const t = useT();
+  const [note, setNote] = useState(initial?.note || '');
+  const [count, setCount] = useState(initial?.count || 2);
+  const items = project.views?.items || {};
+  const redo = Boolean(items[view]);
+  const label = t(`canvas.views.view.${view}`);
+  const asset = id => id && project.assets.find(item => item.id === id);
+  const front = asset(items.front?.assetId), current = asset(items[view]?.assetId);
+  // 一起交給 AI 的：正面以外、已經確認的其他角度（不含這次要畫的這張）。
+  const others = allViews.filter(other => other !== 'front' && other !== view).map(other => [other, asset(items[other]?.assetId)]).filter(([, item]) => item);
+  const notes = project.viewNotes || [];
+  return <Modal title={redo ? t('canvas.views.dialog.redrawTitle', { view: label }) : t('canvas.views.dialog.drawTitle', { view: label })} subtitle={redo ? t('canvas.views.dialog.redrawSubtitle', { view: label }) : t('canvas.views.dialog.drawSubtitle', { view: label })} onClose={onClose}>
+    <form className="form-stack" onSubmit={event => { event.preventDefault(); onDraw({ note, variants: count }); }}>
+      <p className="view-dialog-spec">{t(`canvas.views.spec.${view}`)}</p>
+      <div className="view-dialog-refs">
+        {front && <figure><img src={front.url} alt="" /><figcaption>{t('canvas.views.dialog.follows')}</figcaption></figure>}
+        {others.map(([other, item]) => <figure key={other}><img src={item.url} alt="" /><figcaption>{t('canvas.views.dialog.alsoSent', { view: t(`canvas.views.view.${other}`) })}</figcaption></figure>)}
+        {current && <figure className="is-old"><img src={current.url} alt="" /><figcaption>{t('canvas.views.dialog.notSent', { view: label })}</figcaption></figure>}
+      </div>
+      <div className="view-dialog-notes">
+        <span>{notes.length ? t('canvas.views.dialog.notesSent', { count: notes.length }) : t('canvas.views.dialog.noNotes')}</span>
+        {notes.length > 0 && <ol>{notes.slice(0, 4).map((item, index) => <li key={item.id}><b>{index + 1}</b>{item.title ? `${item.title}${t('canvas.viewer.titleSep')}` : ''}{item.text}</li>)}{notes.length > 4 && <li className="is-more">{t('canvas.views.dialog.moreNotes', { count: notes.length - 4 })}</li>}</ol>}
+        <button type="button" className="btn btn-quiet btn-sm" onClick={() => onEditNotes({ note, count })}>{notes.length ? t('canvas.views.dialog.editNotes') : t('canvas.views.dialog.addNotes')}</button>
+      </div>
+      <label className="field"><span>{redo ? t('canvas.views.dialog.fixLabel') : t('canvas.views.dialog.noteLabel')}</span><textarea rows={3} maxLength={2000} value={note} autoFocus onChange={event => setNote(event.target.value)} placeholder={redo ? t('canvas.views.dialog.fixPlaceholder') : t('canvas.views.dialog.notePlaceholder')} /></label>
+      <div className="field"><span>{t('canvas.inspector.count')}</span><div className="count-seg" role="group">{L.variantCounts.map(value => <button type="button" key={value} aria-pressed={count === value} onClick={() => setCount(value)}>×{value}</button>)}</div></div>
+      <button type="submit" className="btn btn-primary btn-lg" disabled={busy}>{busy ? <Busy>{t('canvas.inspector.preparing')}</Busy> : <><Sparkle size={16} weight="fill" />{redo ? t('canvas.views.redraw', { view: label }) : t('canvas.views.draw', { view: label })}</>}</button>
+    </form>
+  </Modal>;
 }

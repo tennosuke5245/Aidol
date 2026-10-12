@@ -59,7 +59,7 @@ export function useStudio() {
   useEffect(() => { initialize(); }, [initialize]);
 
   // 只有在等你送出、繪製中或有新圖時才輪詢；繪製中更頻繁，翻牌才跟得上。失敗保留畫面並說明。
-  const decomposing = project?.decomposition?.status === 'running';
+  const decomposing = project?.decomposition?.status === 'running' || project?.views?.status === 'detecting';
   const liveKey = [...(project?.jobs.filter(job => liveStatuses.has(job.status) || (job.progress?.startedAt && !job.progress?.finishedAt)).map(job => `${job.id}:${job.status}`) || []), ...(decomposing ? ['decompose'] : [])].join('|');
   const drawing = decomposing || Boolean(project?.jobs.some(job => job.status === 'running' || job.status === 'handed_off' || (job.progress?.startedAt && !job.progress?.finishedAt)));
   useEffect(() => {
@@ -140,7 +140,7 @@ export function useStudio() {
     const current = projectRef.current;
     const result = await api(`/projects/${current.id}/candidates/${candidate.id}/accept`, { method: 'POST', body: { baseRevision: await freshRevision() } });
     updateProject(result); refreshProjects();
-    notify(candidate.targetId !== 'character' ? t('studio.adopted.part') : result.decomposition?.status === 'running' ? t('studio.adopted.mainDecomposing') : t('studio.adopted.main'));
+    notify(candidate.targetId !== 'character' ? t('studio.adopted.part') : candidate.view && candidate.view !== 'front' ? t('studio.adopted.view', { view: t(`canvas.views.view.${candidate.view}`) }) : result.decomposition?.status === 'running' ? t('studio.adopted.mainDecomposing') : t('studio.adopted.main'));
     return result;
   }, [updateProject, refreshProjects, notify, freshRevision]);
 
@@ -148,6 +148,124 @@ export function useStudio() {
   const decompose = useCallback(async () => {
     const current = projectRef.current;
     const result = await api(`/projects/${current.id}/decompose`, { method: 'POST', body: {} });
+    updateProject(result);
+    return result;
+  }, [updateProject]);
+
+  // 三視圖：在畫面上依位置框把正式三視圖裁成三張 PNG，交給核心存成新的圖片（原圖不動）。
+  // manual：使用者在「調整裁切」裡框的；boxes 一起存，下次調整從這裡開始。
+  const saveViews = useCallback(async ({ boxes, manual = false }) => {
+    const current = projectRef.current;
+    const assetId = current.character.adopted.character;
+    const sheet = current.assets.find(asset => asset.id === assetId);
+    if (!sheet) throw new ApiError(t('errors.VIEWS_STALE'), 409, undefined, 'VIEWS_STALE');
+    const { cropViews } = await import('./views-split');
+    let pieces;
+    try { pieces = await cropViews(sheet.url, boxes); } catch { throw new ApiError(t('errors.VIEWS_CROP_FAILED'), 0, undefined, 'VIEWS_CROP_FAILED'); }
+    if (!pieces.length) throw new ApiError(t('errors.INVALID_VIEWS'), 422, undefined, 'INVALID_VIEWS');
+    const body = new FormData();
+    body.append('meta', JSON.stringify({ assetId, manual, boxes, items: pieces.map(({ view, crop, frame, figure }) => ({ view, crop, frame, figure })) }));
+    for (const piece of pieces) body.append(piece.view, piece.blob, `${piece.view}.png`);
+    const result = await api(`/projects/${current.id}/views`, { method: 'POST', body });
+    updateProject(result);
+    return result;
+  }, [updateProject]);
+
+  // 拆解（或找三視圖）找到兩個以上的角度時，自動裁成三張；同一份結果只自動試一次，失敗就讓使用者手動框。
+  // 每個角色各記一份（切換角色時，另一個角色的結果不會蓋掉這個的）。
+  const [viewSplits, setViewSplits] = useState({});
+  const splitTried = useRef(new Set());
+  const views = project?.views;
+  const splitKey = views?.status === 'boxes' && views.assetId === project.character.adopted.character ? `${project.id}:${views.assetId}:${views.updatedAt}` : '';
+  useEffect(() => {
+    if (!splitKey || splitTried.current.has(splitKey)) return;
+    splitTried.current.add(splitKey);
+    setViewSplits(current => ({ ...current, [splitKey]: { running: true } }));
+    saveViews({ boxes: projectRef.current.views.boxes })
+      .then(() => setViewSplits(current => ({ ...current, [splitKey]: { running: false } })), error => setViewSplits(current => ({ ...current, [splitKey]: { running: false, error: messageOf(error) } })));
+  }, [splitKey, saveViews]);
+  const adjustViews = useCallback(async boxes => saveViews({ boxes, manual: true }), [saveViews]);
+
+  // 重畫的側面／背面採用後：調成和其他張一樣的畫布大小、身高與腳底位置。每張只自動試一次，失敗就照交回來的原圖用。
+  const normalizeTried = useRef(new Set());
+  const rawView = views?.status === 'done' && views.assetId === project?.character.adopted.character ? Object.entries(views.items || {}).find(([, item]) => item.redrawn && item.assetId === item.sourceAssetId) : null;
+  const normalizeKey = rawView ? `${project.id}:${rawView[0]}:${rawView[1].sourceAssetId}:${views.updatedAt}` : '';
+  useEffect(() => {
+    if (!normalizeKey || normalizeTried.current.has(normalizeKey)) return;
+    normalizeTried.current.add(normalizeKey);
+    const current = projectRef.current;
+    const [view, item] = Object.entries(current.views.items).find(([, entry]) => entry.redrawn && entry.assetId === entry.sourceAssetId) || [];
+    if (!item) return;
+    (async () => {
+      const { normalizeView, viewTarget } = await import('./views-split');
+      const target = await viewTarget(current.views.items, current.assets);
+      const source = current.assets.find(asset => asset.id === item.sourceAssetId);
+      if (!target || !source) return;
+      const body = new FormData();
+      body.append('sourceAssetId', item.sourceAssetId);
+      body.append('file', await normalizeView(source.url, target), `${view}.png`);
+      updateProject(await api(`/projects/${current.id}/views/${view}/normalized`, { method: 'POST', body }));
+    })().catch(() => { /* 調不了就照原圖用，畫面仍可看、可匯出 */ });
+  }, [normalizeKey, updateProject]);
+
+  // 已經有三視圖：上傳的圖（或已有的參考圖，例如定稿）直接當正式立繪；接著和採用時一樣自動拆解、找三視圖。
+  const importMain = useCallback(async ({ file, fromAssetId, outfitId }) => {
+    const current = projectRef.current;
+    const body = new FormData();
+    if (file) body.append('file', file); else body.append('fromAssetId', fromAssetId);
+    if (outfitId) body.append('outfitId', outfitId);
+    body.append('baseRevision', String(await freshRevision()));
+    const result = await api(`/projects/${current.id}/import-main`, { method: 'POST', body });
+    updateProject(result); refreshProjects();
+    return result;
+  }, [updateProject, refreshProjects, freshRevision]);
+
+  // 舊角色只有一張立繪：把整張當正面，接著補畫側面、背面。
+  const mainAsFront = useCallback(async () => {
+    const current = projectRef.current;
+    const result = await api(`/projects/${current.id}/views/front-only`, { method: 'POST', body: {} });
+    updateProject(result);
+    return result;
+  }, [updateProject]);
+
+  // 加角度（斜前方、斜後方、另一側）：先放空位，之後照正面畫；也可以拿掉。
+  const addExtraView = useCallback(async view => {
+    const current = projectRef.current;
+    const result = await api(`/projects/${current.id}/views/extra`, { method: 'POST', body: { view } });
+    updateProject(result);
+    return result;
+  }, [updateProject]);
+  const removeExtraView = useCallback(async view => {
+    const current = projectRef.current;
+    const result = await api(`/projects/${current.id}/views/extra/${view}`, { method: 'DELETE' });
+    updateProject(result);
+    return result;
+  }, [updateProject]);
+
+  // 設計標註：標在角度圖上的重點（例如尾巴從哪裡長出來），之後畫角色的圖都會交給 AI。
+  const createViewNote = useCallback(async input => {
+    const current = projectRef.current;
+    const result = await api(`/projects/${current.id}/view-notes`, { method: 'POST', body: input });
+    updateProject(result);
+    return result;
+  }, [updateProject]);
+  const updateViewNote = useCallback(async (noteId, patch) => {
+    const current = projectRef.current;
+    const result = await api(`/projects/${current.id}/view-notes/${noteId}`, { method: 'PATCH', body: patch });
+    updateProject(result);
+    return result;
+  }, [updateProject]);
+  const deleteViewNote = useCallback(async noteId => {
+    const current = projectRef.current;
+    const result = await api(`/projects/${current.id}/view-notes/${noteId}`, { method: 'DELETE' });
+    updateProject(result);
+    return result;
+  }, [updateProject]);
+
+  // 舊角色（或功能加入前就採用的圖）：請 Codex 找出圖上的正面、側面、背面；在背景執行，輪詢帶回結果。
+  const detectViews = useCallback(async () => {
+    const current = projectRef.current;
+    const result = await api(`/projects/${current.id}/views/detect`, { method: 'POST', body: {} });
     updateProject(result);
     return result;
   }, [updateProject]);
@@ -161,9 +279,10 @@ export function useStudio() {
     return result;
   }, [updateProject, notify]);
 
-  const sendChat = useCallback(async message => {
+  // readCanon：把定稿圖一起交給 AI，照圖填外觀。
+  const sendChat = useCallback(async (message, { readCanon = false } = {}) => {
     const current = projectRef.current;
-    const draft = await api(`/projects/${current.id}/chat`, { method: 'POST', body: { message } });
+    const draft = await api(`/projects/${current.id}/chat`, { method: 'POST', body: { message, ...(readCanon ? { readCanon: true } : {}) } });
     await refresh(current.id);
     return draft;
   }, [refresh]);
@@ -201,20 +320,20 @@ export function useStudio() {
     return result.asset;
   }, [updateProject]);
 
-  const addReference = useCallback(async (file, role, focus) => {
+  const addReference = useCallback(async (file, role, focus, canon = false) => {
     const current = projectRef.current;
     const result = await uploadAsset(current.id, file);
     const character = clone(result.project.character);
-    character.style.references.push({ id: `ref-${crypto.randomUUID().slice(0, 8)}`, assetId: result.asset.id, role, focus });
+    character.style.references.push({ id: `ref-${crypto.randomUUID().slice(0, 8)}`, assetId: result.asset.id, role, focus, ...(canon ? { canon: true } : {}) });
     return saveCharacter(character, t('studio.referenceSaved'), result.project.character.revision);
   }, [uploadAsset, saveCharacter]);
 
-  const createProject = useCallback(async ({ name, brief = '', file, role = 'identity' }) => {
+  const createProject = useCallback(async ({ name, brief = '', file, role = 'identity', canon = false }) => {
     let created = await api('/projects', { method: 'POST', body: { name, brief } });
     if (file) {
       const uploaded = await uploadAsset(created.id, file);
       const character = clone(uploaded.project.character);
-      character.style.references.push({ id: `ref-${crypto.randomUUID().slice(0, 8)}`, assetId: uploaded.asset.id, role, focus: role === 'style' ? [t('studio.defaultFocus.lines'), t('studio.defaultFocus.coloring')] : [t('studio.defaultFocus.look'), t('studio.defaultFocus.colors')] });
+      character.style.references.push({ id: `ref-${crypto.randomUUID().slice(0, 8)}`, assetId: uploaded.asset.id, role, focus: role === 'style' ? [t('studio.defaultFocus.lines'), t('studio.defaultFocus.coloring')] : [t('studio.defaultFocus.look'), t('studio.defaultFocus.colors')], ...(canon ? { canon: true } : {}) });
       created = await api(`/projects/${created.id}/character`, { method: 'PUT', body: { baseRevision: uploaded.project.character.revision, character } });
     }
     setProject(created);
@@ -287,6 +406,7 @@ export function useStudio() {
     projects, project, status, loading, fatal, busy, toast, syncError, rememberedId,
     setToast, notify, run, initialize, refresh, refreshProjects, refreshStatus, openProject, updateProject,
     saveCharacter, generate, handoff, openCodex, startFirstImage, acceptCandidate, importCandidate, decompose,
+    viewSplit: splitKey ? viewSplits[splitKey] || null : null, adjustViews, detectViews, importMain, mainAsFront, addExtraView, removeExtraView, createViewNote, updateViewNote, deleteViewNote,
     sendChat, acceptProposal, dismissProposal, uploadReference, restore, addReference, createProject,
     createAnnotation, updateAnnotation, deleteAnnotation, addCanvasReference, copy, deleteProject, restoreProject, purgeTrash, trash, refreshTrash,
   };

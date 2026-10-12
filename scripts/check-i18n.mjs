@@ -131,12 +131,16 @@ for (const locale of LOCALES.filter((item) => item !== SOURCE)) {
 // 用變數組出來的 key（`ns.前綴.${值}`）：每個前綴都要登記可能的值，每個值三種語言都要有翻譯。
 // 新增這種寫法時，把前綴和它的值加進這張表。
 const annotations = await import(pathToFileURL(path.join(root, 'shared', 'canvas-annotations.mjs')).href);
-const views = ['front', 'full', 'back', 'detail'];
+const views = ['front', 'full', 'back', 'detail', 'side'];
 const roles = ['style', 'identity', 'color', 'clothing', 'material', 'composition'];
-const historyKeys = ['demoCreated', 'draftCreated', 'settingsUpdated', 'proposalAccepted', 'decomposeAdded', 'decomposeMoved', 'sheetAdopted', 'partAdopted', 'partAdoptedPlain', 'restored'];
+const historyKeys = ['demoCreated', 'draftCreated', 'settingsUpdated', 'proposalAccepted', 'decomposeAdded', 'decomposeMoved', 'sheetAdopted', 'sheetImported', 'partAdopted', 'partAdoptedPlain', 'restored'];
 const dynamicKeys = {
   'app.prompt.view': views,
   'canvas.view': ['front', 'back', 'detail'],
+  'canvas.views.view': ['front', 'frontQuarter', 'side', 'backQuarter', 'back', 'otherSide'],
+  'canvas.views.spec': ['front', 'frontQuarter', 'side', 'backQuarter', 'back', 'otherSide'],
+  'canvas.views.extraHint': ['frontQuarter', 'backQuarter', 'otherSide'],
+  'canvas.views.slot': ['empty', 'emptyCanon', 'offer', 'reading', 'detecting', 'none', 'failed'].flatMap((state) => [`${state}Title`, `${state}Hint`]),
   'canvas.annotation.kind': annotations.canvasAnnotationKinds,
   'canvas.annotation.edit': annotations.canvasAnnotationKinds,
   'canvas.annotation.remove': annotations.canvasAnnotationKinds,
@@ -149,7 +153,7 @@ const dynamicKeys = {
   'creator.style.presetNotes': libraries.mixerPresets.map((preset) => preset.id),
   'creator.style.groups': libraries.mixerGroups.map((group) => group.id),
   'creator.style.roles': roles,
-  'gallery.adopted': ['main', 'design', ...views],
+  'gallery.adopted': ['main', 'design', 'sheetSide', 'sheetBack', 'sheetFrontQuarter', 'sheetBackQuarter', 'sheetOtherSide', ...views],
   'gallery.view': views,
   'gallery.filter': ['all', 'main', 'gear'],
   'history': historyKeys,

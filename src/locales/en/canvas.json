@@ -32,11 +32,17 @@
       "open": "Open {{name}} in the creator",
       "portraitAlt": "Main illustration of {{name}}",
       "emptyTitle": "No main illustration yet",
-      "emptyHint": "Click here to open the creator. The first image you draw will go here.",
+      "emptyHint": "Click to start designing; the first drawing is the front",
       "zoom": "Enlarge main illustration",
       "zoomTitle": "Enlarge",
       "previewTitle": "{{name}} · Main illustration",
-      "openCreator": "Open creator"
+      "openCreator": "Open creator",
+      "canon": "Final design",
+      "canonHint": "Drawings follow the final design. Unlock it in Creator › Art style › Reference images.",
+      "canonAlt": "Final design of {{name}}",
+      "canonEmptyHint": "The front will follow this final design and appear here",
+      "zoomSheet": "Open the full turnaround",
+      "sheetPreview": "{{name}} · turnaround"
     },
     "decompose": {
       "running": "Breaking down outfit",
@@ -51,7 +57,9 @@
       "clothing": "Clothing reference",
       "composition": "Composition reference",
       "material": "Material reference",
-      "design": "Design reference"
+      "design": "Design reference",
+      "canon": "Final design",
+      "canonHint": "Drawn exactly as this"
     },
     "edge": {
       "accessory": "Accessory",
@@ -95,7 +103,8 @@
   },
   "formalReference": {
     "label": "Used when drawing",
-    "fallback": "Set as the current style reference"
+    "fallback": "Set as the current style reference",
+    "canonLabel": "Drawings follow this"
   },
   "annotation": {
     "kind": {
@@ -191,5 +200,135 @@
   },
   "rack": {
     "label": "Drawing progress"
+  },
+  "views": {
+    "view": {
+      "front": "Front",
+      "side": "Side",
+      "back": "Back",
+      "frontQuarter": "Front 3/4",
+      "backQuarter": "Back 3/4",
+      "otherSide": "Other side"
+    },
+    "alt": "{{name}}, {{view}} view",
+    "splitting": "Splitting…",
+    "splitFailed": "Automatic split did not work",
+    "manual": "Frame by hand",
+    "adjust": "Adjust crop",
+    "adjustHint": "Framed wrong? Drag the boxes and crop again",
+    "driftTaller": "{{percent}}% taller than front",
+    "driftShorter": "{{percent}}% shorter than front",
+    "driftHint": "All three views should be the same height. A gap this big means the proportions may have drifted (redraw this view) or the crop is off (adjust the crop).",
+    "slot": {
+      "offerTitle": "Turnaround views",
+      "offerHint": "Find the front, side and back in this image and crop them, or use it as the front if it shows one figure",
+      "offer": "Split into views",
+      "detectingTitle": "Finding the views",
+      "detectingHint": "AI is looking for the front, side and back views and will crop them automatically",
+      "noneTitle": "This image has only one angle",
+      "noneHint": "This image has one figure: use it as the front and add the side and back, or import a turnaround you already have",
+      "failedTitle": "Could not find the views",
+      "failedHint": "Try again, or frame the front, side and back by hand",
+      "retry": "Try again",
+      "emptyTitle": "Turnaround views",
+      "emptyHint": "Draw the front first, then add the side and back here one at a time. If you already have a turnaround, import it",
+      "emptyCanonTitle": "Turnaround views",
+      "emptyCanonHint": "Draw the front from the final design, then add the side and back. If the final design already is a turnaround, use it directly",
+      "import": "Import turnaround",
+      "useCanon": "Use the final design",
+      "drawFront": "Draw front",
+      "asFront": "Use as front, add side and back",
+      "readingTitle": "Reading this image",
+      "readingHint": "AI is splitting out the gear and checking whether this is a front view or a turnaround. Then you can draw the other views"
+    },
+    "editor": {
+      "title": "Adjust turnaround crop",
+      "subtitle": "Drag a box to move it and its corners to resize. Applying crops new images; the original stays as is",
+      "tip": "Just cover the whole figure. It tightens to the figure automatically, and the three crops get the same size with the feet aligned.",
+      "include": "Views to crop",
+      "boxAria": "{{view}} crop box: arrow keys move it, Shift + arrow keys resize it",
+      "apply": "Apply",
+      "applying": "Cropping…",
+      "done": "Turnaround views cropped again",
+      "redrawnNote": "{{views}} was redrawn; it stays as is unless you tick it."
+    },
+    "redraw": "Redraw {{view}} view",
+    "redrawHint": "Redraw the {{view}} view from the front: say what to fix first; adopting it replaces just this one",
+    "imported": "Turnaround imported; splitting it next",
+    "draw": "Draw {{view}} view",
+    "missingHint": "Draw the {{view}} view from the front; it lines up automatically",
+    "needFront": "Needs a front view first",
+    "dialog": {
+      "drawTitle": "Draw the {{view}} view",
+      "redrawTitle": "Redraw the {{view}} view",
+      "drawSubtitle": "Drawn from the front with the same design and height, then sized to match automatically.",
+      "redrawSubtitle": "The AI only sees the front and the other confirmed views. The current {{view}} view is not sent, so the mistake isn't copied.",
+      "follows": "Drawn from this (front)",
+      "alsoSent": "{{view}} (also sent)",
+      "notSent": "Current {{view}} (not sent to the AI)",
+      "fixLabel": "What needs fixing?",
+      "fixPlaceholder": "e.g. The tail should come out of the middle of the lower back",
+      "noteLabel": "Anything to watch for? (optional)",
+      "notePlaceholder": "e.g. The hair ornament is on the left ear and shows from the side",
+      "notesSent": "These {{count}} notes go to the AI too",
+      "noNotes": "For things the AI should always keep (like where the tail starts), add notes in the side-by-side view",
+      "moreNotes": "{{count}} more",
+      "editNotes": "Edit notes",
+      "addNotes": "Add notes"
+    },
+    "missingFront": "No front view. The other views are drawn from it, so frame the front with Adjust crop first",
+    "open": "Open side by side ({{view}})",
+    "openShort": "Side by side",
+    "notesCount": "{{count}} notes",
+    "remove": "Remove {{view}}",
+    "notDrawn": "Not drawn yet",
+    "add": "Add a view",
+    "addHint": "Front 3/4, back 3/4, other side",
+    "addWhich": "Which view?",
+    "extraHint": {
+      "frontQuarter": "45° turn: shows the front and left side",
+      "backQuarter": "45° turn: shows the back and left side",
+      "otherSide": "Facing right, for things only on the right side"
+    },
+    "spec": {
+      "front": "Face and body toward the viewer.",
+      "side": "Facing left: shows the character's left side.",
+      "back": "Back to the viewer: the character's left hand is on the left, mirrored from the front.",
+      "frontQuarter": "Turned 45° toward the left: shows the front and the character's left side.",
+      "backQuarter": "Back to the viewer, turned 45° to the left: shows the back and the character's left side.",
+      "otherSide": "Facing right: shows the character's right side, so things only on the right are drawn clearly."
+    }
+  },
+  "viewer": {
+    "title": "{{name}} · Turnaround",
+    "subtitle": "Every view at the same height with the feet lined up. Click \"Add note\", then click a spot on an image to say what to watch for",
+    "headLine": "Head",
+    "feetLine": "Feet",
+    "guideHint": "Drag to move, double-click to remove",
+    "addNote": "Add note",
+    "placing": "Click a spot…",
+    "addGuide": "Add guide line",
+    "notes": "Notes",
+    "notesHint": "These notes go to the AI whenever any view is drawn. Click a number to edit it, drag it to move it.",
+    "placeHint": "Click the spot to mark.",
+    "empty": "No notes yet. For example, mark the tail root on the back: \"Tail: grows from the middle of the lower back, white tip\".",
+    "pinAria": "Note {{number}}: {{title}}",
+    "removeConfirm": "Remove",
+    "newNote": "New note · {{view}}",
+    "editNote": "Note · {{view}}",
+    "noteTitle": "Name (optional)",
+    "noteTitlePlaceholder": "e.g. Tail",
+    "noteText": "Note",
+    "noteTextPlaceholder": "e.g. Grows from the middle of the lower back, white tip, usually curled up",
+    "noteSent": "From now on, every image of this character sends this spot and note to the AI.",
+    "deleteNote": "Delete",
+    "back": "Back",
+    "saving": "Saving…",
+    "saveNote": "Save note",
+    "placeOn": "Add a note in the middle of {{view}} (move it with the arrow keys afterwards)",
+    "removeConfirmNotes": "Remove, with {{count}} notes",
+    "clearGuides": "Clear guide lines",
+    "deleteConfirm": "Delete for good",
+    "titleSep": ": "
   }
 }

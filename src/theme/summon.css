@@ -48,3 +48,4 @@
   .summon-cards { width: 100%; gap: 12px; }
   .summon-card { width: calc(50% - 6px); max-width: 220px; }
 }
+.summon-inputs li.is-canon { border-color: var(--text-2); color: var(--text); font-weight: 600; }

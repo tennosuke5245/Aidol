@@ -13,7 +13,9 @@
     "front": "front",
     "full": "full",
     "back": "back",
-    "detail": "detail"
+    "detail": "detail",
+    "side": "side"
   },
-  "partAdoptedPlain": "Adopted {{name}}"
+  "partAdoptedPlain": "Adopted {{name}}",
+  "sheetImported": "Imported a turnaround as the main image"
 }

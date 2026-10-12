@@ -71,5 +71,16 @@
   "INVALID_TRASH_ID": "The trash item ID isn't in a valid format.",
   "PROJECT_BUSY": "Another program has the character's folder open, so it can't be moved (it isn't AIDOL itself). Close Codex App, File Explorer or any editor and try again.",
   "PROJECT_BUSY_CODEX": "AIDOL's Codex is still working (for example on a chat or an outfit breakdown), so it can't let go of the character's folder yet. Try again once it finishes.",
-  "DECOMPOSE_INTERRUPTED": "The outfit breakdown was interrupted when the character was deleted. You can run it again."
+  "DECOMPOSE_INTERRUPTED": "The outfit breakdown was interrupted when the character was deleted. You can run it again.",
+  "VIEWS_STALE": "The main turnaround changed in the meantime, so this crop was not saved.",
+  "INVALID_VIEWS": "The turnaround crop data is not valid.",
+  "VIEWS_CROP_FAILED": "Could not read the turnaround image to crop it. Reload and try again.",
+  "VIEWS_NEEDS_CODEX": "Finding the views automatically needs the Codex CLI installed and signed in. You can also frame them by hand.",
+  "VIEWS_DETECT_FAILED": "Could not find the turnaround views.",
+  "VIEWS_INTERRUPTED": "Finding the views was interrupted because AIDOL restarted. Try again.",
+  "NO_CANON": "This character has no final design image yet.",
+  "VIEWS_NOT_READY": "A split front view is needed before drawing the side or back.",
+  "INVALID_NOTE": "A note needs text (up to 500 characters) and a name of up to 40 characters.",
+  "NOTE_NOT_FOUND": "This note no longer exists.",
+  "TOO_MANY_NOTES": "You can add up to 40 notes."
 }

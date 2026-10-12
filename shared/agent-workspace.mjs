@@ -1,5 +1,6 @@
+import { isAngleView } from './domain.mjs';
 const handoffStates = new Set(['prepared', 'queued', 'handed_off']);
-const viewLabels = { front: '正面主圖', full: '完整主圖', back: '背面稿', detail: '細節稿' };
+const viewLabels = { front: '正面主圖', full: '完整主圖', back: '背面稿', detail: '細節稿', side: '側面稿', frontQuarter: '斜前方稿', backQuarter: '斜後方稿', otherSide: '另一側稿' };
 // 狀態與按鈕文字的繁中原文（server 與舊程式直接用 label／actionLabel）。
 // 前端用 labelKey／actionKey（job.status.*、job.action.*）查 locales/<語言>/shared.json 換成目前語言。
 export const jobStatusText = {
@@ -110,13 +111,17 @@ export function candidateComparison(project, candidate) {
   const view = candidate.view || asset?.view || job?.outputView || 'front';
   const targetId = candidate.targetId || job?.targetId || asset?.targetId;
   const part = targetId !== 'character' ? project.character.components?.[targetId] : null;
-  const currentId = part && ['back', 'detail'].includes(view) ? part.views?.[view] : project.character.adopted?.[targetId];
+  // 角色的側面／背面是重畫三視圖單一角度：拿三視圖裡現在那一張來比。
+  const sheetView = targetId === 'character' && isAngleView(view);
+  const sheetItem = sheetView && project.views?.status === 'done' && project.views.assetId === project.character.adopted?.character ? project.views.items?.[view] : null;
+  const currentId = sheetView ? sheetItem?.assetId : part && ['back', 'detail'].includes(view) ? part.views?.[view] : project.character.adopted?.[targetId];
   let current = project.assets?.find(item => item.id === currentId) || null;
   if (current && (current.targetId !== targetId || current.role === 'reference')) current = null;
-  if (targetId === 'character' && current) {
+  // 三視圖裡的角度不分穿搭，不用再比對。
+  if (!sheetView && targetId === 'character' && current) {
     const currentOutfit = current.outfitId || Object.keys(project.character.outfits || {})[0] || null;
     if (!outfitId || currentOutfit !== outfitId || current.view !== 'front') current = null;
-  } else if (current && (['back', 'detail'].includes(view) ? current.view !== view : !['front', 'full'].includes(current.view))) current = null;
+  } else if (!sheetView && current && (['back', 'detail'].includes(view) ? current.view !== view : !['front', 'full'].includes(current.view))) current = null;
   const outfitName = project.character.outfits?.[outfitId]?.name;
   const viewKey = viewLabels[view] ? view : 'unknown';
   return { asset, current, outfitId, outfitName: outfitName || comparisonText.noOutfit, outfitKey: outfitName ? '' : 'comparison.noOutfit', view, viewLabel: comparisonText.view[viewKey], viewKey: `comparison.view.${viewKey}` };

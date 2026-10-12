@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { MagnifyingGlassPlus, Sparkle, UserCircle, PersonSimple, Eye, TShirt, Palette, Backpack, PaintBrushBroad, WarningCircle } from '@phosphor-icons/react';
+import { MagnifyingGlassPlus, Sparkle, UserCircle, PersonSimple, Eye, TShirt, Palette, Backpack, PaintBrushBroad, WarningCircle, LockSimple } from '@phosphor-icons/react';
 import { appearanceLines, compileBrief } from '../../shared/prompt-compiler.mjs';
+import { canonChanges, canonReferences } from '../../shared/canon.mjs';
 import { assetFor } from '../api';
-import { useT } from '../i18n';
-import { L } from '../lib-i18n';
+import { getLocale, useT } from '../i18n';
+import { diffText, L } from '../lib-i18n';
 import { readPreference, writePreference } from '../drafts';
 import { DrawRack } from '../DrawRack';
 import { figureArt } from '../optionArt';
@@ -37,14 +38,24 @@ export function Creator({ studio, project, outfitId, onOutfit, app, d }) {
   const [note, setNote] = useState('');
   const [variants, setVariantsState] = useState(() => readPreference('variants', 2));
   const setVariants = value => { setVariantsState(value); writePreference('variants', value); };
-  const [framing, setFramingState] = useState(() => readPreference('framing', 'sheet'));
-  const setFraming = value => { setFramingState(value); writePreference('framing', value); };
+  // 2026-10-12 起第一張預設畫正面全身，之後在畫布上一張張補畫側面、背面（一張畫三個人容易畫壞）。
+  // 已經有正式立繪之後的繪製是另一個偏好（預設「全身」），不會不小心畫成 A 字站姿的正面、把三視圖換掉。
+  const hasPortraitNow = Boolean(project.character.adopted?.character);
+  const framingKey = hasPortraitNow ? 'framing-more-v3' : 'framing-first-v3';
+  const [framingByKey, setFramingByKey] = useState(() => ({ 'framing-first-v3': readPreference('framing-first-v3', 'frontView'), 'framing-more-v3': readPreference('framing-more-v3', 'full') }));
+  const framing = framingByKey[framingKey];
+  const setFraming = value => { setFramingByKey(current => ({ ...current, [framingKey]: value })); writePreference(framingKey, value); };
   const [modal, setModal] = useState(null);
   const [drawing, setDrawing] = useState(false);
   const outfit = outfitOf(draft, outfitId);
   const portrait = assetFor(project, 'character', outfit?.id);
   const hasPortrait = Boolean(project.character.adopted?.character);
   const pendingProposal = (project.proposals || []).some(item => item.status === 'pending');
+  // 定稿：畫圖時設計照定稿；定稿之後才改的外觀設定會列出來，告訴你這次 AI 會照著改哪些地方。
+  const canon = canonReferences(draft).length > 0;
+  const canonAsset = canon ? project.assets.find(asset => asset.id === canonReferences(draft)[0].assetId) : null;
+  const locale = getLocale();
+  const canonList = useMemo(() => (canon ? canonChanges(project.history, draft, { outfitId: outfit?.id, tr: diffText }) : []), [canon, project.history, draft, outfit?.id, locale]);
 
   useEffect(() => { if (outfit && outfit.id !== outfitId) onOutfit(outfit.id); }, [outfit?.id, outfitId]);
 
@@ -83,10 +94,10 @@ export function Creator({ studio, project, outfitId, onOutfit, app, d }) {
     setModal(null);
   }
 
-  async function addReference(file, role, focus) {
+  async function addReference(file, role, focus, canon = false) {
     const asset = await studio.run(() => studio.uploadReference(file));
     if (!asset) return;
-    d.edit(next => { next.style.references.push({ id: uid('ref'), assetId: asset.id, role, focus }); }, { area: 'style' });
+    d.edit(next => { next.style.references.push({ id: uid('ref'), assetId: asset.id, role, focus, ...(canon ? { canon: true } : {}) }); }, { area: 'style' });
     setModal(null);
   }
 
@@ -94,7 +105,7 @@ export function Creator({ studio, project, outfitId, onOutfit, app, d }) {
   const current = categories.find(item => item.id === category) || categories[0];
   const currentLabel = t(`creator.categories.${current.id}`);
   const panel = {
-    persona: <PersonaPanel {...panelProps} asking={app.chatPending} onAsk={app.sendChat} onApply={async (id, options) => { const saved = await d.flush(); await app.applyProposal(id, { ...options, baseRevision: saved.revision }); }} onDismiss={app.dismissProposal} />,
+    persona: <PersonaPanel {...panelProps} asking={app.chatPending} onAsk={async (text, options) => { if (options?.readCanon) await d.flush(); return app.sendChat(text, options); }} onApply={async (id, options) => { const saved = await d.flush(); await app.applyProposal(id, { ...options, baseRevision: saved.revision }); }} onDismiss={app.dismissProposal} />,
     body: <BodyPanel {...panelProps} />,
     hair: <HairPanel {...panelProps} />,
     face: <FacePanel {...panelProps} />,
@@ -118,20 +129,28 @@ export function Creator({ studio, project, outfitId, onOutfit, app, d }) {
         {portrait ? <button type="button" className="stage-portrait" onClick={() => app.preview(portrait, t('creator.stage.previewTitle', { name: draft.name }))} aria-label={t('creator.stage.zoom')}>
           <img src={portrait.url} alt={t('creator.stage.portraitAlt', { name: draft.name })} />
           <span className="stage-zoom"><MagnifyingGlassPlus size={17} /></span>
+        </button> : canonAsset ? <button type="button" className="stage-portrait is-canon" onClick={() => app.preview(canonAsset, t('creator.style.canon'))} aria-label={t('creator.stage.zoom')}>
+          <img src={canonAsset.url} alt={t('creator.stage.canonAlt', { name: draft.name })} />
+          <span className="stage-zoom"><MagnifyingGlassPlus size={17} /></span>
         </button> : <div className="stage-placeholder">{figureArt && <img src={figureArt} alt="" />}</div>}
         <p className="stage-caption">{portrait
           ? appearanceChanged ? <><WarningCircle size={14} weight="bold" color="var(--gold)" /><b>{t('creator.stage.changedTitle')}</b>{t('creator.stage.changedHint')}</> : <><b>{t('creator.stage.portraitTitle')}</b>{t('creator.stage.portraitHint')}</>
-          : <><b>{t('creator.stage.emptyTitle')}</b>{t('creator.stage.emptyHint')}</>}</p>
+          : canonAsset ? <><LockSimple size={14} weight="fill" /><b>{t('creator.stage.canonTitle')}</b>{t('creator.stage.canonHint')}</> : <><b>{t('creator.stage.emptyTitle')}</b>{t('creator.stage.emptyHint')}</>}</p>
       </div>
 
       <DrawRack project={project} onOpen={app.openSummon} />
 
       <form className="drawbar" onSubmit={event => { event.preventDefault(); draw(); }}>
-        <input className="drawbar-note" value={note} maxLength={2000} onChange={event => setNote(event.target.value)} placeholder={hasPortrait ? t('creator.draw.notePlaceholder') : t('creator.draw.notePlaceholderFirst')} aria-label={t('creator.draw.noteLabel')} />
+        {!canon && !hasPortrait && ['frontView', 'turnaround'].includes(framing) && <div className="drawbar-canon" role="note"><span className="canon-note is-plain">{t(framing === 'frontView' ? 'creator.draw.frontNote' : 'creator.draw.turnaroundNote')}</span></div>}
+        {canon && <div className="drawbar-canon" role="note">
+          <span className="canon-note"><LockSimple size={14} weight="fill" aria-hidden="true" />{t('creator.draw.canon')}</span>
+          {canonList.length > 0 && <span className="canon-changes"><b>{t('creator.draw.canonChanges')}</b>{canonList.slice(0, 3).map((change, index) => { const text = t('creator.draw.canonChange', { label: change.label, from: change.from, to: change.to }); return <span key={index} className="canon-chip" title={text}>{text}</span>; })}{canonList.length > 3 && <span className="canon-chip">{t('creator.draw.canonMore', { count: canonList.length - 3 })}</span>}</span>}
+        </div>}
+        <input className="drawbar-note" value={note} maxLength={2000} onChange={event => setNote(event.target.value)} placeholder={framing === 'frontView' ? t('creator.draw.notePlaceholderFront') : hasPortrait ? t('creator.draw.notePlaceholder') : t('creator.draw.notePlaceholderFirst')} aria-label={t('creator.draw.noteLabel')} />
         <div className="drawbar-row">
           <label className="drawbar-select"><span className="sr-only">{t('creator.draw.framing')}</span><select value={framing} onChange={event => setFraming(event.target.value)}>{L.framings.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
           <div className="count-seg" role="group" aria-label={t('creator.draw.count')}>{L.variantCounts.map(count => <button type="button" key={count} aria-pressed={variants === count} onClick={() => setVariants(count)}>×{count}</button>)}</div>
-          <button type="submit" className="draw-btn" disabled={drawing}>{drawing ? <Busy>{t('creator.draw.preparing')}</Busy> : <><Sparkle size={17} weight="fill" />{hasPortrait ? t('creator.draw.start') : t('creator.draw.first')}</>}</button>
+          <button type="submit" className="draw-btn" disabled={drawing}>{drawing ? <Busy>{t('creator.draw.preparing')}</Busy> : <><Sparkle size={17} weight="fill" />{hasPortrait ? t('creator.draw.start') : framing === 'frontView' ? t('creator.draw.firstFront') : framing === 'turnaround' ? t('creator.draw.firstTurnaround') : t('creator.draw.first')}</>}</button>
         </div>
       </form>
     </main>

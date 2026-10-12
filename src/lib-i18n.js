@@ -2,7 +2,7 @@
 // 其他語言的名稱在 locales/<語言>/lib.json，以「清單名.選項 id」對應。存檔只存 id，所以換語言不影響資料。
 // 用法：import { L } from '../lib-i18n'，和 shared/libraries.mjs 一樣用 L.hairStyles；取值當下就是目前語言。
 import * as base from '../shared/libraries.mjs';
-import { getLocale, resource, SOURCE_LOCALE } from './i18n';
+import { formatList, getLocale, resource, sharedText, SOURCE_LOCALE } from './i18n';
 
 const localize = (name, list, table) => list.map((option) => {
   const entry = table?.[name]?.[option.id];
@@ -34,3 +34,6 @@ export const L = new Proxy({}, {
 
 // 用 id 找目前語言的名稱（例如設定差異裡的舊值、新值）。
 export const optionLabel = (listName, id, fallback = '') => (id ? base.findOption(L[listName] || [], id)?.label || id : fallback);
+
+// 設定差異（describeChanges）的介面文字：欄位名、選項名、旋鈕刻度都依目前語言。
+export const diffText = { text: sharedText, option: (listName, id) => optionLabel(listName, id), step: (controlId, index) => L.mixerControls.find(control => control.id === controlId)?.steps[index], list: formatList };

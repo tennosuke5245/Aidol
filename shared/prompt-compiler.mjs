@@ -76,7 +76,8 @@ export function hasDna(character) {
   return Boolean(bodyParts(character?.dna).length || hairParts(character?.dna).length || faceParts(character?.dna).length || character?.palette?.length || character?.locks?.length);
 }
 
-export function compileBrief(character, { directionId, outfitId, framing } = {}) {
+// canon：有定稿時，長相以定稿圖為準，這份文字只補充定稿上看不到的部分（標題寫清楚，避免和定稿打架）。
+export function compileBrief(character, { directionId, outfitId, framing, canon = false } = {}) {
   const dna = character?.dna;
   const direction = directionOf(character, directionId);
   const { outfit, parts: outfitPartList } = outfitParts(character, outfitId);
@@ -108,7 +109,7 @@ export function compileBrief(character, { directionId, outfitId, framing } = {})
   ].filter(Boolean).join(', ');
   const lines = [];
   if (sections.length || direction) {
-    lines.push('## 結構化角色 DNA（AIDOL 編譯；角色長相以文字設定為準）');
+    lines.push(canon ? '## 結構化角色 DNA（AIDOL 編譯；長相以定稿為準，這裡只補充定稿上看不到的部分）' : '## 結構化角色 DNA（AIDOL 編譯；角色長相以文字設定為準）');
     for (const section of sections) lines.push(`- ${section.title}：${section.zh}${section.title === '鎖定特徵' ? '（每張都必須保留）' : ''}`);
     if (frame) lines.push(`- 取景：${frame.label}`);
     if (direction) {

@@ -5,7 +5,9 @@ export function firstImagePrompt(character, targetId = 'character') {
     const part = character.components[targetId];
     return `依照目前完整人物設定與已採用角色稿，為「${part.name}」產生完整部件正面設計候選。${part.description || ''} 保留角色辨識特徵、穿搭關係與繪風，未知細節提出設計候選。`;
   }
-  return `依照目前完整人物設定，為「${character.name}」產生第一張角色設定稿。呈現全身正面、背面與主要服裝辨識細節，維持人物年齡、外貌、個性、目前穿搭與指定繪風。尚待決定的外貌細節提出本次設計候選。先確立整體角色，再依採用稿逐一展開部件。`;
+  // 第一張是正面全身（2026-10-12 起分開畫）；採用後再一張張畫側面、背面，自動對齊成三視圖。
+  if ((character.style?.references || []).some((reference) => reference.canon)) return `照定稿為「${character.name}」畫正面全身：設計完全照定稿，不改髮型、五官、服裝與配色，畫成正面、A 字站姿的全身一個人。之後會照這張畫側面與背面。`;
+  return `為「${character.name}」畫正面全身：正面、A 字站姿的全身一個人。依照目前完整人物設定，維持人物年齡、外貌、個性、目前穿搭與指定繪風；尚待決定的外貌細節提出本次設計候選。之後會照這張畫側面與背面，再依採用稿逐一展開部件。`;
 }
 
 export function currentImageJob(project, targetId, outfitId, outputView = 'front') {
@@ -37,7 +39,7 @@ export async function prepareFirstImage({ projectId, targetId = 'character', out
   if (existing?.status === 'running') return { state: 'running', project, job: existing, outfitId: selectedOutfit };
   // options 只帶入這次工作的張數、畫風方向與取景；既有同版本工作仍優先沿用。
   const { variants, directionId, framing } = options;
-  const job = existing || await createJob(project.id, { targetId, outfitId: selectedOutfit, outputView: 'front', kind: 'generate', baseRevision: project.character.revision, prompt: firstImagePrompt(project.character, targetId), ...(variants ? { variants } : {}), ...(directionId ? { directionId } : {}), ...(framing ? { framing } : {}) });
+  const job = existing || await createJob(project.id, { targetId, outfitId: selectedOutfit, outputView: 'front', kind: 'generate', baseRevision: project.character.revision, prompt: firstImagePrompt(project.character, targetId), ...(variants ? { variants } : {}), ...(directionId ? { directionId } : {}), ...(framing || targetId === 'character' ? { framing: framing || 'frontView' } : {}) });
   const handoff = await handoffJob(project.id, job.id);
   return { state: 'handoff', project: await loadProject(project.id), handoff, outfitId: selectedOutfit };
 }

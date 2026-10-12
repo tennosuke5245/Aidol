@@ -10,10 +10,18 @@ import { Busy, DeleteCharacterConfirm, HistoryList, Modal, NewCharacterForm, Set
 import { Drawer, Lockup } from './ui';
 import { api, messageOf, targetLabel } from './api';
 import { t, useLocale } from './i18n';
+import { isAngleView } from '../shared/domain.mjs';
 
 // 預設的繪製要求用使用者目前的語言寫（Codex 讀得懂各種語言）。
-function defaultPrompt(character, targetId, view = 'front') {
-  if (targetId === 'character') return t('app.prompt.character', { name: character.name });
+// 三視圖：有定稿照定稿；已經有正式立繪（補畫三視圖）照立繪的設計；都沒有就照設定畫。
+// redo：這個角度已經有一張（重畫）。
+function defaultPrompt(character, targetId, view = 'front', framing, redo = false) {
+  const canon = (character.style?.references || []).some(reference => reference.canon);
+  // 畫三視圖的單一角度（側面或背面）：照正面畫。
+  if (targetId === 'character' && isAngleView(view)) return t(redo ? 'app.prompt.redrawView' : 'app.prompt.drawView', { name: character.name, view: t(`canvas.views.view.${view}`) });
+  if (targetId === 'character' && framing === 'frontView') return t(canon ? 'app.prompt.frontCanon' : character.adopted?.character ? 'app.prompt.frontFromPortrait' : 'app.prompt.front', { name: character.name });
+  if (targetId === 'character' && framing === 'turnaround') return t(canon ? 'app.prompt.turnaroundCanon' : character.adopted?.character ? 'app.prompt.turnaroundFromPortrait' : 'app.prompt.turnaround', { name: character.name });
+  if (targetId === 'character') return canon ? t('app.prompt.characterCanon', { name: character.name }) : t('app.prompt.character', { name: character.name });
   const part = character.components[targetId];
   return t('app.prompt.part', { name: part?.name || t('app.prompt.partFallback'), view: t(`app.prompt.view.${view}`, { defaultValue: '' }), description: part?.description || '' }).trim();
 }
@@ -40,9 +48,12 @@ export function App() {
   // 開始繪製：建立工作 → 準備交接 → 開好 Codex 新對話 → 打開翻牌畫面。
   const draw = ({ targetId = 'character', note = '', variants = 1, framing, view: outputView = 'front', baseRevision, outfitId: chosen, region, kind = 'generate', prompt }) => run(async () => {
     const character = project.character;
-    const text = prompt || note.trim() || defaultPrompt(character, targetId, outputView);
+    // 畫側面、背面：固定的要求加上使用者這次寫的（重畫時是「要修正」）。
+    const viewJob = targetId === 'character' && isAngleView(outputView);
+    const redo = viewJob && Boolean(project.views?.items?.[outputView]);
+    const text = prompt || (viewJob ? [defaultPrompt(character, targetId, outputView, framing, redo), note.trim() && t(redo ? 'app.prompt.viewFix' : 'app.prompt.viewNote', { note: note.trim() })].filter(Boolean).join('\n') : note.trim() || defaultPrompt(character, targetId, outputView, framing));
     const { job } = await studio.generate({
-      targetId, outfitId: chosen || outfitId, outputView: targetId === 'character' ? 'front' : outputView, kind, prompt: text, variants,
+      targetId, outfitId: chosen || outfitId, outputView: targetId === 'character' && !isAngleView(outputView) ? 'front' : outputView, kind, prompt: text, variants,
       ...(targetId === 'character' && framing ? { framing } : {}), ...(region ? { region } : {}), ...(baseRevision ? { baseRevision } : {}),
     });
     setSummonId(job.id);
@@ -60,9 +71,9 @@ export function App() {
     preview,
     draw,
     chatPending,
-    sendChat: async text => {
+    sendChat: async (text, options) => {
       setChatPending(true);
-      try { return await studio.sendChat(text); }
+      try { return await studio.sendChat(text, options); }
       catch (error) { notify(t('app.chatFailed', { message: messageOf(error) }), true); return undefined; }
       finally { setChatPending(false); }
     },
@@ -70,7 +81,9 @@ export function App() {
       const accepted = await studio.acceptProposal(id, baseRevision);
       notify(t('app.proposalApplied'));
       if (thenDraw) {
-        const { job } = await studio.generate({ targetId: 'character', outfitId: Object.keys(accepted.character.outfits)[0], outputView: 'front', kind: 'generate', prompt: defaultPrompt(accepted.character, 'character'), variants: 2, framing: 'sheet', baseRevision: accepted.character.revision });
+        // 第一張畫三視圖（採用後自動拆成正面、側面、背面）。
+        const framing = accepted.character.adopted?.character ? 'sheet' : 'frontView';
+        const { job } = await studio.generate({ targetId: 'character', outfitId: Object.keys(accepted.character.outfits)[0], outputView: 'front', kind: 'generate', prompt: defaultPrompt(accepted.character, 'character', 'front', framing), variants: 2, framing, baseRevision: accepted.character.revision });
         setSummonId(job.id);
       }
       return accepted;
@@ -93,12 +106,16 @@ export function App() {
     });
   });
 
-  async function createCharacter({ name, brief, file, role }) {
-    const created = await run(() => studio.createProject({ name, brief, file, role }));
+  async function createCharacter({ name, brief, file, role, canon }) {
+    const created = await run(() => studio.createProject({ name, brief, file, role, canon }));
     if (!created) return;
     setModal(null); setOutfitId(Object.keys(created.character.outfits)[0]); setMode('creator'); setView({ name: 'workspace' });
     try { localStorage.setItem('aidol-pref-category', JSON.stringify('persona')); } catch {}
-    if (brief) {
+    // 附了定稿：請 AI 照圖把外觀填進設定（和簡介一起送一次）。寫好的會先列出來，使用者按套用才改。
+    if (canon && file) {
+      notify(t('app.readingCanon'));
+      app.sendChat([t('creator.persona.readCanonRequest'), brief ? `${t('app.briefRequest', { name })}\n${brief}` : ''].filter(Boolean).join('\n'), { readCanon: true });
+    } else if (brief) {
       notify(t('app.writingFromBrief'));
       app.sendChat(`${t('app.briefRequest', { name })}\n${brief}`);
     }
@@ -113,7 +130,7 @@ export function App() {
   const reopen = jobId => run(() => studio.handoff(jobId));
   const copyPrompt = jobId => run(async () => { const result = await studio.handoff(jobId, { open: false }); await studio.copy(result.prompt); });
   const redraw = job => draw({ targetId: job.targetId, view: job.outputView, variants: job.variants || 1, framing: job.framing, prompt: job.prompt });
-  const refine = (asset, { note, region, variants }) => draw({ targetId: asset.targetId, view: asset.targetId === 'character' ? 'front' : asset.view || 'front', variants, region, kind: 'refine', prompt: note.trim() });
+  const refine = (asset, { note, region, variants }) => draw({ targetId: asset.targetId, view: asset.view || 'front', variants, region, kind: 'refine', prompt: note.trim() });
 
   if (studio.loading) return <div className="loading-screen"><Lockup height={44} /><Busy>{t('app.opening')}</Busy></div>;
   if (studio.fatal) return <div className="loading-screen"><WarningCircle size={36} /><h2 className="display">{t('app.notConnected')}</h2><p>{studio.fatal}</p><button type="button" className="btn btn-primary btn-lg" onClick={studio.initialize}>{t('app.reconnect')}</button></div>;

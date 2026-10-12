@@ -286,6 +286,8 @@
     "key": "Key visual"
   },
   "framings": {
+    "frontView": "Front, full body",
+    "turnaround": "Turnaround (one image)",
     "sheet": "Design sheet",
     "full": "Full body",
     "threeQuarter": "Three-quarter",

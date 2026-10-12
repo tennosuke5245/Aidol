@@ -30,7 +30,10 @@
     "portraitTitle": "正式立繪",
     "portraitHint": "點一下放大；在右邊調整外觀後，按「開始繪製」畫新的一張",
     "emptyTitle": "還沒有正式立繪",
-    "emptyHint": "先在右邊挑外觀，再按「畫第一張立繪」"
+    "emptyHint": "先在右邊挑外觀，再按「畫正面」",
+    "canonAlt": "{{name}} 的定稿",
+    "canonTitle": "這是定稿",
+    "canonHint": "還沒有正式立繪；按「畫正面」會照這張畫，設計不改"
   },
   "draw": {
     "notePlaceholder": "這次想畫什麼？例如：帥氣的站姿、拿著信件（可不填）",
@@ -40,7 +43,16 @@
     "count": "一次畫幾張",
     "preparing": "準備中…",
     "start": "開始繪製",
-    "first": "畫第一張立繪"
+    "first": "畫第一張立繪",
+    "canon": "照定稿畫：設計不改，只改這次的取景與排版",
+    "canonChanges": "這次要改：",
+    "canonChange": "{{label}}：{{from}} → {{to}}",
+    "canonMore": "還有 {{count}} 項",
+    "firstTurnaround": "畫三視圖",
+    "turnaroundNote": "三視圖：正面・側面・背面畫在同一張，採用後自動拆成三張",
+    "firstFront": "畫正面",
+    "frontNote": "先畫正面全身；選好之後在畫布上一張張補畫側面、背面，會自動對齊成三視圖",
+    "notePlaceholderFront": "有要特別注意的嗎？例如：袖子要長到蓋住手（可不填）"
   },
   "gear": {
     "add": "新增裝備",
@@ -157,7 +169,11 @@
       "clothing": "服裝結構",
       "material": "材質",
       "composition": "構圖"
-    }
+    },
+    "canon": "定稿・照這張畫",
+    "canonOn": "設為定稿：照這張畫，不改設計",
+    "canonOff": "取消定稿：改回一般參考",
+    "canonBadge": "定稿"
   },
   "persona": {
     "aiReady": "AI 寫好了",
@@ -185,6 +201,9 @@
     "asking": "AI 正在寫，約半分鐘…",
     "askButton": "讓 AI 補完設定",
     "askHint": "AI 寫好的內容會先列出來，你按「套用」才會改。",
-    "fillRequest": "依照目前的人設「{{profile}}」，幫我補完這個角色的設定與外觀。"
+    "fillRequest": "依照目前的人設「{{profile}}」，幫我補完這個角色的設定與外觀。",
+    "readCanon": "照定稿填外觀",
+    "readCanonHint": "AI 看定稿圖，把髮型、眼睛、服裝、配色等看得到的外觀填進設定；寫好會先列出來，你按套用才會改。",
+    "readCanonRequest": "照定稿圖把看得到的外觀填進設定。"
   }
 }

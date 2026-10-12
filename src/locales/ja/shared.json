@@ -31,6 +31,10 @@
       "full": "全体のメイン画像",
       "back": "背面",
       "detail": "細部",
+      "side": "側面",
+      "frontQuarter": "斜め前の絵",
+      "backQuarter": "斜め後ろの絵",
+      "otherSide": "反対側の絵",
       "unknown": "ビュー不明"
     }
   },

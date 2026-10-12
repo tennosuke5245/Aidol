@@ -5,9 +5,11 @@ import { randomUUID, createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { ZipArchive } from 'archiver';
-import { DomainError, idPattern, outputViews, viewLabels, validateCharacter, parseCharacterYaml, characterYaml, newCharacter, demoCharacter } from '../shared/domain.mjs';
+import { DomainError, idPattern, outputViews, viewLabels, turnaroundViews, allViews, extraViews, turnaroundLabels, viewSpecs, validateCharacter, parseCharacterYaml, characterYaml, newCharacter, demoCharacter } from '../shared/domain.mjs';
 import { validateCanvasAnnotationInput, canvasAnnotationDefaults } from '../shared/canvas-annotations.mjs';
 import { compileBrief } from '../shared/prompt-compiler.mjs';
+import { canonChanges } from '../shared/canon.mjs';
+import { FRONT_SPEC, TURNAROUND_SPEC, normalizeViewBoxes, viewNotesText, bodyRect, toBodyPoint, toImagePoint, NOTE_LIMIT, NOTE_TEXT_MAX, NOTE_TITLE_MAX } from '../shared/turnaround.mjs';
 
 const referenceRoleLabels = { style: '繪風參考', identity: '角色特徵參考', color: '配色參考', clothing: '服裝結構參考', material: '材質參考', composition: '構圖參考' };
 import { mergeCharacter } from '../shared/character-diff.mjs';
@@ -133,6 +135,8 @@ export class ProjectStore {
     this.demo = demo;
     this.locks = new Map();
     this.decomposing = new Set();
+    // 正在背景找三視圖的角色（核心重開後就不在這裡，畫面會看到「中斷了，可以再試一次」）。
+    this.detectingViews = new Set();
     this.folderReleaser = null;
     this.moveAttempts = 6; // 資料夾被佔用時，一輪搬移最多試幾次（約兩秒）。
     this.ready = null;
@@ -324,8 +328,11 @@ export class ProjectStore {
 
   _public(state) {
     const result = clone(state);
+    if (result.views?.status === 'detecting' && !this.detectingViews.has(state.id)) result.views = { ...result.views, status: 'failed', error: '找三視圖中斷了（核心重新啟動過），可以再試一次。', errorCode: 'VIEWS_INTERRUPTED' };
     // 2026-10-07 起畫好的圖不論用哪一版設定都可採用；olderSettings 只是提示「用較早設定畫的」。
     result.candidates = result.candidates.map((candidate) => ({ ...candidate, olderSettings: candidate.baseRevision !== state.character.revision }));
+    // 標註存的是人物範圍裡的位置；畫面要的是在目前那張角度圖上的位置。
+    if (result.viewNotes) result.viewNotes = result.viewNotes.map((note) => ({ ...note, ...toImagePoint(note, bodyRect(result.views, note.view)) }));
     result.proposals = result.proposals.map((proposal) => ({ ...proposal, olderSettings: proposal.baseRevision !== state.character.revision }));
     return result;
   }
@@ -450,7 +457,7 @@ export class ProjectStore {
     if (character.revision !== state.character.revision) throw new DomainError('YAML 的 revision 必須與目前版本相同；版本由系統更新。', 409, 'REVISION_CONFLICT', { currentRevision: state.character.revision });
     for (const [target, assetId] of Object.entries(character.adopted)) {
       const asset = state.assets.find((item) => item.id === assetId);
-      if (asset.targetId !== target || asset.role === 'reference') throw new DomainError('採用稿必須是相同部位的設計圖片。', 422, 'ASSET_TARGET_MISMATCH');
+      if (asset.targetId !== target || ['reference', 'view'].includes(asset.role)) throw new DomainError('採用稿必須是相同部位的設計圖片。', 422, 'ASSET_TARGET_MISMATCH');
       if (target === 'character' ? asset.view !== 'front' : !['front', 'full'].includes(asset.view)) throw new DomainError('角色及部件主圖不可使用背面或細節稿；請保存到對應視角。', 422, 'INVALID_PRIMARY_VIEW');
     }
     for (const component of Object.values(character.components)) {
@@ -540,7 +547,7 @@ export class ProjectStore {
     return this._withProject(id, async () => {
       const state = await this._read(id);
       const asset = state.assets.find((item) => item.id === (assetId || state.character.adopted.character));
-      if (!asset || asset.targetId !== 'character' || asset.role !== 'design') throw new DomainError('要先有正式立繪，才能拆解裝備。', 409, 'NO_PORTRAIT');
+      if (!asset || asset.targetId !== 'character' || asset.role !== 'design' || asset.view !== 'front') throw new DomainError('要先有正式立繪，才能拆解裝備。', 409, 'NO_PORTRAIT');
       const current = state.decomposition;
       if (current?.status === 'running' && current.assetId === asset.id && Date.now() - Date.parse(current.startedAt) < 10 * 60 * 1000) return { project: this._public(state), asset, path: await this._assetPath(id, asset), skipped: true };
       state.decomposition = { status: 'running', assetId: asset.id, auto: Boolean(auto), startedAt: now() };
@@ -549,7 +556,7 @@ export class ProjectStore {
     });
   }
 
-  async finishDecomposition(id, { assetId, parts = [], summary = '', threadId = null } = {}) {
+  async finishDecomposition(id, { assetId, parts = [], views = [], summary = '', threadId = null } = {}) {
     return this._withProject(id, async () => {
       const state = await this._read(id);
       // 期間又換了立繪、重新拆解時，舊結果不套用。
@@ -590,7 +597,294 @@ export class ProjectStore {
         this._history(state, added ? `AI 拆解裝備：新增 ${added} 件` : 'AI 拆解裝備：更新位置', added ? 'decomposeAdded' : 'decomposeMoved', added ? { count: added } : undefined);
       }
       state.decomposition = { status: 'done', assetId, auto: state.decomposition.auto, startedAt: state.decomposition.startedAt, finishedAt, added, updated, summary: String(summary || '').slice(0, 500), ...(threadId ? { threadId } : {}) };
+      // 三視圖：AI 找到兩個以上的角度才拆（只有一個人就不是三視圖）。同一張圖已經拆好（自動或手動調過）就不重拆。
+      // 只有一個人、AI 說是正面，而且這張是用全身取景畫的（全身、正面全身）：直接當正面，接著就能補畫其他角度，不用再按「當正面」。
+      const boxes = normalizeViewBoxes(views);
+      const candidate = state.candidates.find((item) => item.assetId === assetId);
+      const sourceJob = candidate && state.jobs.find((job) => job.id === candidate.jobId);
+      const singleFront = boxes.length === 1 && boxes[0].view === 'front' && ['full', 'frontView'].includes(sourceJob?.framing);
+      // 已經在拆或拆好（例如分開畫的正面，採用時就直接拆了）就不動。
+      if (!(state.views?.assetId === assetId && ['boxes', 'done'].includes(state.views.status))) {
+        // 正面全身的規格是素色背景，整張當正面；一般全身可能有背景，照 AI 的框（四周多留一點）裁。
+        const pad = (box) => { const x = Math.max(0, box.x - 0.03), y = Math.max(0, box.y - 0.03); return { view: 'front', x, y, width: Math.min(1, box.x + box.width + 0.03) - x, height: Math.min(1, box.y + box.height + 0.03) - y }; };
+        state.views = singleFront ? { ...this._frontOnlyViews(assetId), ...(sourceJob.framing === 'full' ? { boxes: [pad(boxes[0])] } : {}), updatedAt: finishedAt } : { assetId, status: boxes.length >= 2 ? 'boxes' : 'none', boxes, items: {}, updatedAt: finishedAt };
+      }
       if (added || updated) await this._save(state); else await this._saveMetadata(state);
+      return this._public(state);
+    });
+  }
+
+  // 三視圖拆好的三張：畫面依 AI 給的位置（或使用者手動調的框）裁好 PNG 送回來，這裡存成新的圖片（不覆寫原圖）。
+  // 只接受目前正式三視圖的裁切；期間換了正式圖就不存（避免拿舊圖的裁切蓋到新圖上）。
+  // manual：使用者在「調整裁切」裡框的；boxes 是那些框，下次打開調整時從這裡開始。
+  async saveViews(id, { assetId, manual = false, boxes, items = [] } = {}) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      if (!assetId || assetId !== state.character.adopted.character) throw new DomainError('正式三視圖已經換過了，這次的裁切沒有存。', 409, 'VIEWS_STALE');
+      // 自動拆分只做一次（例如同時開著兩個視窗）；要重拆請用手動調整。
+      if (!manual && state.views?.assetId === assetId && state.views.status === 'done') return this._public(state);
+      const unit = (value) => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
+      const box = (value) => value && typeof value === 'object' && ['x', 'y', 'width', 'height'].every((key) => unit(value[key])) && value.width > 0 && value.height > 0 && value.x + value.width <= 1.000001 && value.y + value.height <= 1.000001;
+      // frame：裁好的圖對應到原圖的範圍；左右補了背景色時會超出圖片一點。
+      const frame = (value) => value && typeof value === 'object' && ['x', 'y', 'width', 'height'].every((key) => typeof value[key] === 'number' && Number.isFinite(value[key])) && value.x >= -1 && value.y >= -1 && value.width > 0 && value.height > 0 && value.x + value.width <= 2 && value.y + value.height <= 2;
+      const seen = new Set();
+      if (!Array.isArray(items) || !items.length || items.length > turnaroundViews.length) throw new DomainError('三視圖的裁切資料不正確。', 422, 'INVALID_VIEWS');
+      for (const item of items) {
+        if (!turnaroundViews.includes(item?.view) || seen.has(item.view) || !box(item.crop) || (item.figure !== undefined && !box(item.figure)) || (item.frame !== undefined && !frame(item.frame))) throw new DomainError('三視圖的裁切資料不正確。', 422, 'INVALID_VIEWS');
+        if (!Buffer.isBuffer(item.buffer) || !item.buffer.length || item.buffer.length > 25 * 1024 * 1024 || imageMime(item.buffer) !== 'image/png') throw new DomainError('三視圖的裁切圖必須是 PNG。', 422, 'INVALID_IMAGE');
+        seen.add(item.view);
+      }
+      const createdAt = now();
+      const saved = {};
+      const written = [];
+      try {
+        for (const item of items) {
+          const viewAssetId = uid('view');
+          const filePath = path.join(this.projectDir(id), 'assets', `${viewAssetId}.png`);
+          await fs.mkdir(path.dirname(filePath), { recursive: true });
+          await fs.writeFile(filePath, item.buffer, { flag: 'wx' });
+          written.push(filePath);
+          state.assets.push({ id: viewAssetId, url: `/api/projects/${id}/assets/${viewAssetId}`, name: turnaroundLabels[item.view], targetId: 'character', role: 'view', view: item.view, fromAssetId: assetId, createdAt, mimeType: 'image/png', sha256: createHash('sha256').update(item.buffer).digest('hex') });
+          const pick = (value) => value && { x: value.x, y: value.y, width: value.width, height: value.height };
+          saved[item.view] = { assetId: viewAssetId, crop: pick(item.crop), ...(item.frame ? { frame: pick(item.frame) } : {}), ...(item.figure ? { figure: pick(item.figure) } : {}) };
+        }
+        // 手動調整時，使用者拿掉的角度就不留；自動拆分沿用同一張圖已經拆好的其他角度。
+        const same = state.views?.assetId === assetId;
+        // 手動重裁時留下的重畫角度改回交回來的原圖，畫面會照新的大小再調一次。
+      const keep = same ? Object.fromEntries(Object.entries(state.views.items || {}).filter(([, item]) => !manual || item.redrawn).map(([view, item]) => [view, manual && item.redrawn ? { assetId: item.sourceAssetId, sourceAssetId: item.sourceAssetId, redrawn: true } : item])) : {};
+        const manualBoxes = manual ? normalizeViewBoxes(boxes) : [];
+        // 重新裁切後，同一張三視圖舊的裁切圖就用不到了（可以隨時從原圖再裁），從角色裡移除，不讓它們一直累積。
+        const nextItems = { ...keep, ...saved };
+        const inUse = new Set(Object.values(nextItems).map((item) => item.assetId));
+        const replaced = same ? Object.values(state.views.items || {}).map((item) => item.assetId).filter((viewId) => !inUse.has(viewId)) : [];
+        const replacedAssets = state.assets.filter((asset) => replaced.includes(asset.id) && asset.role === 'view' && !this._usedByOpenJobs(state, asset.id));
+        state.assets = state.assets.filter((asset) => !replacedAssets.includes(asset));
+        state.views = { assetId, status: 'done', boxes: manualBoxes.length ? manualBoxes : same ? state.views.boxes || [] : [], items: nextItems, ...(same && state.views.extra?.length ? { extra: state.views.extra } : {}), manual: Boolean(manual || (same && state.views.manual)), updatedAt: createdAt };
+        await this._saveMetadata(state);
+        for (const asset of replacedAssets) await fs.rm(await this._assetPath(id, asset), { force: true }).catch(() => {});
+      } catch (error) {
+        // 寫到一半失敗：剛寫的圖檔不留在資料夾裡。
+        for (const filePath of written) await fs.rm(filePath, { force: true }).catch(() => {});
+        throw error;
+      }
+      return this._public(state);
+    });
+  }
+
+  // 重畫的角度採用後，畫面把它調成和其他兩張一樣的大小、身高與腳底位置，存成新的圖（交回來的原圖留在圖鑑）。
+  async saveNormalizedView(id, { view, sourceAssetId, buffer } = {}) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      const views = state.views;
+      const item = views?.items?.[view];
+      if (!(views?.status === 'done' && views.assetId === state.character.adopted.character) || !item?.redrawn || item.sourceAssetId !== sourceAssetId) throw new DomainError('三視圖已經換過了，這次的調整沒有存。', 409, 'VIEWS_STALE');
+      if (!Buffer.isBuffer(buffer) || !buffer.length || buffer.length > 25 * 1024 * 1024 || imageMime(buffer) !== 'image/png') throw new DomainError('三視圖的裁切圖必須是 PNG。', 422, 'INVALID_IMAGE');
+      if (item.assetId !== item.sourceAssetId) return this._public(state);
+      const viewAssetId = uid('view');
+      const filePath = path.join(this.projectDir(id), 'assets', `${viewAssetId}.png`);
+      await fs.mkdir(path.dirname(filePath), { recursive: true });
+      await fs.writeFile(filePath, buffer, { flag: 'wx' });
+      try {
+        state.assets.push({ id: viewAssetId, url: `/api/projects/${id}/assets/${viewAssetId}`, name: turnaroundLabels[view], targetId: 'character', role: 'view', view, fromAssetId: sourceAssetId, createdAt: now(), mimeType: 'image/png', sha256: createHash('sha256').update(buffer).digest('hex') });
+        views.items = { ...views.items, [view]: { assetId: viewAssetId, sourceAssetId, redrawn: true, normalized: true } };
+        views.updatedAt = now();
+        await this._saveMetadata(state);
+      } catch (error) {
+        await fs.rm(filePath, { force: true }).catch(() => {});
+        throw error;
+      }
+      return this._public(state);
+    });
+  }
+
+  // 已經有三視圖（或任何一張正式圖）：不用畫，直接當正式立繪。來源是上傳的圖，或角色已有的參考圖（例如建立時附上的定稿）；
+  // 都另存一份新的設計圖，原圖不動。採用後和畫好的一樣會自動拆解、找三視圖。
+  async importMainImage(id, { buffer, mimeType, name = '匯入的三視圖', fromAssetId, outfitId, baseRevision } = {}) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      this._cas(state, baseRevision);
+      let content = buffer, label = name;
+      if (fromAssetId) {
+        const source = state.assets.find((item) => item.id === fromAssetId);
+        if (!source || source.role !== 'reference') throw new DomainError('找不到這張參考圖。', 404, 'ASSET_NOT_FOUND');
+        content = await fs.readFile(await this._assetPath(id, source));
+        label = source.name;
+      }
+      if (!Buffer.isBuffer(content) || !content.length || content.length > 25 * 1024 * 1024) throw new DomainError('圖片不可為空，且必須小於 25 MB。', 422, 'INVALID_IMAGE_SIZE');
+      const actualMime = imageMime(content);
+      if (!actualMime || (mimeType && !fromAssetId && actualMime !== mimeType)) throw new DomainError('請提供 PNG、JPEG、WebP 或 GIF 圖片，檔案內容須與格式相符。', 422, 'INVALID_IMAGE');
+      if (typeof label !== 'string' || label.length > 250) throw new DomainError('圖片名稱過長。', 422, 'ASSET_NAME_TOO_LONG');
+      if (outfitId !== undefined && (typeof outfitId !== 'string' || !Object.hasOwn(state.character.outfits, outfitId))) throw new DomainError('找不到這次指定的穿搭。', 422, 'UNKNOWN_OUTFIT');
+      const assetId = uid('asset');
+      const filePath = path.join(this.projectDir(id), 'assets', `${assetId}${mimeExtensions[actualMime]}`);
+      await fs.mkdir(path.dirname(filePath), { recursive: true });
+      await fs.writeFile(filePath, content, { flag: 'wx' });
+      try {
+        const asset = { id: assetId, url: `/api/projects/${id}/assets/${assetId}`, name: label.trim() || '圖片', targetId: 'character', role: 'design', view: 'front', version: state.assets.filter((item) => item.targetId === 'character' && item.role === 'design' && item.view === 'front').length + 1, createdAt: now(), mimeType: actualMime, sha256: createHash('sha256').update(content).digest('hex'), imported: true, ...(outfitId ? { outfitId } : {}) };
+        state.assets.push(asset);
+        state.character.adopted.character = assetId;
+        state.syncTargets = state.syncTargets.filter((target) => target !== 'character');
+        this._validateUpdate(state, { character: state.character });
+        state.character.revision += 1;
+        this._history(state, '匯入正式三視圖', 'sheetImported');
+        await this._save(state);
+        return { project: this._public(state), asset: clone(asset) };
+      } catch (error) {
+        await fs.rm(filePath, { force: true }).catch(() => {});
+        throw error;
+      }
+    });
+  }
+
+  // 還沒結束的工作附了這張圖（例如已經交給 Codex、還沒畫完）：先留著，免得它讀不到要照著畫的圖。
+  _usedByOpenJobs(state, assetId) {
+    return state.jobs.some((job) => !['accepted', 'cancelled'].includes(job.status) && (job.context?.referenceAssets || []).some((asset) => asset.id === assetId));
+  }
+
+  _frontOnlyViews(assetId) {
+    return { assetId, status: 'boxes', boxes: [{ view: 'front', x: 0, y: 0, width: 1, height: 1 }], items: {}, single: true, updatedAt: now() };
+  }
+
+  // ── 加角度 ──
+  // 三視圖以外的角度（斜前方、斜後方、另一側）：先放一個空位，之後照正面畫。只有拆好正面才能加。
+  async addExtraView(id, { view } = {}) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      if (!extraViews.includes(view)) throw new DomainError('不支援這個角度。', 422, 'INVALID_OUTPUT_VIEW');
+      const views = state.views;
+      if (!(views?.status === 'done' && views.assetId === state.character.adopted.character && views.items?.front)) throw new DomainError('要先有拆好的正面，才能畫側面或背面。', 409, 'VIEWS_NOT_READY');
+      if (!(views.extra || []).includes(view)) views.extra = allViews.filter((item) => item === view || (views.extra || []).includes(item));
+      views.updatedAt = now();
+      await this._saveMetadata(state);
+      return this._public(state);
+    });
+  }
+
+  // 拿掉加的角度：空位、畫好的那張與標在上面的標註都從三視圖拿掉（交回來的原圖留在圖鑑）。三視圖的基本三個角度不能拿掉。
+  async removeExtraView(id, view) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      if (!extraViews.includes(view)) throw new DomainError('不支援這個角度。', 422, 'INVALID_OUTPUT_VIEW');
+      const views = state.views;
+      if (!views) return this._public(state);
+      const item = views.items?.[view];
+      const removed = item && item.assetId !== item.sourceAssetId ? state.assets.find((asset) => asset.id === item.assetId && asset.role === 'view' && !this._usedByOpenJobs(state, asset.id)) : null;
+      views.extra = (views.extra || []).filter((item) => item !== view);
+      if (item) { const { [view]: _, ...rest } = views.items; views.items = rest; }
+      // 標在這個角度上的標註一起拿掉（畫面上確認時會先說有幾個）。
+      state.viewNotes = (state.viewNotes || []).filter((note) => note.view !== view);
+      if (removed) state.assets = state.assets.filter((asset) => asset !== removed);
+      views.updatedAt = now();
+      await this._saveMetadata(state);
+      if (removed) await fs.rm(await this._assetPath(id, removed), { force: true }).catch(() => {});
+      return this._public(state);
+    });
+  }
+
+  // ── 設計標註 ──
+  // 畫面送來的是那張角度圖上的位置（x、y：0–1）；存成人物範圍裡的相對位置（bx、by），重新裁切後仍標在同一個部位。
+  // 說明的換行收成一個空白：交給 AI 時每個標註是一行。只能標在已經有圖的角度上。
+  _note(state, input, existing) {
+    const note = { ...(existing || {}) };
+    const unit = (value) => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
+    const view = input.view ?? note.view;
+    if (!allViews.includes(view)) throw new DomainError('標註的位置不正確。', 422, 'INVALID_NOTE');
+    if (input.x !== undefined || input.y !== undefined || !existing || view !== note.view) {
+      if (!unit(input.x) || !unit(input.y) || !state.views?.items?.[view]) throw new DomainError('標註的位置不正確。', 422, 'INVALID_NOTE');
+      Object.assign(note, toBodyPoint({ x: input.x, y: input.y }, bodyRect(state.views, view)));
+    }
+    const clean = (value) => (typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '');
+    const title = input.title !== undefined ? clean(input.title) : note.title || '';
+    const text = input.text !== undefined ? clean(input.text) : note.text || '';
+    if (!text || text.length > NOTE_TEXT_MAX || title.length > NOTE_TITLE_MAX) throw new DomainError(`標註要寫說明（${NOTE_TEXT_MAX} 字以內），名稱 ${NOTE_TITLE_MAX} 字以內。`, 422, 'INVALID_NOTE');
+    return { id: note.id, view, bx: note.bx, by: note.by, title, text, createdAt: note.createdAt, updatedAt: now() };
+  }
+
+  async createViewNote(id, input = {}) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      state.viewNotes = state.viewNotes || [];
+      if (state.viewNotes.length >= NOTE_LIMIT) throw new DomainError(`標註最多 ${NOTE_LIMIT} 個。`, 422, 'TOO_MANY_NOTES');
+      const createdAt = now();
+      state.viewNotes.push(this._note(state, { view: input.view, x: input.x, y: input.y, title: input.title ?? '', text: input.text ?? '' }, { id: uid('note'), createdAt }));
+      await this._saveMetadata(state);
+      return this._public(state);
+    });
+  }
+
+  async updateViewNote(id, noteId, patch = {}) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      const index = (state.viewNotes || []).findIndex((note) => note.id === noteId);
+      if (index === -1) throw new DomainError('找不到這個標註。', 404, 'NOTE_NOT_FOUND');
+      const allowed = Object.fromEntries(['view', 'x', 'y', 'title', 'text'].filter((key) => patch[key] !== undefined).map((key) => [key, patch[key]]));
+      state.viewNotes[index] = this._note(state, allowed, state.viewNotes[index]);
+      await this._saveMetadata(state);
+      return this._public(state);
+    });
+  }
+
+  async deleteViewNote(id, noteId) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      const before = (state.viewNotes || []).length;
+      state.viewNotes = (state.viewNotes || []).filter((note) => note.id !== noteId);
+      if (state.viewNotes.length === before) throw new DomainError('找不到這個標註。', 404, 'NOTE_NOT_FOUND');
+      await this._saveMetadata(state);
+      return this._public(state);
+    });
+  }
+
+  // 舊角色只有一張立繪：把整張當正面，之後補畫側面、背面。
+  async useMainAsFront(id) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      const asset = state.assets.find((item) => item.id === state.character.adopted.character);
+      if (!asset || asset.targetId !== 'character' || asset.role !== 'design') throw new DomainError('要先有正式立繪。', 409, 'NO_PORTRAIT');
+      state.views = this._frontOnlyViews(asset.id);
+      await this._saveMetadata(state);
+      return this._public(state);
+    });
+  }
+
+  // 找出正式圖上的正面／側面／背面：給舊角色或功能加入前就採用的圖用（新的三視圖在拆解裝備時就一起找了）。
+  // 在背景執行，狀態記在 project.json 的 views，畫面以輪詢看結果。
+  async startViewDetection(id) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      const asset = state.assets.find((item) => item.id === state.character.adopted.character);
+      if (!asset || asset.targetId !== 'character' || asset.role !== 'design') throw new DomainError('要先有正式立繪，才能拆出三視圖。', 409, 'NO_PORTRAIT');
+      const current = state.views;
+      if (current?.status === 'detecting' && current.assetId === asset.id && this.detectingViews.has(id)) return { project: this._public(state), asset, path: await this._assetPath(id, asset), skipped: true };
+      const startedAt = now();
+      state.views = { assetId: asset.id, status: 'detecting', boxes: [], items: {}, startedAt, updatedAt: startedAt };
+      await this._saveMetadata(state);
+      this.detectingViews.add(id);
+      return { project: this._public(state), asset, path: await this._assetPath(id, asset) };
+    });
+  }
+
+  markDetectingViews(id, running) { if (running) this.detectingViews.add(id); else this.detectingViews.delete(id); }
+
+  async finishViewDetection(id, { assetId, views = [] } = {}) {
+    return this._withProject(id, async () => {
+      this.detectingViews.delete(id);
+      const state = await this._read(id);
+      if (state.views?.status !== 'detecting' || state.views.assetId !== assetId) return this._public(state);
+      const boxes = normalizeViewBoxes(views);
+      state.views = { assetId, status: boxes.length >= 2 ? 'boxes' : 'none', boxes, items: {}, updatedAt: now() };
+      await this._saveMetadata(state);
+      return this._public(state);
+    });
+  }
+
+  async failViewDetection(id, { assetId, message, code } = {}) {
+    return this._withProject(id, async () => {
+      this.detectingViews.delete(id);
+      const state = await this._read(id);
+      if (state.views?.status !== 'detecting' || state.views.assetId !== assetId) return this._public(state);
+      state.views = { ...state.views, status: 'failed', error: String(message || '沒有找到三視圖。').slice(0, 500), ...(typeof code === 'string' && /^[A-Z_]{1,64}$/.test(code) ? { errorCode: code } : {}), updatedAt: now() };
+      await this._saveMetadata(state);
       return this._public(state);
     });
   }
@@ -629,7 +923,14 @@ export class ProjectStore {
       const state = await this._read(id);
       this._cas(state, baseRevision);
       this._target(state, targetId);
-      if (!outputViews.includes(outputView) || (targetId === 'character' && outputView !== 'front')) throw new DomainError(targetId === 'character' ? '角色整體工作只接受 front，完整設定稿內可以包含前後視角。' : '輸出視角必須是 front、full、back 或 detail。', 422, 'INVALID_OUTPUT_VIEW');
+      if (targetId === 'character' ? !allViews.includes(outputView) : !outputViews.includes(outputView)) throw new DomainError(targetId === 'character' ? '角色工作只接受 front（整張），或三視圖的一個角度（side、back、frontQuarter、backQuarter、otherSide）。' : '輸出視角必須是 front、full、back 或 detail。', 422, 'INVALID_OUTPUT_VIEW');
+      // 畫（或重畫）三視圖的單一角度（側面、背面或加的角度）：要先有拆好的正面，設計照正面與其他已確認的角度畫。
+      // 不附這個角度原本的那張（多半就是畫壞了才重畫，附了 AI 會照抄），也不附整張正式圖（三視圖裡有畫壞的那個角度）。
+      const viewRedraw = targetId === 'character' && outputView !== 'front';
+      const views = state.views;
+      if (viewRedraw && !(views?.status === 'done' && views.assetId === state.character.adopted.character && views.items?.front)) throw new DomainError('要先有拆好的正面，才能畫側面或背面。', 409, 'VIEWS_NOT_READY');
+      const viewRedo = viewRedraw && Boolean(views.items?.[outputView]);
+      const otherViews = viewRedraw ? Object.entries(views.items).filter(([view]) => view !== outputView).map(([view, item]) => ({ view, assetId: item.assetId })) : [];
       const outfitIds = Object.keys(state.character.outfits);
       if (outfitId !== undefined && (typeof outfitId !== 'string' || !Object.hasOwn(state.character.outfits, outfitId))) throw new DomainError('找不到這次工作指定的穿搭。', 422, 'UNKNOWN_OUTFIT');
       if (outfitId === undefined && outfitIds.length > 1) throw new DomainError('角色有多套穿搭，請明確選擇這次工作使用的穿搭。', 422, 'MISSING_OUTFIT');
@@ -647,41 +948,63 @@ export class ProjectStore {
       const equippedAssets = (selectedOutfit?.equipped || []).filter((item) => item.enabled).map((item) => state.character.adopted[item.componentId]);
       const relatedPartIds = new Set([...(targetId !== 'character' ? [targetId] : []), ...(selectedOutfit?.equipped || []).filter((item) => item.enabled).map((item) => item.componentId)]);
       const viewAssets = [...relatedPartIds].flatMap((partId) => Object.values(state.character.components[partId]?.views || {}));
-      const referenceIds = new Set([state.character.adopted.character, state.character.adopted[targetId], ...equippedAssets, ...viewAssets, ...state.character.style.references.map((reference) => reference.assetId)].filter(Boolean));
+      const referenceIds = new Set([...(viewRedraw ? otherViews.map((item) => item.assetId) : [state.character.adopted.character, state.character.adopted[targetId]]), ...equippedAssets, ...viewAssets, ...state.character.style.references.map((reference) => reference.assetId)].filter(Boolean));
       const referenceAssets = await Promise.all(state.assets.filter((asset) => referenceIds.has(asset.id)).map(async (asset) => ({ ...asset, path: await this._assetPath(id, asset), sha256: await fs.readFile(await this._assetPath(id, asset)).then((content) => createHash('sha256').update(content).digest('hex'), () => null) })));
       if (referenceAssets.some((asset) => !asset.sha256)) throw new DomainError('這次工作使用的參考圖片尚未就緒，請待素材完成後再建立工作。', 409, 'MISSING_REFERENCE');
       const outfitInstruction = selectedOutfit ? `本次穿搭：${selectedOutfit.name}（ID：${selectedOutfit.id}）。只依這套穿搭的 enabled=true 裝備生成整體；其他穿搭僅供背景參考，不得合併穿戴。${targetId !== 'character' && !selectedOutfit.equipped.some((item) => item.componentId === targetId && item.enabled) ? '目標部件目前未穿戴：本次僅設計部件，不自動加入穿搭。' : ''}` : '目前尚未設定穿搭；請設計角色草案，不得將未知服裝宣稱為已確認。';
-      const viewInstruction = `本次輸出視角：${viewLabels[outputView]}（view：${outputView}）。${targetId === 'character' ? '輸出完整角色設定稿，可在同一稿內呈現前後視角。' : ['back', 'detail'].includes(outputView) ? '這份候選採用後只保存對應視角，不取代部件主圖。' : '這份候選採用後會更新部件主圖。'}回收時的 view 必須與本次輸出視角相同。`;
-      const compiled = compileBrief(state.character, { directionId, outfitId: selectedOutfitId, framing });
+      const viewLabel = turnaroundLabels[outputView];
+      const viewInstruction = viewRedraw ? `本次輸出：三視圖的「${viewLabel}」（view：${outputView}）。只畫一個全身的${viewLabel}。${viewSpecs[outputView]}設計完全照附上的正面（定稿）${otherViews.length > 1 ? '與已確認的其他角度' : ''}，髮型、五官、服裝、配色、配件與頭身比例都不改，身高和正面一樣；中性 A 字站姿、正交視角、淺灰素色背景，不加文字或其他人物。${viewRedo ? `原本的${viewLabel}有問題，這次重畫；沒有附上原本那張，不要沿用它的畫法或錯誤。` : ''}採用後放進三視圖的${viewLabel}，不取代正式立繪。回收時的 view 必須是 ${outputView}。`
+        : targetId === 'character' && framing === 'frontView' ? `本次輸出：正面全身（view：front）。${FRONT_SPEC}回收時的 view 必須是 front。`
+        : targetId === 'character' && framing === 'turnaround' ? `本次輸出：三視圖（view：front）。${TURNAROUND_SPEC}回收時的 view 必須是 front。` : `本次輸出視角：${viewLabels[outputView]}（view：${outputView}）。${targetId === 'character' ? '輸出完整角色設定稿，可在同一稿內呈現前後視角。' : ['back', 'detail'].includes(outputView) ? '這份候選採用後只保存對應視角，不取代部件主圖。' : '這份候選採用後會更新部件主圖。'}回收時的 view 必須與本次輸出視角相同。`;
+      // 設計標註：設計師在角度圖上標的重點（例如尾巴從哪裡長出來），畫角色的任何圖都附上。
+      const noteInstruction = targetId === 'character' ? viewNotesText(state) : '';
+      // 重畫單一角度時，正式三視圖就是這次的定稿。
+      const hasCanon = viewRedraw || state.character.style.references.some((reference) => reference.canon && referenceIds.has(reference.assetId));
+      const compiled = compileBrief(state.character, { directionId, outfitId: selectedOutfitId, framing, canon: hasCanon });
       const variantInstruction = variants > 1 ? `本次請產生 ${variants} 張候選，彼此在構圖或細節上可有變化，但都必須符合同一份設定與鎖定特徵；每張分別提交為待審候選。` : '';
-      const yaml = `${[outfitInstruction, viewInstruction].flatMap((instruction) => instruction.split(/\r?\n/).map((line) => `# ${line}`)).join('\n')}\n${characterYaml(state.character)}`;
+      const yaml = `${[outfitInstruction, viewInstruction, noteInstruction].filter(Boolean).flatMap((instruction) => instruction.split(/\r?\n/).map((line) => `# ${line}`)).join('\n')}\n${characterYaml(state.character)}`;
       const snapshotPath = path.join(this.jobDir(id, jobId), 'input.yaml');
       const instructionsPath = path.join(this.jobDir(id, jobId), 'instructions.md');
       // 每張固定輸入都標出用途：繪風參考管「畫法」，正式立繪與裝備圖只管「長相與服裝」，避免舊圖的畫法蓋掉新的繪風參考。
-      const styleReferences = state.character.style.references.filter((reference) => referenceIds.has(reference.assetId)).map((reference) => ({ id: reference.id, assetId: reference.assetId, role: reference.role, focus: reference.focus || [], name: state.assets.find((asset) => asset.id === reference.assetId)?.name || reference.assetId }));
+      const styleReferences = state.character.style.references.filter((reference) => referenceIds.has(reference.assetId)).map((reference) => ({ id: reference.id, assetId: reference.assetId, role: reference.role, focus: reference.focus || [], ...(reference.canon ? { canon: true } : {}), name: state.assets.find((asset) => asset.id === reference.assetId)?.name || reference.assetId }));
       const drawingStyle = styleReferences.filter((reference) => reference.role === 'style');
       const focusText = (reference) => reference.focus.join('、') || '整體感覺';
       const partName = (partId) => state.character.components[partId]?.name || partId;
       const inputRole = (asset) => {
         const reference = styleReferences.find((item) => item.assetId === asset.id);
+        // 重畫單一角度：正式三視圖排第一當定稿；原本的定稿是畫三視圖之前的設計，只在三視圖看不清楚時參考。
+        const otherView = viewRedraw && otherViews.find((item) => item.assetId === asset.id);
+        if (otherView?.view === 'front') return { order: -2, label: `定稿（正面）：照這張畫${viewLabel}。髮型、五官、服裝、配色、配件與頭身比例都以它為準，不得變更` };
+        if (otherView) return { order: -1, label: `已確認的${turnaroundLabels[otherView.view]}：同一個角色，設計和它一致` };
+        if (viewRedraw && reference?.canon) return { order: 0, label: '原本的定稿：設計以正面為準，這張只在正面看不清楚時參考' };
+        if (reference?.canon) return { order: -1, label: `定稿：照這張畫。髮型、五官、服裝、配色、配件與頭身比例都以它為準，不得變更${reference.role === 'style' ? '；畫法也以它為準' : ''}` };
         if (reference) return { order: 0, label: `${referenceRoleLabels[reference.role] || '參考圖'}：要參考它的「${focusText(reference)}」${reference.role === 'style' ? '，這次的畫法以它為準' : ''}` };
+        // 補畫三視圖（舊角色已經有一張立繪）：照這張的設計畫成三視圖，不重新設計。
+        if (asset.id === state.character.adopted.character && targetId === 'character' && framing === 'turnaround' && !hasCanon) return { order: 1, label: `目前的正式立繪：三視圖照這張的設計畫，髮型、五官、服裝與配色不改（設定有改的地方以 input.yaml 為準）${drawingStyle.length ? '，畫法不要沿用它' : ''}` };
         if (asset.id === state.character.adopted.character) return { order: 1, label: `目前的正式立繪：只用來確認角色長相、髮型、服裝與配色${drawingStyle.length ? '，不要沿用它的畫法' : ''}` };
         if (targetId !== 'character' && asset.id === state.character.adopted[targetId]) return { order: 2, label: `「${partName(targetId)}」目前的設計圖` };
         return { order: 3, label: `「${partName(asset.targetId)}」的${viewLabels[asset.view] || '設計圖'}：服裝結構與細節${drawingStyle.length ? '，不要沿用它的畫法' : ''}` };
       };
       const labeledInputs = referenceAssets.map((asset) => ({ asset, ...inputRole(asset) })).sort((a, b) => a.order - b.order);
       const styleLine = drawingStyle.length ? `繪風參考：${drawingStyle.map((reference) => `${reference.name}（${focusText(reference)}）`).join('、')}。畫法以繪風參考為準；正式立繪與裝備圖只用來確認長相與服裝。` : '';
-      const handoffPrompt = `請使用 AIDOL 工作資料進行角色設計。\n專案：${state.character.name}\n工作：${jobId}\n目標：${targetId}\n基礎版本：${baseRevision}\n${outfitInstruction}\n${viewInstruction}\n${variantInstruction ? `${variantInstruction}\n` : ''}${compiled.direction ? `畫風方向：${compiled.direction.id} · ${compiled.direction.name}\n` : ''}${styleLine ? `${styleLine}\n` : ''}本次要求：${prompt.trim()}\n人物快照：${snapshotPath}\n操作說明：${instructionsPath}\n使用新的工作階段；先讀取設定與參考圖。完成後提交圖片為待審候選，不可覆寫目前採用稿。`;
-      const keepLine = drawingStyle.length
+      const handoffPrompt = `請使用 AIDOL 工作資料進行角色設計。\n專案：${state.character.name}\n工作：${jobId}\n目標：${targetId}\n基礎版本：${baseRevision}\n${outfitInstruction}\n${viewInstruction}\n${noteInstruction ? `${noteInstruction}\n` : ''}${variantInstruction ? `${variantInstruction}\n` : ''}${compiled.direction ? `畫風方向：${compiled.direction.id} · ${compiled.direction.name}\n` : ''}${styleLine ? `${styleLine}\n` : ''}${hasCanon ? '有定稿：設計照定稿，只改這次要的視角、姿勢與排版。\n' : ''}本次要求：${prompt.trim()}\n人物快照：${snapshotPath}\n操作說明：${instructionsPath}\n使用新的工作階段；先讀取設定與參考圖。完成後提交圖片為待審候選，不可覆寫目前採用稿。`;
+      // 定稿：設計照定稿，只改這次要的視角、姿勢與排版；定稿之後才改的外觀設定列成例外。
+      const canonList = hasCanon && !viewRedraw ? canonChanges(state.history, state.character, { outfitId: selectedOutfitId }) : [];
+      const canonLine = hasCanon ? [
+        '以「定稿」為準，禁止變更任何設定：髮型、五官、服裝、配色、配件與頭身比例都要和定稿一樣；只改變本次要求的視角、姿勢與排版。長相以定稿圖為準，input.yaml 與下面的文字設定只補充定稿上看不到的部分（例如背面）。',
+        canonList.length ? `除了以下改動，其他全部照定稿：\n${canonList.map((change) => `- ${change.label}：${change.from} → ${change.to}`).join('\n')}` : '',
+        drawingStyle.length ? '畫法（線條、上色、陰影）以「繪風參考」為準；設計照定稿。' : '',
+      ].filter(Boolean).join('\n') : '';
+      const keepLine = canonLine ? `${canonLine}\n` : drawingStyle.length
         ? '角色的長相、髮型、服裝與配色依 input.yaml 和上面的角色、裝備圖保持一致；畫法（線條、上色、陰影、五官與人物的畫法）以「繪風參考」為準，不要沿用目前正式立繪或裝備圖的畫法。要換畫法時請重新畫整張，不要拿舊畫法的圖做局部修改；之後若要再修正（例如頭身），也要再附上繪風參考。下方「畫風方向」只補充繪風參考沒有涵蓋的部分，兩者衝突時以繪風參考為準。'
         : '依據 input.yaml 保持角色辨識特徵與繪風，只依本次要求修改。';
       // 交接訊息只寫工作資料夾，回報與回收的規則寫在這裡（同時也在 AIDOL skill）。
       const reportSection = `## 回報與回收\n\n- 回收憑證是同資料夾的 handoff.json（不要顯示 token）；用 AIDOL skill 的 submit-candidate helper 提交。\n- 開始產圖前回報 \`--event started\`；本次共 ${variants} 張，每張完成就提交；全部完成回報 \`--event finished\`，失敗回報 \`--event failed --message "原因"\`。\n- 沒有圖像工具時說明限制並保留工作；不得用文字或示意圖冒充產圖；不覆寫、不採用目前的正式稿。`;
-      const instructions = `# AIDOL 精修工作\n\n${handoffPrompt}\n\n## 固定輸入\n\n${labeledInputs.map(({ asset, label }) => `- ${label}｜${asset.name}: ${asset.path} (${asset.sha256 || '檔案尚未可用'})`).join('\n')}\n\n${region ? `選區（0 至 1）：${JSON.stringify(region)}\n\n` : ''}${keepLine}尚未指定的結構先提出設計，不得宣稱已確認。\n${compiled.empty ? '' : `\n${compiled.text}\n`}`;
+      const instructions = `# AIDOL 精修工作\n\n${handoffPrompt}\n\n## 固定輸入\n\n${labeledInputs.map(({ asset, label }) => `- ${label}｜${asset.name}: ${asset.path} (${asset.sha256 || '檔案尚未可用'})`).join('\n')}\n\n${region ? `選區（0 至 1）：${JSON.stringify(region)}\n\n` : ''}${keepLine}${hasCanon ? '定稿上看不到的部分依文字設定補上，維持同一設計語言；不得新增定稿沒有的配件、花紋或裝飾。' : '尚未指定的結構先提出設計，不得宣稱已確認。'}\n${compiled.empty ? '' : `\n${compiled.text}\n`}`;
       await fs.mkdir(this.jobDir(id, jobId), { recursive: true });
       await fs.writeFile(snapshotPath, yaml, { flag: 'wx' });
       await fs.writeFile(instructionsPath, `${instructions.trimEnd()}\n\n${reportSection}\n`, { flag: 'wx' });
-      const job = { id: jobId, targetId, outputView, outfitId: selectedOutfitId, prompt: prompt.trim(), kind, ...(region ? { region: clone(region) } : {}), variants, ...(compiled.direction ? { directionId: compiled.direction.id } : {}), ...(framing ? { framing } : {}), baseRevision, status: 'prepared', createdAt: now(), context: { yaml, selectedOutfit, referenceAssets, styleReferences, snapshotPath, instructionsPath, ...(compiled.empty ? {} : { compiled: compiled.text, compiledPrompt: compiled.prompt }) }, handoffPrompt };
+      const job = { id: jobId, targetId, outputView, ...(viewRedraw ? { sheetAssetId: state.views.assetId, ...(viewRedo ? { viewRedo: true } : {}) } : {}), outfitId: selectedOutfitId, prompt: prompt.trim(), kind, ...(region ? { region: clone(region) } : {}), variants, ...(compiled.direction ? { directionId: compiled.direction.id } : {}), ...(framing ? { framing } : {}), baseRevision, status: 'prepared', createdAt: now(), context: { yaml, selectedOutfit, referenceAssets, styleReferences, snapshotPath, instructionsPath, ...(compiled.empty ? {} : { compiled: compiled.text, compiledPrompt: compiled.prompt }) }, handoffPrompt };
       state.jobs.push(job);
       await this._save(state);
       return clone(job);
@@ -700,7 +1023,7 @@ export class ProjectStore {
       const state = await this._read(id);
       const job = state.jobs.find((item) => item.id === jobId);
       if (!job) throw new DomainError('找不到這次設計工作。', 404, 'JOB_NOT_FOUND');
-      const forbidden = ['id', 'targetId', 'outfitId', 'outputView', 'prompt', 'kind', 'region', 'variants', 'directionId', 'framing', 'baseRevision', 'createdAt', 'context'];
+      const forbidden = ['id', 'targetId', 'outfitId', 'outputView', 'sheetAssetId', 'viewRedo', 'prompt', 'kind', 'region', 'variants', 'directionId', 'framing', 'baseRevision', 'createdAt', 'context'];
       if (forbidden.some((key) => Object.hasOwn(patch, key))) throw new DomainError('不可變更工作的固定輸入。');
       Object.assign(job, clone(patch), { updatedAt: now() });
       await this._save(state);
@@ -721,7 +1044,8 @@ export class ProjectStore {
       if (jobId && !job) throw new DomainError('找不到這次設計工作。', 404, 'JOB_NOT_FOUND');
       if (job && (job.targetId !== targetId || role !== 'design')) throw new DomainError('候選圖片必須與指定工作的部件及用途一致。', 422, 'JOB_TARGET_MISMATCH');
       const assetView = view ?? job?.outputView ?? 'front';
-      if (!outputViews.includes(assetView) || (targetId === 'character' && assetView !== 'front')) throw new DomainError('圖片視角不符合角色或部件的允許範圍。', 422, 'INVALID_OUTPUT_VIEW');
+      // 角色的圖平常只有正面（整張）；側面、背面只能是「重畫三視圖單一角度」工作交回來的候選。
+      if (targetId === 'character' ? assetView !== 'front' && !(job && allViews.includes(assetView)) : !outputViews.includes(assetView)) throw new DomainError('圖片視角不符合角色或部件的允許範圍。', 422, 'INVALID_OUTPUT_VIEW');
       if (job && assetView !== (job.outputView || 'front')) throw new DomainError('候選視角與本次工作不同，請依照工作的輸出視角匯入。', 422, 'ASSET_VIEW_MISMATCH');
       const assetId = uid('asset');
       const filePath = path.join(this.projectDir(id), 'assets', `${assetId}${mimeExtensions[actualMime]}`);
@@ -774,6 +1098,13 @@ export class ProjectStore {
     });
   }
 
+  // 定稿圖在本機的完整路徑（讓 Codex 照圖填設定用）。
+  async canonImages(id) {
+    const state = await this.getProject(id);
+    const ids = new Set(state.character.style.references.filter((reference) => reference.canon).map((reference) => reference.assetId));
+    return Promise.all(state.assets.filter((asset) => ids.has(asset.id)).map((asset) => this._assetPath(id, asset)));
+  }
+
   async readAsset(id, assetId) {
     const state = await this.getProject(id);
     const asset = state.assets.find((item) => item.id === validId(assetId));
@@ -791,6 +1122,25 @@ export class ProjectStore {
       if (!['pending', 'accepted'].includes(candidate.status)) throw new DomainError('這張圖目前不能採用。', 409, 'CANDIDATE_CLOSED');
       this._target(state, candidate.targetId);
       const asset = state.assets.find((item) => item.id === candidate.assetId);
+      // 重畫的側面／背面：只換掉三視圖裡那個角度，不動正式三視圖與角色設定（視角不進版本）。
+      if (candidate.targetId === 'character' && asset.view !== 'front') {
+        const views = state.views;
+        const job = state.jobs.find((item) => item.id === candidate.jobId);
+        // 重畫時照的那張三視圖已經換掉了：這張是照舊設計畫的，不放進新的三視圖。
+        if (!(views?.status === 'done' && views.assetId === state.character.adopted.character) || (job?.sheetAssetId && job.sheetAssetId !== views.assetId)) throw new DomainError('正式三視圖已經換過了，這張沒有放進三視圖。', 409, 'VIEWS_STALE');
+        const previous = views.items?.[asset.view];
+        const old = previous && state.assets.find((item) => item.id === previous.assetId && item.role === 'view' && !this._usedByOpenJobs(state, item.id));
+        if (old) state.assets = state.assets.filter((item) => item !== old);
+        views.items = { ...(views.items || {}), [asset.view]: { assetId: asset.id, sourceAssetId: asset.id, redrawn: true } };
+        if (extraViews.includes(asset.view) && !(views.extra || []).includes(asset.view)) views.extra = allViews.filter((item) => item === asset.view || (views.extra || []).includes(item));
+        views.updatedAt = now();
+        candidate.status = 'accepted';
+        candidate.acceptedAt = now();
+        state.jobs.find((job) => job.id === candidate.jobId).status = 'accepted';
+        await this._saveMetadata(state);
+        if (old) await fs.rm(await this._assetPath(id, old), { force: true }).catch(() => {});
+        return this._public(state);
+      }
       const primary = ['front', 'full'].includes(asset.view);
       if (primary) state.character.adopted[candidate.targetId] = candidate.assetId;
       if (candidate.targetId !== 'character') {
@@ -801,6 +1151,8 @@ export class ProjectStore {
         if (state.character.adopted.character) state.syncTargets = [...new Set([...state.syncTargets, 'character'])];
       }
       if (primary) state.syncTargets = state.syncTargets.filter((target) => target !== candidate.targetId);
+      // 分開畫的正面全身：整張就是正面，採用後直接拆（不用等 AI 找角度），接著就能補畫側面、背面。
+      if (candidate.targetId === 'character' && state.jobs.find((job) => job.id === candidate.jobId)?.framing === 'frontView') state.views = this._frontOnlyViews(candidate.assetId);
       this._validateUpdate(state, { character: state.character });
       state.character.revision += 1;
       candidate.status = 'accepted';
@@ -856,9 +1208,20 @@ export class ProjectStore {
       manifest.assets.push({ ...asset, name: scrub(asset.name), ...(available ? { exportedPath } : { missing: true }) });
       if (available) { archive.file(assetPath, { name: exportedPath }); exportedPaths.set(asset.id, exportedPath); }
     }
+    // 三視圖拆好的各個角度另外放一份 views/front.png、side.png、back.png（和加的角度），方便直接拿去用（例如轉 3D）。
+    if (state.views?.status === 'done' && state.views.assetId === state.character.adopted.character) {
+      for (const [view, item] of Object.entries(state.views.items || {})) {
+        const viewAsset = state.assets.find((asset) => asset.id === item.assetId);
+        const viewPath = viewAsset && await this._assetPath(id, viewAsset);
+        if (viewPath && await exists(viewPath)) archive.file(viewPath, { name: `views/${view}${path.extname(viewPath) || '.png'}` });
+      }
+    }
+    // 設計標註另外放一份文字，和角度圖一起交給別人看。
+    if ((state.viewNotes || []).length) archive.append(`# 設計標註\n\n${viewNotesText(state).split('\n').slice(1).join('\n')}\n`, { name: 'views/notes.md' });
     const packed = await Promise.all(state.jobs.map((job) => this._portableJob(id, job, exportedPaths, scrub)));
     manifest.jobs = packed.map(({ job }) => job);
     manifest.proposals = state.proposals.map((proposal) => (typeof proposal.summary === 'string' ? { ...proposal, summary: scrub(proposal.summary) } : proposal));
+    if (state.views?.error) manifest.views = { ...state.views, error: scrub(state.views.error) };
     if (state.decomposition) manifest.decomposition = { ...state.decomposition, ...Object.fromEntries(['error', 'summary'].filter((key) => typeof state.decomposition[key] === 'string').map((key) => [key, scrub(state.decomposition[key])])) };
     const canvasAssetIds = new Set(state.canvasAnnotations.filter(annotation => annotation.kind === 'reference').map(annotation => annotation.assetId));
     const canvas = {

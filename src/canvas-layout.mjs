@@ -5,6 +5,14 @@
 export const characterNodeSize = { width: 420, height: 700 };
 export const characterArtBox = { x: 14, y: 14, width: 392, height: 560 };
 export const partNodeSize = { width: 216, height: 268 };
+// 三視圖的視角節點（正面／側面／背面與加的角度）：排在人物節點正下方一排，和左右兩側的裝備分開。
+// 2026-10-12 放大：角度圖是設計師要仔細比對的東西，至少要和裝備卡一樣醒目（圖區約 184×432，接近角度圖的直式比例）。
+export const viewNodeSize = { width: 200, height: 488 };
+// 一排最後的「加角度」格。
+export const viewAddSize = { width: 136, height: 488 };
+export const viewSlotSize = { width: 420 };
+const viewGap = 24;
+const viewRowGap = 72;
 const columnGap = 96;
 const columnStep = partNodeSize.width + 28;
 const margin = 18;
@@ -166,4 +174,50 @@ export function cropStyle(crop, naturalWidth, naturalHeight, aspect = 1, padding
     left: `${(-(cx - cw / 2) / cw) * 100}%`,
     top: `${(-(cy - ch / 2) / ch) * 100}%`,
   };
+}
+
+/** 視角那一排的總寬（count 個角度，withAdd 時最後多一格「加角度」）。 */
+export function viewRowWidth(count, withAdd = false) {
+  return count * viewNodeSize.width + Math.max(0, count - 1) * viewGap + (withAdd ? (count ? viewGap : 0) + viewAddSize.width : 0);
+}
+/**
+ * 視角那一排的左上角：預設在人物節點正下方置中；兩側的裝備往下排得比人物還長、會壓到這一排時，整排往下讓開。
+ * obstacles：裝備等節點目前的位置與大小。
+ */
+export function viewRowOrigin(origin, width, obstacles = []) {
+  const x = origin.x + characterNodeSize.width / 2 - width / 2;
+  let y = origin.y + characterNodeSize.height + viewRowGap;
+  // 每次跳到所有壓到的節點裡最下面那個的下方，直到完全不壓到（最多和節點數一樣多次）。
+  for (let pass = 0; pass <= obstacles.length; pass++) {
+    const hits = obstacles.filter(rect => rect.x < x + width + margin && rect.x + rect.width + margin > x && rect.y < y + viewNodeSize.height + margin && rect.y + rect.height + margin > y);
+    if (!hits.length) break;
+    y = Math.max(...hits.map(rect => rect.y + rect.height)) + viewRowGap / 2;
+  }
+  return { x: Math.round(x), y: Math.round(y) };
+}
+/** 視角那一排佔的範圍（給排裝備時避開）。 */
+export function viewRowRect(row, width) {
+  return { x: row.x, y: row.y, width, height: viewNodeSize.height };
+}
+/** 一排裡第 index 個視角節點的位置（row 是這一排的左上角）。 */
+export function viewPosition(row, index) {
+  return { x: row.x + index * (viewNodeSize.width + viewGap), y: row.y };
+}
+/** 還沒拆成三視圖時的提示卡位置：人物節點正下方。 */
+export function viewSlotPosition(origin) {
+  return { x: origin.x + (characterNodeSize.width - viewSlotSize.width) / 2, y: origin.y + characterNodeSize.height + viewRowGap };
+}
+
+/**
+ * 原圖上的位置框換算到裁好的視角圖上（frame 是裁好的圖對應到原圖的範圍）。
+ * 位置框的中心不在這張圖裡就回傳 null（例如框在別的角度上）。
+ */
+export function cropInFrame(crop, frame) {
+  if (!crop || !frame?.width || !frame?.height) return null;
+  const x = (crop.x - frame.x) / frame.width, y = (crop.y - frame.y) / frame.height;
+  const width = crop.width / frame.width, height = crop.height / frame.height;
+  const cx = x + width / 2, cy = y + height / 2;
+  if (cx < 0 || cx > 1 || cy < 0 || cy > 1) return null;
+  const left = Math.max(0, x), top = Math.max(0, y);
+  return { ...crop, x: left, y: top, width: Math.min(1, x + width) - left, height: Math.min(1, y + height) - top };
 }

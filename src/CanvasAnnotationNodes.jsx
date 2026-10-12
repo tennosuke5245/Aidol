@@ -18,9 +18,9 @@ export function CanvasReferenceImage({ asset, title, onPreview }) {
 
 export function CanvasFormalReferenceNode({ data, selected }) {
   const t = useT();
-  return <article className={`canvas-formal-reference ${selected ? 'is-selected' : ''}`}>
+  return <article className={`canvas-formal-reference ${selected ? 'is-selected' : ''} ${data.canon ? 'is-canon' : ''}`}>
     <CanvasReferenceImage asset={data.asset} title={data.title} onPreview={data.onPreview} />
-    <div className="formal-reference-caption"><span>{t('canvas.formalReference.label')}</span><h3>{data.title}</h3><p>{data.description || t('canvas.formalReference.fallback')}</p></div>
+    <div className="formal-reference-caption"><span>{data.canon ? t('canvas.formalReference.canonLabel') : t('canvas.formalReference.label')}</span><h3>{data.title}</h3><p>{data.description || t('canvas.formalReference.fallback')}</p></div>
   </article>;
 }
 

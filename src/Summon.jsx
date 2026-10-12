@@ -5,6 +5,7 @@ import { targetLabel } from './api';
 import { Mark } from './ui';
 import { Busy } from './Panels';
 import { formatList, isSource, useT } from './i18n';
+import { isAngleView } from '../shared/domain.mjs';
 
 // 繪製畫面：引導到 Codex 按送出 → 真實回報「繪製中」→ 每回來一張翻開一張 → 選一張。
 // 卡片數量就是這次要畫的張數；沒有回報之前不顯示任何進度。
@@ -33,8 +34,10 @@ export function Summon({ project, jobId, busy, onClose, onAdopt, onReopen, onCop
   const candidates = project.candidates.filter(item => item.jobId === job.id).sort((a, b) => (Date.parse(a.createdAt) || 0) - (Date.parse(b.createdAt) || 0));
   const slots = Math.max(progress.expected, candidates.length);
   const firstPass = delays.current.size === 0;
-  const isMain = job.targetId === 'character';
-  const target = targetLabel(project, job.targetId);
+  // 重畫三視圖的單一角度：當成「三視圖的側面」這個目標來挑，採用後只換掉那一張。
+  const viewJob = job.targetId === 'character' && isAngleView(job.outputView);
+  const isMain = job.targetId === 'character' && !viewJob;
+  const target = viewJob ? t('summon.viewTarget', { view: t(`canvas.views.view.${job.outputView}`) }) : targetLabel(project, job.targetId);
   // 這份工作建立時固定下來的角色描述（中文部分）；英文提示留給 agent，不在這裡顯示。
   // compileBrief 的第一個標題一定是「結構化角色 DNA」，換成較短的介面標題。
   // 「這次帶給 AI 的內容」：繁中顯示中文段；其他語言顯示同一份內容裡給 AI 的英文段（沒有時才退回中文段）。
@@ -44,14 +47,18 @@ export function Summon({ project, jobId, busy, onClose, onAdopt, onReopen, onCop
   const styleRefs = job.context?.styleReferences || project.character.style.references || [];
   const inputs = (job.context?.referenceAssets || []).map(asset => {
     const reference = styleRefs.find(item => item.assetId === asset.id);
-    const label = reference ? t('summon.reference.label', { role: t(referenceRoles.has(reference.role) ? `summon.reference.role.${reference.role}` : 'summon.reference.role.other'), focus: formatList(reference.focus || []) || t('summon.reference.overall') })
+    // 三視圖的裁切圖（畫側面、背面時附的）：正面是照著畫的那張，其他是已確認的角度。
+    if (asset.role === 'view') return { id: asset.id, label: asset.view === 'front' ? t('summon.reference.viewFront') : t('summon.reference.view', { view: t(`canvas.views.view.${asset.view}`) }), url: project.assets.find(item => item.id === asset.id)?.url, rank: asset.view === 'front' ? 3 : 2 };
+    const label = reference?.canon ? t('summon.reference.canon') : reference ? t('summon.reference.label', { role: t(referenceRoles.has(reference.role) ? `summon.reference.role.${reference.role}` : 'summon.reference.role.other'), focus: formatList(reference.focus || []) || t('summon.reference.overall') })
       : asset.targetId === 'character' ? t('summon.reference.main') : t('summon.reference.partDesign', { name: targetLabel(project, asset.targetId) });
-    return { id: asset.id, label, url: project.assets.find(item => item.id === asset.id)?.url, style: reference?.role === 'style' };
-  }).sort((a, b) => Number(b.style) - Number(a.style));
+    return { id: asset.id, label, url: project.assets.find(item => item.id === asset.id)?.url, rank: reference?.canon ? 2 : reference?.role === 'style' ? 1 : 0 };
+  }).sort((a, b) => b.rank - a.rank);
   // 正式引用：立繪看 adopted.character；裝備的正面看 assetId，背面／細節看 views。
-  const part = isMain ? null : project.character.components[job.targetId];
-  const adoptedId = isMain ? project.character.adopted.character : ['back', 'detail'].includes(job.outputView) ? part?.views?.[job.outputView] : part?.assetId;
+  const part = job.targetId === 'character' ? null : project.character.components[job.targetId];
+  const adoptedId = viewJob ? project.views?.items?.[job.outputView]?.sourceAssetId : isMain ? project.character.adopted.character : ['back', 'detail'].includes(job.outputView) ? part?.views?.[job.outputView] : part?.assetId;
   const anyAdopted = candidates.some(candidate => candidate.assetId === adoptedId);
+  // 重畫時照的三視圖已經換掉：這些圖不能放進新的三視圖（留在圖鑑）。
+  const staleView = viewJob && Boolean(job.sheetAssetId) && job.sheetAssetId !== project.views?.assetId;
   const copy = {
     waiting: { title: t('summon.waiting.title'), sub: t('summon.waiting.sub') },
     drawing: { title: t('summon.drawing.title', { returned: progress.returned, expected: progress.expected }), sub: t('summon.drawing.sub') },
@@ -80,7 +87,7 @@ export function Summon({ project, jobId, busy, onClose, onAdopt, onReopen, onCop
               {asset && <button type="button" className="card-img" onClick={() => onPreview(asset, t('summon.card.previewTitle', { target, number: index + 1 }))} aria-label={t('summon.card.zoom', { number: index + 1 })}><img src={asset.url} alt={t('summon.card.alt', { number: index + 1 })} /><span className="card-zoom"><MagnifyingGlassPlus size={16} /></span></button>}
               <div className="card-foot">
                 {adopted ? <span className="card-picked"><Check size={14} weight="bold" />{isMain ? t('summon.card.pickedMain') : t('summon.card.picked')}</span>
-                  : candidate && <button type="button" className="btn btn-primary btn-sm" disabled={busy} onClick={() => onAdopt(candidate)}>{isMain ? t('summon.card.adoptMain') : t('summon.card.adopt')}</button>}
+                  : candidate && (staleView ? <small className="card-note">{t('summon.card.staleView')}</small> : <button type="button" className="btn btn-primary btn-sm" disabled={busy} onClick={() => onAdopt(candidate)}>{isMain ? t('summon.card.adoptMain') : t('summon.card.adopt')}</button>)}
                 {candidate?.olderSettings && !adopted && <small className="card-note">{t('summon.card.older')}</small>}
               </div>
             </div>
@@ -96,7 +103,7 @@ export function Summon({ project, jobId, busy, onClose, onAdopt, onReopen, onCop
       {phase === 'done' && <button type="button" className="btn btn-quiet btn-lg" onClick={onGallery}><Images size={17} />{t('summon.openGallery')}</button>}
     </footer>
     <details className="summon-prompt"><summary>{t('summon.prompt.summary')}</summary><p>{job.prompt}</p>
-      {inputs.length > 0 && <ul className="summon-inputs" aria-label={t('summon.prompt.inputs')}>{inputs.map(item => <li key={item.id} className={item.style ? 'is-style' : ''}>{item.url && <img src={item.url} alt="" />}<span>{item.label}</span></li>)}</ul>}
+      {inputs.length > 0 && <ul className="summon-inputs" aria-label={t('summon.prompt.inputs')}>{inputs.map(item => <li key={item.id} className={item.rank === 2 ? 'is-canon' : item.rank === 1 ? 'is-style' : ''}>{item.url && <img src={item.url} alt="" />}<span>{item.label}</span></li>)}</ul>}
       {brief && <p className="summon-brief">{brief}</p>}</details>
   </div>;
 }

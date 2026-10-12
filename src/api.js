@@ -1,4 +1,5 @@
 import { formatDate, isSource, t } from './i18n';
+import { isAngleView } from '../shared/domain.mjs';
 
 export class ApiError extends Error {
   constructor(message, status, details, code) { super(message); this.status = status; this.details = details; this.code = code; }
@@ -39,4 +40,6 @@ export function assetFor(project, targetId, outfitId, view = 'front') {
   return asset;
 }
 export const dateLabel = date => formatDate(date);
+// 工作或圖片的目標名稱；角色的側面／背面是「三視圖・側面」（重畫三視圖的單一角度），不是正式立繪。
+export const viewTargetLabel = (project, targetId, view) => targetId === 'character' && isAngleView(view) ? t('summon.viewTarget', { view: t(`canvas.views.view.${view}`) }) : targetLabel(project, targetId);
 export const targetLabel = (project, id) => id === 'character' ? t('common.mainIllustration') : project?.character.components[id]?.name || [...(project?.history || [])].reverse().find(entry => entry.character.components[id])?.character.components[id]?.name || t('common.pastPiece');

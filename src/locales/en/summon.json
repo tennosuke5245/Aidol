@@ -36,7 +36,8 @@
     "picked": "Adopted",
     "adoptMain": "Use as main",
     "adopt": "Adopt this one",
-    "older": "Drawn with older settings"
+    "older": "Drawn with older settings",
+    "staleView": "Turnaround has changed"
   },
   "opening": "Opening…",
   "reopen": "Reopen Codex",
@@ -62,6 +63,10 @@
     },
     "overall": "overall feel",
     "main": "Main illustration (look and clothing)",
-    "partDesign": "{{name}} design"
-  }
+    "partDesign": "{{name}} design",
+    "canon": "Final design: draw exactly as this",
+    "viewFront": "Front view: drawn from this",
+    "view": "Confirmed {{view}} view"
+  },
+  "viewTarget": "Turnaround · {{view}}"
 }

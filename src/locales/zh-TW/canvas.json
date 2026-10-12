@@ -31,11 +31,17 @@
       "open": "打開「{{name}}」的捏角色",
       "portraitAlt": "{{name}}的正式立繪",
       "emptyTitle": "還沒有正式立繪",
-      "emptyHint": "點這裡開始捏角色，畫好的第一張會放在這裡",
+      "emptyHint": "點這裡開始捏角色，第一張畫正面",
       "zoom": "放大正式立繪",
       "zoomTitle": "放大",
       "previewTitle": "{{name}}・正式立繪",
-      "openCreator": "捏角色"
+      "openCreator": "捏角色",
+      "canon": "定稿",
+      "canonHint": "畫圖時設計照定稿；在「捏角色 › 畫風 › 參考圖」可以取消。",
+      "canonAlt": "{{name}} 的定稿",
+      "canonEmptyHint": "會照這張定稿畫正面，畫好的放在這裡",
+      "zoomSheet": "放大整張三視圖",
+      "sheetPreview": "{{name}}・三視圖"
     },
     "decompose": {
       "running": "正在拆解裝備",
@@ -50,7 +56,9 @@
       "clothing": "服裝參考",
       "composition": "構圖參考",
       "material": "材質參考",
-      "design": "設計參考"
+      "design": "設計參考",
+      "canon": "定稿",
+      "canonHint": "設計照這張畫"
     },
     "edge": {
       "accessory": "配件",
@@ -94,7 +102,8 @@
   },
   "formalReference": {
     "label": "出圖參考",
-    "fallback": "已設定為本次繪風參考"
+    "fallback": "已設定為本次繪風參考",
+    "canonLabel": "畫圖時照這張畫"
   },
   "annotation": {
     "kind": {
@@ -190,5 +199,135 @@
   },
   "rack": {
     "label": "繪製進度"
+  },
+  "views": {
+    "view": {
+      "front": "正面",
+      "side": "側面",
+      "back": "背面",
+      "frontQuarter": "斜前方",
+      "backQuarter": "斜後方",
+      "otherSide": "另一側"
+    },
+    "alt": "{{name}}的{{view}}",
+    "splitting": "拆分中…",
+    "splitFailed": "自動拆分沒有成功",
+    "manual": "自己框",
+    "adjust": "調整裁切",
+    "adjustHint": "框錯了？拖一拖重新裁",
+    "driftTaller": "比正面高 {{percent}}%",
+    "driftShorter": "比正面矮 {{percent}}%",
+    "driftHint": "三個角度的身高應該一樣；差這麼多，可能是比例畫跑了（可以重畫這個角度），也可能是裁切框錯了（可以調整裁切）。",
+    "slot": {
+      "offerTitle": "三視圖",
+      "offerHint": "從這張圖找出正面、側面、背面裁成三張；只有一個人的話也可以直接當正面",
+      "offer": "拆出三視圖",
+      "detectingTitle": "正在找三視圖",
+      "detectingHint": "AI 在找圖上的正面、側面、背面，找到會自動裁成三張",
+      "noneTitle": "這張只有一個角度",
+      "noneHint": "這張只有一個人：可以把它當正面，再補畫側面、背面；也可以匯入現成的三視圖",
+      "failedTitle": "沒有找到三視圖",
+      "failedHint": "可以再試一次，或自己框出正面、側面、背面",
+      "retry": "再試一次",
+      "emptyTitle": "三視圖",
+      "emptyHint": "先畫正面，再在這裡一張張補上側面、背面；已經有三視圖也可以直接匯入",
+      "emptyCanonTitle": "三視圖",
+      "emptyCanonHint": "照定稿畫正面，再補畫側面、背面；定稿本身就是三視圖的話可以直接用",
+      "import": "匯入三視圖",
+      "useCanon": "定稿就是三視圖",
+      "drawFront": "畫正面",
+      "asFront": "當正面，補畫側面背面",
+      "readingTitle": "正在看這張圖",
+      "readingHint": "AI 在拆裝備，也會看這張是正面全身還是三視圖；看完就能接著畫其他角度"
+    },
+    "editor": {
+      "title": "調整三視圖裁切",
+      "subtitle": "拖動框移動，拉角落調整大小；套用後重新裁成新的圖，原圖不變",
+      "tip": "框住整個人就好，會自動收緊到人物，三張同樣大小、腳底對齊。",
+      "include": "要拆出的角度",
+      "boxAria": "{{view}}的裁切框：方向鍵移動，Shift＋方向鍵調整大小",
+      "apply": "套用",
+      "applying": "裁切中…",
+      "done": "三視圖重新裁好了",
+      "redrawnNote": "{{views}}是重畫的，沒有勾選就保留重畫的那張。"
+    },
+    "redraw": "重畫{{view}}",
+    "redrawHint": "照正面重畫{{view}}：先寫哪裡要修，採用後只換掉這一張",
+    "imported": "已匯入三視圖，接著自動拆開",
+    "draw": "畫{{view}}",
+    "missingHint": "照正面畫{{view}}，畫好會自動對齊",
+    "needFront": "要先有正面",
+    "dialog": {
+      "drawTitle": "畫{{view}}",
+      "redrawTitle": "重畫{{view}}",
+      "drawSubtitle": "照正面畫，設計和身高都和正面一樣；畫好後自動調成同樣大小。",
+      "redrawSubtitle": "只給 AI 看正面和其他已確認的角度，原本的{{view}}不給它看，免得照抄畫壞的地方。",
+      "follows": "照這張畫（正面）",
+      "alsoSent": "{{view}}（一起參考）",
+      "notSent": "原本的{{view}}（不交給 AI）",
+      "fixLabel": "哪裡要修？",
+      "fixPlaceholder": "例如：尾巴要從腰後中間長出來",
+      "noteLabel": "有要特別注意的嗎？（可不填）",
+      "notePlaceholder": "例如：髮飾在左耳，側面看得到",
+      "notesSent": "這 {{count}} 個標註會一起交給 AI",
+      "noNotes": "要 AI 一直記住的地方（例如尾巴從哪裡長出來），可以在並排看裡加標註",
+      "moreNotes": "還有 {{count}} 個",
+      "editNotes": "編輯標註",
+      "addNotes": "加標註"
+    },
+    "missingFront": "沒有正面：其他角度要照正面畫，先用調整裁切把正面框出來",
+    "open": "打開並排看（{{view}}）",
+    "openShort": "並排看",
+    "notesCount": "{{count}} 個標註",
+    "remove": "拿掉{{view}}",
+    "notDrawn": "還沒畫",
+    "add": "加角度",
+    "addHint": "斜前方、斜後方、另一側",
+    "addWhich": "要加哪個角度？",
+    "extraHint": {
+      "frontQuarter": "斜 45 度，看得到正面和左邊",
+      "backQuarter": "斜 45 度，看得到背面和左邊",
+      "otherSide": "臉朝右，畫只有右邊才有的東西"
+    },
+    "spec": {
+      "front": "臉和身體正對畫面。",
+      "side": "臉朝畫面左，看到的是角色的左半邊。",
+      "back": "背對畫面：角色的左手在畫面左邊，和正面左右相反。",
+      "frontQuarter": "臉朝畫面左前方（斜 45 度），看得到正面和角色的左半邊。",
+      "backQuarter": "背對畫面、臉朝畫面左後方（斜 45 度），看得到背面和角色的左半邊。",
+      "otherSide": "臉朝畫面右，看到的是角色的右半邊；只有右邊才有的東西會畫清楚。"
+    }
+  },
+  "viewer": {
+    "title": "{{name}}・三視圖",
+    "subtitle": "所有角度一樣高、腳底對齊；按「加標註」再點圖上的位置，寫下這裡要注意什麼",
+    "headLine": "頭頂",
+    "feetLine": "腳底",
+    "guideHint": "拖動移動，按兩下拿掉",
+    "addNote": "加標註",
+    "placing": "點圖上的位置…",
+    "addGuide": "加參考線",
+    "notes": "標註",
+    "notesHint": "畫任何角度時，這些標註都會一起交給 AI。點數字可以修改，拖著可以移動。",
+    "placeHint": "點圖上要標的位置。",
+    "empty": "還沒有標註。例如在背面的尾巴根部加一個：「尾巴：從腰後正中間長出來，尾尖白色」。",
+    "pinAria": "標註 {{number}}：{{title}}",
+    "removeConfirm": "確定拿掉",
+    "newNote": "新標註・{{view}}",
+    "editNote": "標註・{{view}}",
+    "noteTitle": "名稱（可不填）",
+    "noteTitlePlaceholder": "例如：尾巴",
+    "noteText": "說明",
+    "noteTextPlaceholder": "例如：從腰後正中間長出來，尾尖白色，平常往上捲",
+    "noteSent": "之後畫角色的任何圖，都會把位置和說明交給 AI。",
+    "deleteNote": "刪除",
+    "back": "返回",
+    "saving": "儲存中…",
+    "saveNote": "儲存標註",
+    "placeOn": "在{{view}}的中間加標註（之後可以用方向鍵移動）",
+    "removeConfirmNotes": "確定拿掉（連同 {{count}} 個標註）",
+    "clearGuides": "清除參考線",
+    "deleteConfirm": "確定刪除",
+    "titleSep": "："
   }
 }
