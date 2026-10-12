@@ -19,6 +19,14 @@ export default defineConfig({
   server: {
     host: devHost,
     allowedHosts: devAllowedHosts,
+// 不要監控 AIDOL 的角色資料與資源回收區
+  watch: {
+    ignored: [
+      '**/.aidol',
+      '**/.aidol/**',
+    ],
+  },
+//結束。
     proxy: { "/api": "http://127.0.0.1:4318" },
     warmup: {
       clientFiles: ["./src/main.jsx"],
