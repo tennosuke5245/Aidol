@@ -35,7 +35,8 @@
       "frontQuarter": "斜め前の絵",
       "backQuarter": "斜め後ろの絵",
       "otherSide": "反対側の絵",
-      "unknown": "ビュー不明"
+      "unknown": "ビュー不明",
+      "expression": "表情"
     }
   },
   "diff": {
@@ -81,7 +82,32 @@
       "silhouette": "シルエット",
       "layers": "重ね着",
       "detail": "細部",
-      "colors": "配色"
+      "colors": "配色",
+      "species": "種族",
+      "ears": "耳",
+      "horns": "角",
+      "tail": "しっぽ",
+      "wings": "翼",
+      "featureColor": "特徴の色",
+      "skin": "肌の色",
+      "accentStyle": "染め方",
+      "eyeColorLeft": "左目の色（オッドアイ）",
+      "pupil": "瞳",
+      "faceShape": "輪郭",
+      "speciesExtras": "種族の特徴",
+      "hairExtras": "髪のディテール",
+      "faceMarks": "顔の特徴",
+      "eyeColorRight": "右目の色（オッドアイ）",
+      "scene": "シーン",
+      "appearanceText": "外見の説明",
+      "signatureText": "トレードマーク",
+      "faceText": "顔の説明",
+      "bodyText": "体型の説明",
+      "outfitText": "服装の説明",
+      "accessoriesText": "アクセサリーの説明",
+      "colorsText": "配色の説明",
+      "skinText": "肌の説明",
+      "otherText": "その他の外見メモ（{{key}}）"
     },
     "unset": "未設定",
     "empty": "空欄",
@@ -99,6 +125,7 @@
     "outfitItem": "{{outfit}}：{{name}}",
     "wear": "{{outfit}}：{{name}}を着る",
     "worn": "着用",
-    "notWorn": "未着用"
+    "notWorn": "未着用",
+    "sameAsRight": "右目と同じ"
   }
 }

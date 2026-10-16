@@ -44,11 +44,20 @@ export function useDraft(studio, project) {
     const run = (async () => {
       try {
         const character = { ...draftRef.current, revision: base.current.revision };
-        const result = await api(`/projects/${projectId}/character`, { method: 'PUT', body: { baseRevision: base.current.revision, character } });
+        const { notice, ...result } = await api(`/projects/${projectId}/character`, { method: 'PUT', body: { baseRevision: base.current.revision, character } });
         base.current = result.character;
         updateProject(result);
         if (!dirty.current) setDraft(result.character);
+        // 核心把正式立繪那套放回去了（例如 Ctrl＋Z 退到新增那套之前）：說一聲，不然那套會「自己跑回來」。
+        // 存檔途中又改了別的：把放回去的那套合併進草稿，下次存檔才不會又把它拿掉。
+        else if (notice) {
+          const merged = mergeCharacter(character, draftRef.current, result.character);
+          // 套裝的順序照核心的（主要那套留在原位），草稿才新增的接在後面。
+          const order = [...Object.keys(result.character.outfits), ...Object.keys(merged.outfits).filter(key => !Object.hasOwn(result.character.outfits, key))];
+          setDraft({ ...merged, outfits: Object.fromEntries(order.filter(key => Object.hasOwn(merged.outfits, key)).map(key => [key, merged.outfits[key]])) });
+        }
         setSaveState(dirty.current ? 'pending' : 'saved');
+        if (notice === 'MAIN_OUTFIT_KEPT') notify(t('creator.wardrobe.mainKept'), true);
         return result;
       } catch (error) {
         if (error.status === 409) {
@@ -97,6 +106,20 @@ export function useDraft(studio, project) {
     timer.current = setTimeout(() => save(), 700);
   }, [save, setDraft]);
 
+  // 外部要改設定之前（套用 AI 提案）：把目前的樣子記成一步。之後按一次「復原」只退回那次外部改動，
+  // 不會連更早自己選的也一起退掉。回傳記號；外部改動沒成功時用 dropCheckpoint 拿掉這一步。
+  const checkpoint = useCallback(() => {
+    const mark = draftRef.current;
+    stacks.current = { undo: [...stacks.current.undo, mark].slice(-40), redo: [] };
+    group.current = null; bump(value => value + 1);
+    return mark;
+  }, []);
+  const dropCheckpoint = useCallback(mark => {
+    if (stacks.current.undo.at(-1) !== mark) return;
+    stacks.current = { ...stacks.current, undo: stacks.current.undo.slice(0, -1) };
+    bump(value => value + 1);
+  }, []);
+
   const jump = useCallback(direction => {
     const stack = stacks.current;
     const from = direction === 'undo' ? stack.undo : stack.redo;
@@ -125,5 +148,6 @@ export function useDraft(studio, project) {
   // 離開角色工作台時把還沒存的改動存掉。
   useEffect(() => () => { if (dirty.current) save(); }, [save]);
 
-  return { draft, edit, saveState, retry: save, flush, pulse, canUndo: stacks.current.undo.length > 0, canRedo: stacks.current.redo.length > 0, undo: () => jump('undo'), redo: () => jump('redo') };
+  // current：最新的草稿（提示上的「復原」這類事後才跑的動作用；draft 是當時那次畫面的）。
+  return { draft, current: () => draftRef.current, edit, checkpoint, dropCheckpoint, saveState, retry: save, flush, pulse, canUndo: stacks.current.undo.length > 0, canRedo: stacks.current.redo.length > 0, undo: () => jump('undo'), redo: () => jump('redo') };
 }

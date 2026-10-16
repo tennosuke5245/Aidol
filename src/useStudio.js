@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api, ApiError, assetFor, clone, messageOf } from './api';
+import { api, ApiError, clone, messageOf } from './api';
 import { mergeProjectSnapshot } from '../shared/project-snapshot.mjs';
 import { prepareFirstImage } from '../shared/image-start.mjs';
 import { t } from './i18n';
+import { L } from './lib-i18n';
+import { expressionInfo } from '../shared/expressions.mjs';
+import { isOutfitVariant, mainOutfitId, outfitPortraitId } from '../shared/wardrobe.mjs';
+import { readUi, writeUi } from './ui-state';
 
 const liveStatuses = new Set(['handed_off', 'running', 'review']);
 
@@ -26,15 +30,25 @@ export function useStudio() {
 
   // action：提示上的按鈕（例如刪除後的「復原」），有按鈕時多留幾秒。
   const notify = useCallback((message, error = false, action) => setToast({ message, error, action, key: Date.now() }), []);
-  useEffect(() => { if (toast && !toast.error) { const timer = setTimeout(() => setToast(null), toast.action ? 12000 : 6000); return () => clearTimeout(timer); } }, [toast]);
+  // 提示幾秒後自己收起（錯誤留久一點）；滑鼠停在提示上或鍵盤移到上面時先不收（讀完、按「復原」都來得及）。
+  const [toastHeld, setToastHeld] = useState(false);
+  useEffect(() => { setToastHeld(false); }, [toast?.key]);
+  useEffect(() => { if (toast && !toastHeld) { const timer = setTimeout(() => setToast(null), toast.error ? 15000 : toast.action ? 12000 : 6000); return () => clearTimeout(timer); } }, [toast, toastHeld]);
 
   const updateProject = useCallback(next => setProject(current => mergeProjectSnapshot(current, next)), []);
   const refreshProjects = useCallback(async () => { const list = await api('/projects'); setProjects(list); return list; }, []);
   const refreshStatus = useCallback(async () => { try { setStatus(await api('/codex/status')); } catch (error) { setStatus({ available: false, error: error.message }); } }, []);
+  // 畫圖方式（記在本機核心）：aidol＝AIDOL 直接用你的 Codex 畫；codex-app＝交給 Codex App、你自己按送出。
+  // 沒選過時，Codex 能直接畫就直接畫。
+  const [drawWith, setDrawWithState] = useState(null);
+  useEffect(() => { api('/preferences').then(saved => setDrawWithState(saved.drawWith || null), () => {}); }, []);
+  const setDrawWith = useCallback(async mode => { const saved = await api('/preferences', { method: 'PUT', body: { drawWith: mode } }); setDrawWithState(saved.drawWith); }, []);
+  const canDrawDirect = Boolean(status?.available && status?.capabilities?.imageGeneration);
+  const directDraw = canDrawDirect && (drawWith || 'aidol') === 'aidol';
   const openProject = useCallback(async id => {
     const current = await api(`/projects/${id}`);
     setProject(current);
-    try { localStorage.setItem('aidol-current-project', id); } catch {}
+    writeUi('last-project', id, { soon: true });
     return current;
   }, []);
   const refresh = useCallback(async (id = projectRef.current?.id) => {
@@ -49,7 +63,7 @@ export function useStudio() {
     try {
       const list = await refreshProjects();
       let remembered = null;
-      try { remembered = localStorage.getItem('aidol-current-project'); } catch {}
+      remembered = readUi('last-project', null);
       const first = list.find(item => item.id === remembered);
       if (first) { await openProject(first.id); setRememberedId(first.id); }
     } catch (error) { setFatal(error.message); }
@@ -60,8 +74,11 @@ export function useStudio() {
 
   // 只有在等你送出、繪製中或有新圖時才輪詢；繪製中更頻繁，翻牌才跟得上。失敗保留畫面並說明。
   const decomposing = project?.decomposition?.status === 'running' || project?.views?.status === 'detecting';
-  const liveKey = [...(project?.jobs.filter(job => liveStatuses.has(job.status) || (job.progress?.startedAt && !job.progress?.finishedAt)).map(job => `${job.id}:${job.status}`) || []), ...(decomposing ? ['decompose'] : [])].join('|');
-  const drawing = decomposing || Boolean(project?.jobs.some(job => job.status === 'running' || job.status === 'handed_off' || (job.progress?.startedAt && !job.progress?.finishedAt)));
+  // 全自動與 Design QA 在核心裡跑：跑著的時候也要輪詢，畫面才看得到進度。
+  const autopilotLive = project?.autopilot?.status === 'running';
+  const reviewing = Boolean(project?.jobs.some(job => job.review?.status === 'running'));
+  const liveKey = [...(project?.jobs.filter(job => liveStatuses.has(job.status) || (job.progress?.startedAt && !job.progress?.finishedAt)).map(job => `${job.id}:${job.status}`) || []), ...(decomposing ? ['decompose'] : []), ...(autopilotLive ? [`autopilot:${project.autopilot.updatedAt}`] : []), ...(reviewing ? ['review'] : [])].join('|');
+  const drawing = decomposing || autopilotLive || reviewing || Boolean(project?.jobs.some(job => job.status === 'running' || job.status === 'handed_off' || (job.progress?.startedAt && !job.progress?.finishedAt)));
   useEffect(() => {
     if (!project || !liveKey) return;
     const timer = setInterval(async () => {
@@ -114,33 +131,96 @@ export function useStudio() {
   // 建立一個新工作 → 準備交接 → 直接在 Codex 開新對話（仍需使用者按送出）。
   const freshRevision = useCallback(async () => (await api(`/projects/${projectRef.current.id}`)).character.revision, []);
 
+  // AIDOL 直接畫：核心開 Codex 對話畫圖，畫好一張就收成候選；不用到 Codex App 按送出。
+  const drawJob = useCallback(async jobId => {
+    const current = projectRef.current;
+    await api(`/projects/${current.id}/jobs/${jobId}/draw`, { method: 'POST', body: {} });
+    return refresh(current.id);
+  }, [refresh]);
+  const stopDraw = useCallback(async jobId => {
+    const current = projectRef.current;
+    await api(`/projects/${current.id}/jobs/${jobId}/draw/stop`, { method: 'POST', body: {} });
+    return refresh(current.id);
+  }, [refresh]);
+  // 開始一個已建立的工作：能直接畫就直接畫，不然交給 Codex App。
+  const startJob = useCallback(async jobId => (directDraw ? { direct: true, project: await drawJob(jobId) } : handoff(jobId)), [directDraw, drawJob, handoff]);
+
   const generate = useCallback(async body => {
     const current = projectRef.current;
     const job = await api(`/projects/${current.id}/jobs`, { method: 'POST', body: { ...body, baseRevision: body.baseRevision ?? await freshRevision() } });
-    const result = await handoff(job.id);
+    const result = await startJob(job.id);
     return { job, handoff: result };
-  }, [handoff, freshRevision]);
+  }, [startJob, freshRevision]);
+
+  // Design QA：審一個工作的候選（在背景跑，輪詢看結果）。
+  const reviewJob = useCallback(async jobId => {
+    const current = projectRef.current;
+    updateProject(await api(`/projects/${current.id}/jobs/${jobId}/review`, { method: 'POST', body: {} }));
+  }, [updateProject]);
+  // 全自動：畫正面 → Design QA 挑一張代為採用 → 依序畫勾選的角度。
+  const startAutopilot = useCallback(async config => {
+    const current = projectRef.current;
+    updateProject(await api(`/projects/${current.id}/autopilot`, { method: 'POST', body: config }));
+    refreshProjects();
+  }, [updateProject, refreshProjects]);
+  const stopAutopilot = useCallback(async () => {
+    const current = projectRef.current;
+    updateProject(await api(`/projects/${current.id}/autopilot/stop`, { method: 'POST', body: {} }));
+  }, [updateProject]);
+  const drawAccess = useCallback(() => api('/codex/draw-access'), []);
+  // 表情集：加一個預設或自訂表情、拿掉一個表情（畫好的圖留在圖鑑）。
+  const addExpression = useCallback(async input => {
+    const current = projectRef.current;
+    const result = await api(`/projects/${current.id}/expressions`, { method: 'POST', body: input });
+    updateProject(result);
+    return result;
+  }, [updateProject]);
+  // 衣櫃：把另一套穿搭現在的立繪設成正式立繪（原本的正式立繪放進它那套）。
+  const promoteOutfit = useCallback(async outfitId => {
+    const current = projectRef.current;
+    const name = id => current.character.outfits[id]?.name || t('creator.outfit.untitled');
+    const previous = mainOutfitId(current);
+    const result = await api(`/projects/${current.id}/wardrobe/${encodeURIComponent(outfitId)}/main`, { method: 'POST', body: { baseRevision: await freshRevision() } });
+    updateProject(result); refreshProjects();
+    notify(t('studio.adopted.mainFromOutfit', { name: name(outfitId), previous: name(previous) }));
+    return result;
+  }, [updateProject, refreshProjects, notify, freshRevision]);
+
+  const removeExpression = useCallback(async key => {
+    const current = projectRef.current;
+    const result = await api(`/projects/${current.id}/expressions/${encodeURIComponent(key)}`, { method: 'DELETE' });
+    updateProject(result);
+    return result;
+  }, [updateProject]);
 
   const startFirstImage = useCallback(async ({ targetId = 'character', outfitId, options = {}, source } = {}) => {
     const base = source || projectRef.current;
-    const imageTarget = targetId !== 'character' && !assetFor(base, 'character', outfitId) ? 'character' : targetId;
+    // 這套穿搭還沒有立繪（主要那套看正式立繪，其他套看衣櫃）：先畫角色。
+    const imageTarget = targetId !== 'character' && !outfitPortraitId(base, outfitId) ? 'character' : targetId;
     const result = await prepareFirstImage({
       projectId: base.id, targetId: imageTarget, outfitId, options,
       loadProject: id => api(`/projects/${id}`),
       createJob: (id, body) => api(`/projects/${id}/jobs`, { method: 'POST', body }),
-      handoffJob: (id, jobId) => api(`/projects/${id}/jobs/${jobId}/handoff`, { method: 'POST', body: {} }),
+      handoffJob: (id, jobId) => (directDraw ? api(`/projects/${id}/jobs/${jobId}/draw`, { method: 'POST', body: {} }).then(job => ({ direct: true, job })) : api(`/projects/${id}/jobs/${jobId}/handoff`, { method: 'POST', body: {} })),
     });
     updateProject(result.project);
-    if (result.state === 'handoff') await openCodex(result.handoff.url);
+    if (result.state === 'handoff' && result.handoff.url) await openCodex(result.handoff.url);
     refreshProjects();
     return result;
-  }, [updateProject, openCodex, notify, refreshProjects]);
+  }, [updateProject, openCodex, notify, refreshProjects, directDraw]);
 
-  const acceptCandidate = useCallback(async candidate => {
+  // asMain：另一套穿搭的立繪改成正式立繪（原本的正式立繪放進它那套的衣櫃）。
+  const acceptCandidate = useCallback(async (candidate, { asMain = false } = {}) => {
     const current = projectRef.current;
-    const result = await api(`/projects/${current.id}/candidates/${candidate.id}/accept`, { method: 'POST', body: { baseRevision: await freshRevision() } });
+    const outfitId = candidate.outfitId || current.jobs.find(job => job.id === candidate.jobId)?.outfitId;
+    const outfitName = id => current.character.outfits[id]?.name || t('creator.outfit.untitled');
+    const outfitShot = candidate.targetId === 'character' && (candidate.view || 'front') === 'front' && isOutfitVariant(current, outfitId);
+    const previous = mainOutfitId(current);
+    const result = await api(`/projects/${current.id}/candidates/${candidate.id}/accept`, { method: 'POST', body: { baseRevision: await freshRevision(), ...(asMain ? { asMain: true } : {}) } });
     updateProject(result); refreshProjects();
-    notify(candidate.targetId !== 'character' ? t('studio.adopted.part') : candidate.view && candidate.view !== 'front' ? t('studio.adopted.view', { view: t(`canvas.views.view.${candidate.view}`) }) : result.decomposition?.status === 'running' ? t('studio.adopted.mainDecomposing') : t('studio.adopted.main'));
+    notify(candidate.targetId !== 'character' ? t('studio.adopted.part') : candidate.view === 'expression' ? t('studio.adopted.expression', { name: expressionInfo(result.expressions, candidate.expression, L)?.label || candidate.expression }) : candidate.view && candidate.view !== 'front' ? t('studio.adopted.view', { view: t(`canvas.views.view.${candidate.view}`) })
+      : outfitShot && asMain ? t('studio.adopted.mainFromOutfit', { name: outfitName(outfitId), previous: outfitName(previous) }) : outfitShot ? t('studio.adopted.outfit', { name: outfitName(outfitId) })
+        : result.decomposition?.status === 'running' ? t('studio.adopted.mainDecomposing') : t('studio.adopted.main'));
     return result;
   }, [updateProject, refreshProjects, notify, freshRevision]);
 
@@ -289,9 +369,10 @@ export function useStudio() {
 
   const acceptProposal = useCallback(async (proposalId, baseRevision) => {
     const current = projectRef.current;
-    const accepted = await api(`/projects/${current.id}/proposals/${proposalId}/accept`, { method: 'POST', body: { baseRevision: baseRevision ?? await freshRevision() } });
+    // notice（核心把正式立繪那套放回去了）不存進角色，交給呼叫的地方提示。
+    const { notice, ...accepted } = await api(`/projects/${current.id}/proposals/${proposalId}/accept`, { method: 'POST', body: { baseRevision: baseRevision ?? await freshRevision() } });
     updateProject(accepted); refreshProjects();
-    return accepted;
+    return notice ? { ...accepted, notice } : accepted;
   }, [updateProject, refreshProjects, freshRevision]);
 
   const dismissProposal = useCallback(async proposalId => {
@@ -337,7 +418,7 @@ export function useStudio() {
       created = await api(`/projects/${created.id}/character`, { method: 'PUT', body: { baseRevision: uploaded.project.character.revision, character } });
     }
     setProject(created);
-    try { localStorage.setItem('aidol-current-project', created.id); } catch {}
+    writeUi('last-project', created.id, { soon: true });
     await refreshProjects();
     return created;
   }, [uploadAsset, refreshProjects]);
@@ -380,10 +461,20 @@ export function useStudio() {
   const refreshTrash = useCallback(async () => { try { setTrash(await api('/trash')); } catch { /* 讀不到就先不顯示 */ } }, []);
   useEffect(() => { refreshTrash(); }, [refreshTrash]);
   const refreshLists = useCallback(async () => { await Promise.allSettled([refreshProjects(), refreshTrash()]); }, [refreshProjects, refreshTrash]);
+  // 回到角色選單：下次打開 AIDOL 停在選單，不再自動進上次的角色。
+  const forgetCurrentProject = useCallback(() => { writeUi('last-project', null, { soon: true }); }, []);
+  const rememberProject = useCallback(id => { writeUi('last-project', id, { soon: true }); }, []);
+  // 「不畫了」：還沒送出、等你送出或失敗的繪製收掉。
+  const cancelJob = useCallback(async jobId => {
+    const current = projectRef.current;
+    const result = await api(`/projects/${current.id}/jobs/${encodeURIComponent(jobId)}/cancel`, { method: 'POST' });
+    updateProject(result); refreshProjects();
+    return result;
+  }, [updateProject, refreshProjects]);
   const deleteProject = useCallback(async id => {
     const removed = await api(`/projects/${encodeURIComponent(id)}`, { method: 'DELETE' });
     if (projectRef.current?.id === id) setProject(null);
-    try { if (localStorage.getItem('aidol-current-project') === id) localStorage.removeItem('aidol-current-project'); } catch {}
+    if (readUi('last-project', null) === id) writeUi('last-project', null);
     await refreshLists();
     return removed;
   }, [refreshLists]);
@@ -404,8 +495,9 @@ export function useStudio() {
 
   return {
     projects, project, status, loading, fatal, busy, toast, syncError, rememberedId,
-    setToast, notify, run, initialize, refresh, refreshProjects, refreshStatus, openProject, updateProject,
+    setToast, setToastHeld, notify, forgetCurrentProject, rememberProject, cancelJob, run, initialize, refresh, refreshProjects, refreshStatus, openProject, updateProject,
     saveCharacter, generate, handoff, openCodex, startFirstImage, acceptCandidate, importCandidate, decompose,
+    drawWith, setDrawWith, canDrawDirect, directDraw, drawJob, stopDraw, startJob, reviewJob, startAutopilot, stopAutopilot, drawAccess, addExpression, removeExpression, promoteOutfit,
     viewSplit: splitKey ? viewSplits[splitKey] || null : null, adjustViews, detectViews, importMain, mainAsFront, addExtraView, removeExtraView, createViewNote, updateViewNote, deleteViewNote,
     sendChat, acceptProposal, dismissProposal, uploadReference, restore, addReference, createProject,
     createAnnotation, updateAnnotation, deleteAnnotation, addCanvasReference, copy, deleteProject, restoreProject, purgeTrash, trash, refreshTrash,

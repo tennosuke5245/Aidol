@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { LockSimple, MagicWand, Plus, X, Sparkle } from '@phosphor-icons/react';
 import { describeChanges, mergeCharacter } from '../../shared/character-diff.mjs';
-import { getLocale, useT } from '../i18n';
+import { formatList, getLocale, useT } from '../i18n';
 import { diffText, L } from '../lib-i18n';
+import { resolveColor } from '../../shared/colors.mjs';
 import { Section } from '../ui';
 import { Busy } from '../Panels';
 
@@ -29,13 +30,27 @@ export function PersonaPanel({ draft, edit, project, hasPortrait, asking, onAsk,
   }, [proposal, project.history, draft]);
   const changes = useMemo(() => (preview ? describeChanges(draft, preview, diffText) : []), [preview, draft, locale]);
   const [showAll, setShowAll] = useState(false);
+  // 照「人設、外觀、色票…」分組列出來；收起來時只列前 8 項。
+  const groups = useMemo(() => {
+    const map = new Map();
+    for (const change of changes) { if (!map.has(change.areaKey)) map.set(change.areaKey, { key: change.areaKey, area: change.area, items: [] }); map.get(change.areaKey).items.push(change); }
+    let budget = showAll ? Infinity : 8;
+    return [...map.values()].map(group => { const items = group.items.slice(0, Math.max(0, budget)); budget -= items.length; return { ...group, items }; }).filter(group => group.items.length);
+  }, [changes, showAll]);
   const locks = draft.locks || [];
-  const hair = draft.dna?.hair || {}, face = draft.dna?.face || {};
+  const hair = draft.dna?.hair || {}, face = draft.dna?.face || {}, species = draft.dna?.species || {};
+  const colorOf = (value, list) => resolveColor(value, list, L)?.label;
+  // 種族特徵（耳朵、角、尾巴、翅膀）也很適合鎖定：每張都要有。
+  const speciesFeatures = [['ears', L.earTypes, 'human'], ['horns', L.hornTypes, 'none'], ['tail', L.tailTypes, 'none'], ['wings', L.wingTypes, 'none']]
+    .map(([key, list, empty]) => (species[key] && species[key] !== empty ? L.findOption(list, species[key])?.label : null)).filter(Boolean);
+  const hetero = face.eyeColor && face.eyeColorLeft && String(face.eyeColorLeft).toUpperCase() !== String(face.eyeColor).toUpperCase();
   const suggestions = [
-    hair.color && hair.style && t('creator.persona.suggestHair', { color: L.findOption(L.hairColors, hair.color)?.label, style: L.findOption(L.hairStyles, hair.style)?.label.toLowerCase() }),
-    face.eyeColor && t('creator.persona.suggestEyes', { color: L.findOption(L.eyeColors, face.eyeColor)?.label }),
+    hair.color && hair.style && t('creator.persona.suggestHair', { color: colorOf(hair.color, L.hairColors), style: L.findOption(L.hairStyles, hair.style)?.label.toLowerCase() }),
+    hetero ? t('creator.persona.suggestHetero', { right: colorOf(face.eyeColor, L.eyeColors), left: colorOf(face.eyeColorLeft, L.eyeColors) })
+      : face.eyeColor && t('creator.persona.suggestEyes', { color: colorOf(face.eyeColor, L.eyeColors) }),
+    speciesFeatures.length > 0 && formatList(speciesFeatures),
     ...Object.values(draft.components || {}).filter(part => part.kind === 'accessory').map(part => part.name),
-  ].filter(item => item && !locks.includes(item)).slice(0, 3);
+  ].filter(item => item && !locks.includes(item)).slice(0, 4);
 
   async function send() {
     if (asking || (!ask.trim() && draft.persona.description.trim().length < 2)) return;
@@ -54,8 +69,11 @@ export function PersonaPanel({ draft, edit, project, hasPortrait, asking, onAsk,
     {proposal && <div className="ai-card" role="region" aria-label={t('creator.persona.suggestion')}>
       <div className="ai-card-head"><Sparkle size={16} weight="fill" /><b>{t('creator.persona.aiReady')}</b><span>{t('creator.persona.changeCount', { count: changes.length })}</span></div>
       {proposal.summary && <p className="ai-card-summary">{proposal.summary}</p>}
-      <ul className="change-list">{(showAll ? changes : changes.slice(0, 6)).map((change, index) => <li key={index}><span>{change.label}</span><b>{change.to}</b></li>)}</ul>
-      {changes.length > 6 && <button type="button" className="btn btn-text" onClick={() => setShowAll(value => !value)}>{showAll ? t('creator.persona.showLess') : t('creator.persona.more', { count: changes.length - 6 })}</button>}
+      <div className="change-groups">{groups.map(group => <section key={group.key} className="change-group" aria-label={group.area}>
+        <p className="change-area" aria-hidden="true">{group.area}</p>
+        <ul className="change-list">{group.items.map((change, index) => <li key={index}><span className="change-label">{change.label}</span><span className="change-value">{change.swatch && <i className="change-swatch" style={{ background: change.swatch }} aria-hidden="true" />}{change.to}</span></li>)}</ul>
+      </section>)}</div>
+      {changes.length > 8 && <button type="button" className="btn btn-text" onClick={() => setShowAll(value => !value)}>{showAll ? t('creator.persona.showLess') : t('creator.persona.more', { count: changes.length - 8 })}</button>}
       <div className="ai-card-actions">
         {hasPortrait ? <button type="button" className="btn btn-primary" onClick={() => onApply(proposal.id, { thenDraw: false })}>{t('creator.persona.applyAll')}</button>
           : <><button type="button" className="btn btn-primary" onClick={() => onApply(proposal.id, { thenDraw: true })}>{t('creator.persona.applyAndDraw')}</button><button type="button" className="btn btn-secondary" onClick={() => onApply(proposal.id, { thenDraw: false })}>{t('creator.persona.applyOnly')}</button></>}

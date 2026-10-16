@@ -4,15 +4,17 @@ import { allViews, extraViews, turnaroundViews } from '../shared/domain.mjs';
 import { bodyRect, NOTE_TEXT_MAX, NOTE_TITLE_MAX } from '../shared/turnaround.mjs';
 import { Busy, Modal } from './Panels';
 import { useT } from './i18n';
+import { readUi, writeUi } from './ui-state';
 
 // 並排看：所有角度一樣高、腳底對齊排在一起，像設定資料的三面圖，方便比對比例和左右。
 // - 頭頂、腳底兩條參考線（量正面的人物範圍）；可以再加參考線對眼睛、肩膀、腰，拖左邊的把手移動。參考線只記在這台電腦。
 // - 標註：按「加標註」再點圖上的位置，寫這裡是什麼、要注意什麼（例如尾巴從哪裡長出來）。之後畫角色的任何圖都會交給 AI。
 //   標註可以拖著移動；點一下編輯。
 // - 每個角度底下可以畫／重畫、調整裁切，加的角度可以拿掉。
-const guideKey = projectId => `aidol-guides-${projectId}`;
+// 參考線：2026-10-14 起記在本機核心（ui-state.js），桌面版重開也還在。
+const guideKey = projectId => `guides:${projectId}`;
 const clamp = value => Math.min(1, Math.max(0, value));
-const readGuides = projectId => { try { const value = JSON.parse(localStorage.getItem(guideKey(projectId)) || '[]'); return Array.isArray(value) ? value.filter(item => typeof item?.y === 'number') : []; } catch { return []; } };
+const readGuides = projectId => { try { const value = readUi(guideKey(projectId), []); return Array.isArray(value) ? value.filter(item => typeof item?.y === 'number') : []; } catch { return []; } };
 
 export function TurnaroundViewer({ project, focus, busy, onClose, onDraw, onAdjust, onRemove, onCreateNote, onUpdateNote, onDeleteNote }) {
   const t = useT();
@@ -34,7 +36,9 @@ export function TurnaroundViewer({ project, focus, busy, onClose, onDraw, onAdju
   const stage = useRef(null);
   const columns = useRef({});
   const dragRef = useRef(null);
-  useEffect(() => { try { localStorage.setItem(guideKey(project.id), JSON.stringify(guides)); } catch {} }, [guides, project.id]);
+  // 只在改過之後才寫（剛打開時不寫，免得每次打開並排看都送一次）。
+  const guidesLoaded = useRef(guides);
+  useEffect(() => { if (guides !== guidesLoaded.current) writeUi(guideKey(project.id), guides.length ? guides : null); }, [guides, project.id]);
   // 打開時捲到點的那個角度。
   useEffect(() => { columns.current[focus]?.scrollIntoView?.({ block: 'nearest', inline: 'center' }); }, [focus]);
   const editing = draft || (selected && notes.find(note => note.id === selected)) || null;

@@ -7,17 +7,20 @@
   "filter": {
     "all": "All",
     "main": "Main",
+    "expression": "Expressions",
     "gear": "Pieces"
   },
   "live": {
     "label": "Drawings in progress",
     "failed": "Didn't work this time",
     "notSent": "Not sent",
-    "pressSend": "Press send in Codex",
+    "waiting": "Ready to send",
     "view": "View",
     "importTitle": "Choose an image from your computer to add to this drawing",
     "import": "Add manually",
-    "importInput": "Choose an image to add"
+    "importInput": "Choose an image to add",
+    "cancel": "Cancel",
+    "cancelTitle": "Remove this draw from the list. You can start a new one any time."
   },
   "olderSettings": "Older settings",
   "adopted": {
@@ -32,11 +35,15 @@
     "sheetBack": "Turnaround · back",
     "sheetFrontQuarter": "Turnaround · front 3/4",
     "sheetBackQuarter": "Turnaround · back 3/4",
-    "sheetOtherSide": "Turnaround · other side"
+    "sheetOtherSide": "Turnaround · other side",
+    "expression": "Expression sheet",
+    "outfit": "Outfit illustration"
   },
   "empty": {
     "title": "No images yet",
-    "body": "Go to Creator and press Start drawing. Finished images show up here."
+    "body": "Draw your first illustration in Creator. Everything you draw shows up here.",
+    "filteredTitle": "Nothing here yet",
+    "filteredBody": "Switch to \"{{all}}\" to see your other images."
   },
   "view": {
     "front": "Front",
@@ -54,7 +61,13 @@
     "refine": "Edit an area",
     "redraw": "Draw again with the same request",
     "adoptView": "Use as the {{view}} view",
-    "staleView": "This was redrawn from an earlier turnaround. The turnaround has changed since, so it can't be placed in it."
+    "staleView": "This was redrawn from an earlier turnaround. The turnaround has changed since, so it can't be placed in it.",
+    "adoptExpression": "Add to expression sheet",
+    "adoptOutfit": "Use for \"{{name}}\"",
+    "makeMain": "Make it the main illustration",
+    "makeMainHint": "The current main illustration moves to \"{{previous}}\". The turnaround needs splitting again, and expressions get marked as old design.",
+    "outfitRemoved": "This was drawn for an outfit that has been deleted, so it can't be adopted. Restore the outfit to use it.",
+    "download": "Download"
   },
   "compare": {
     "this": "This one",
@@ -79,5 +92,6 @@
     "zoomOut": "Zoom out",
     "zoomIn": "Zoom in",
     "fit": "Fit to window"
-  }
+  },
+  "formerMain": "Previously adopted"
 }

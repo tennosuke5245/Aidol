@@ -1,6 +1,7 @@
 import YAML from 'yaml';
 import Ajv from 'ajv';
-import { ages, headRatios, builds, heights, hairStyles, hairLengths, hairVolumes, hairBangs, hairTextures, hairColors, moods, eyeShapes, brows, eyeColors, outfitStyles, silhouettes, layerOptions, detailOptions, paletteUses, mixerKeys, defaultMixer, ids } from './libraries.mjs';
+import { ages, headRatios, builds, heights, hairStyles, hairLengths, hairVolumes, hairBangs, hairTextures, hairColors, moods, eyeShapes, brows, eyeColors, skinTones, hairDyeStyles, hairExtras, pupils, faceShapes, faceMarks, speciesKinds, earTypes, hornTypes, tailTypes, wingTypes, speciesExtras, outfitStyles, silhouettes, layerOptions, detailOptions, outfitScenes, paletteUses, mixerKeys, defaultMixer, ids } from './libraries.mjs';
+import { hexPattern } from './colors.mjs';
 
 export class DomainError extends Error {
   constructor(message, status = 422, code = 'INVALID_INPUT', details) {
@@ -41,17 +42,25 @@ const label = { type: 'string', minLength: 1, maxLength: 160 };
 const unit = { type: 'number', minimum: 0, maximum: 1 };
 const mixer = { type: 'object', additionalProperties: false, required: mixerKeys, properties: Object.fromEntries(mixerKeys.map(key => [key, { type: 'integer', minimum: 0, maximum: 4 }])) };
 // 2.0 起的結構化角色 DNA；全部選填，舊的 schema_version 1 檔案不需改寫即可讀取。
+// 2026-10-13 起：顏色欄位可以是預設代號或自訂的 #RRGGBB；新增膚色、挑染方式、髮型細節、瞳孔、臉型、臉部特徵與種族（都是選填，舊檔照讀）。
+const hex = { type: 'string', pattern: hexPattern };
+const color = list => ({ anyOf: [choice(list), hex] });
+const orNull = schema => ({ anyOf: [...(schema.anyOf || [schema]), { type: 'null' }] });
+const several = (list, maxItems = 8) => ({ type: 'array', maxItems, uniqueItems: true, items: choice(list) });
 const dna = {
   type: 'object', additionalProperties: false,
   properties: {
-    body: { type: 'object', additionalProperties: false, properties: { age: choice(ages), headRatio: choice(headRatios), build: choice(builds), height: choice(heights) } },
-    hair: { type: 'object', additionalProperties: false, properties: { style: choice(hairStyles), length: choice(hairLengths), volume: choice(hairVolumes), bangs: choice(hairBangs), texture: choice(hairTextures), color: choice(hairColors), accent: { anyOf: [choice(hairColors), { type: 'null' }] } } },
-    face: { type: 'object', additionalProperties: false, properties: { mood: choice(moods), eyeShape: choice(eyeShapes), brows: choice(brows), eyeColor: choice(eyeColors) } },
+    body: { type: 'object', additionalProperties: false, properties: { age: choice(ages), headRatio: choice(headRatios), build: choice(builds), height: choice(heights), skin: color(skinTones) } },
+    hair: { type: 'object', additionalProperties: false, properties: { style: choice(hairStyles), length: choice(hairLengths), volume: choice(hairVolumes), bangs: choice(hairBangs), texture: choice(hairTextures), color: color(hairColors), accent: orNull(color(hairColors)), accentStyle: choice(hairDyeStyles), extras: several(hairExtras) } },
+    // eyeColor：兩眼的顏色；異色瞳時是角色的右眼，eyeColorLeft 是左眼（空＝和右眼一樣）。
+    face: { type: 'object', additionalProperties: false, properties: { mood: choice(moods), eyeShape: choice(eyeShapes), brows: choice(brows), eyeColor: color(eyeColors), eyeColorLeft: orNull(color(eyeColors)), pupil: choice(pupils), shape: choice(faceShapes), marks: several(faceMarks) } },
+    // 種族：kind 是一鍵套用的主題，其餘是可以細調的特徵；color 是特徵色（空＝耳朵、尾巴跟髮色）。
+    species: { type: 'object', additionalProperties: false, properties: { kind: choice(speciesKinds), ears: choice(earTypes), horns: choice(hornTypes), tail: choice(tailTypes), wings: choice(wingTypes), extras: several(speciesExtras), color: orNull(hex) } },
     notes: text,
   },
 };
 const palette = { type: 'array', maxItems: 16, items: { type: 'object', additionalProperties: false, required: ['id', 'name', 'hex'], properties: { id, name: { type: 'string', minLength: 1, maxLength: 40 }, hex: { type: 'string', pattern: '^#[0-9A-Fa-f]{6}$' }, use: choice(paletteUses) } } };
-const outfitSpec = { type: 'object', additionalProperties: false, properties: { style: choice(outfitStyles), silhouette: choice(silhouettes), layers: choice(layerOptions), detail: choice(detailOptions), colors: { type: 'array', maxItems: 6, items: id } } };
+const outfitSpec = { type: 'object', additionalProperties: false, properties: { scene: choice(outfitScenes), style: choice(outfitStyles), silhouette: choice(silhouettes), layers: choice(layerOptions), detail: choice(detailOptions), colors: { type: 'array', maxItems: 6, items: id } } };
 
 export const characterSchema = {
   $id: 'https://aidol.local/schema/character-v1',

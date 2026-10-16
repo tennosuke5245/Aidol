@@ -6,17 +6,20 @@
   "filter": {
     "all": "すべて",
     "main": "立ち絵",
+    "expression": "表情",
     "gear": "パーツ"
   },
   "live": {
     "label": "進行中の描画",
     "failed": "今回は描けませんでした",
     "notSent": "未送信",
-    "pressSend": "Codex で送信してください",
+    "waiting": "送信待ち",
     "view": "見る",
     "importTitle": "パソコンから画像を選んで、この描画に追加します",
     "import": "手動で追加",
-    "importInput": "追加する画像を選ぶ"
+    "importInput": "追加する画像を選ぶ",
+    "cancel": "やめる",
+    "cancelTitle": "この描画を一覧から外します（あとでまた描けます）"
   },
   "olderSettings": "以前の設定",
   "adopted": {
@@ -31,11 +34,15 @@
     "sheetBack": "三面図・背面",
     "sheetFrontQuarter": "三面図・斜め前",
     "sheetBackQuarter": "三面図・斜め後ろ",
-    "sheetOtherSide": "三面図・反対側"
+    "sheetOtherSide": "三面図・反対側",
+    "expression": "表情集",
+    "outfit": "衣装の立ち絵"
   },
   "empty": {
     "title": "まだ画像がありません",
-    "body": "「キャラクリ」で「描画開始」を押すと、描いた画像がここに集まります。"
+    "body": "「キャラクリ」で最初の立ち絵を描くと、描いた画像がここに集まります。",
+    "filteredTitle": "まだありません",
+    "filteredBody": "「{{all}}」でほかの画像を見られます。"
   },
   "view": {
     "front": "正面",
@@ -53,7 +60,13 @@
     "refine": "範囲を選んで部分修正",
     "redraw": "同じ指示でもう一度描く",
     "adoptView": "三面図の{{view}}に使う",
-    "staleView": "以前の三面図をもとに描き直したものです。三面図が変わったため、入れられません。"
+    "staleView": "以前の三面図をもとに描き直したものです。三面図が変わったため、入れられません。",
+    "adoptExpression": "表情集に入れる",
+    "adoptOutfit": "「{{name}}」の立ち絵にする",
+    "makeMain": "立ち絵にする",
+    "makeMainHint": "今の立ち絵は「{{previous}}」に移ります。三面図は切り直しになり、表情は古いデザインになります。",
+    "outfitRemoved": "削除した衣装で描いた絵なので、採用できません。衣装を元に戻せば採用できます。",
+    "download": "ダウンロード"
   },
   "compare": {
     "this": "この画像",
@@ -78,5 +91,6 @@
     "zoomOut": "縮小",
     "zoomIn": "拡大",
     "fit": "ウィンドウに合わせる"
-  }
+  },
+  "formerMain": "以前に採用"
 }

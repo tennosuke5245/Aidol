@@ -1,5 +1,8 @@
 import { formatDate, isSource, t } from './i18n';
 import { isAngleView } from '../shared/domain.mjs';
+import { expressionInfo } from '../shared/expressions.mjs';
+import { isOutfitVariant, outfitRemoved } from '../shared/wardrobe.mjs';
+import { L } from './lib-i18n';
 
 export class ApiError extends Error {
   constructor(message, status, details, code) { super(message); this.status = status; this.details = details; this.code = code; }
@@ -41,5 +44,13 @@ export function assetFor(project, targetId, outfitId, view = 'front') {
 }
 export const dateLabel = date => formatDate(date);
 // 工作或圖片的目標名稱；角色的側面／背面是「三視圖・側面」（重畫三視圖的單一角度），不是正式立繪。
-export const viewTargetLabel = (project, targetId, view) => targetId === 'character' && isAngleView(view) ? t('summon.viewTarget', { view: t(`canvas.views.view.${view}`) }) : targetLabel(project, targetId);
+// 表情是「表情集・開心」；另一套穿搭的立繪是「套裝・睡衣」；照已經刪掉的套裝畫的是「已刪除的套裝・睡衣」（不是正式立繪）。
+export const viewTargetLabel = (project, targetId, view, expression, outfitId) => targetId === 'character' && view === 'expression' ? t('summon.expressionTarget', { name: expressionInfo(project?.expressions, expression, L)?.label || (expression ? t('expressions.removedName') : '') })
+  : targetId === 'character' && isAngleView(view) ? t('summon.viewTarget', { view: t(`canvas.views.view.${view}`) })
+    : targetId === 'character' && isOutfitVariant(project, outfitId) ? t('summon.outfitTarget', { name: project.character.outfits[outfitId].name || t('creator.outfit.untitled') })
+      : targetId === 'character' && project && outfitRemoved(project, outfitId) ? t('summon.outfitRemovedTarget', { name: removedOutfitName(project, outfitId) }) : targetLabel(project, targetId);
+// 全自動衣櫃那一步的名稱（套裝刪掉了就用存檔紀錄裡的名字）。
+export const outfitStepName = (project, outfitId) => t('autopilot.outfitStep', { name: project?.character?.outfits?.[outfitId]?.name || removedOutfitName(project, outfitId) });
+// 已經刪掉的套裝叫什麼：從存檔紀錄找最近一版還有這套的。
+export const removedOutfitName = (project, outfitId) => [...(project?.history || [])].reverse().find(entry => entry.character?.outfits?.[outfitId])?.character.outfits[outfitId].name || t('creator.outfit.untitled');
 export const targetLabel = (project, id) => id === 'character' ? t('common.mainIllustration') : project?.character.components[id]?.name || [...(project?.history || [])].reverse().find(entry => entry.character.components[id])?.character.components[id]?.name || t('common.pastPiece');

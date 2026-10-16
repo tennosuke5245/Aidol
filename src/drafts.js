@@ -1,5 +1,7 @@
 // 未送出的精修要求依「角色＋穿搭＋目標」各自保存在這台電腦的瀏覽器儲存。
 // 這只是個人的便利功能：讀不到時回到預設，不影響正式設定或工作。
+import { readUi, writeUi } from './ui-state';
+
 const KEY = 'aidol-drafts-v1';
 let cache = null;
 
@@ -17,10 +19,6 @@ export function setDraft(key, value) {
   try { localStorage.setItem(KEY, JSON.stringify(all)); } catch {}
 }
 
-export function readPreference(name, fallback) {
-  try { const value = localStorage.getItem(`aidol-pref-${name}`); return value === null ? fallback : JSON.parse(value); } catch { return fallback; }
-}
-
-export function writePreference(name, value) {
-  try { localStorage.setItem(`aidol-pref-${name}`, JSON.stringify(value)); } catch {}
-}
+// 偏好（一次畫幾張、取景、設定資料集的區塊…）：2026-10-14 起存在本機核心（ui-state.js），桌面版重開也還在。
+export function readPreference(name, fallback) { return readUi(`pref:${name}`, fallback); }
+export function writePreference(name, value) { writeUi(`pref:${name}`, value); }

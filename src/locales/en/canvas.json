@@ -21,7 +21,7 @@
     "newImages_other": "{{count}} new images",
     "drawing": "Drawing",
     "failed": "Didn't work this time",
-    "sendInCodex": "Send in Codex",
+    "sendInCodex": "Ready to send",
     "notWorn": "Not worn",
     "changed": "Settings changed",
     "adopted": "Adopted",
@@ -196,7 +196,8 @@
     "worn": "Worn",
     "removeKeepHint": "Pieces with images are kept and just taken off",
     "removeHint": "Remove this piece from the character",
-    "remove": "Remove"
+    "remove": "Remove",
+    "proposedText": "Piece suggested by the AI"
   },
   "rack": {
     "label": "Drawing progress"

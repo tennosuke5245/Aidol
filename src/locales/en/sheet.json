@@ -1,0 +1,76 @@
+{
+  "title": "Model sheet",
+  "subtitle": "Lay the character out as one long image you can hand to a client or teammate. Pick what to include and download a PNG.",
+  "open": "Model sheet",
+  "openTitle": "Put the main illustration, turnaround, expressions, wardrobe, gear and palette on one image",
+  "menu": "Export model sheet",
+  "titleLabel": "Title",
+  "subtitleLabel": "Subtitle",
+  "subtitlePlaceholder": "e.g. A courier in the orbital city",
+  "include": "Include",
+  "section": {
+    "portrait": "Main illustration",
+    "profile": "Profile",
+    "turnaround": "Turnaround",
+    "expressions": "Expressions",
+    "outfits": "Wardrobe",
+    "gear": "Gear",
+    "palette": "Color palette"
+  },
+  "ready": {
+    "portrait": "Ready",
+    "profile": "Looks, personality, must-keep traits"
+  },
+  "count": {
+    "turnaround_one": "{{count}} angle",
+    "turnaround_other": "{{count}} angles",
+    "expressions_one": "{{count}} expression",
+    "expressions_other": "{{count}} expressions",
+    "outfits_one": "{{count}} outfit",
+    "outfits_other": "{{count}} outfits",
+    "gear_one": "{{count}} item",
+    "gear_other": "{{count}} items",
+    "palette_one": "{{count}} color",
+    "palette_other": "{{count}} colors"
+  },
+  "empty": {
+    "portrait": "No main illustration yet",
+    "profile": "No settings yet",
+    "turnaround": "No turnaround yet (needs at least one angle besides the front)",
+    "expressions": "No expressions yet",
+    "outfits": "No other outfit has an illustration yet",
+    "gear": "No gear yet",
+    "palette": "No palette yet"
+  },
+  "theme": "Background",
+  "themes": {
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "download": "Download PNG",
+  "downloading": "Preparing…",
+  "downloaded": "Model sheet downloaded",
+  "failed": "Couldn't build the sheet. Close it and try again.",
+  "hint": "The sheet is made on this computer and isn't uploaded.",
+  "scaled": "There is a lot on this sheet, so it is scaled to {{percent}}% to fit. Untick a few sections to keep text and images larger.",
+  "nothing": "Pick at least one section.",
+  "rendering": "Laying out…",
+  "previewLabel": "Model sheet preview for \"{{name}}\"",
+  "fileName": "{{name}}-model-sheet.png",
+  "separator": ", ",
+  "metaSeparator": " · ",
+  "notes": "Design notes",
+  "locks": "Must keep",
+  "stale": " (old design)",
+  "heterochromia": "right eye {{right}}, left eye {{left}}",
+  "featureColor": "feature color: {{color}}",
+  "noteHeading": "{{title}} ({{view}})",
+  "field": {
+    "species": "Species",
+    "body": "Body",
+    "skin": "Skin",
+    "hair": "Hair",
+    "eyes": "Eyes",
+    "face": "Face"
+  }
+}

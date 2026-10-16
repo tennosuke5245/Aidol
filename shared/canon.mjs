@@ -18,8 +18,11 @@ export function canonBaseline(history = [], character) {
 }
 
 // 定稿之後才改的外觀設定。outfitId：只列這次要畫的那套穿搭的改動。
-export function canonChanges(history, character, { outfitId, tr } = {}) {
+// variant：畫另一套穿搭（衣裝差分）：衣服照那套的設定，定稿只管長相；穿搭的改動不列，裝備只列那套穿著的。
+export function canonChanges(history, character, { outfitId, tr, variant = false } = {}) {
   const baseline = canonBaseline(history, character);
   if (!baseline) return [];
-  return describeChanges(baseline, character, tr).filter((change) => designAreas.has(change.areaKey) && change.key !== 'partStatus' && (!change.outfitId || !outfitId || change.outfitId === outfitId));
+  const worn = (partId) => Boolean(character.outfits?.[outfitId]?.equipped?.some((item) => item.componentId === partId && item.enabled));
+  return describeChanges(baseline, character, tr).filter((change) => designAreas.has(change.areaKey) && change.key !== 'partStatus' && (!change.outfitId || !outfitId || change.outfitId === outfitId)
+    && (!variant || (change.areaKey !== 'outfits' && (change.areaKey !== 'parts' || !change.partId || worn(change.partId)))));
 }

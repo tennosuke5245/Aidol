@@ -13,6 +13,7 @@ import { TurnaroundViewer } from './TurnaroundViewer';
 import { ViewCropEditor } from './ViewCropEditor';
 import { jobPresentation } from '../shared/agent-workspace.mjs';
 import { allViews } from '../shared/domain.mjs';
+import { mainOutfitId } from '../shared/wardrobe.mjs';
 import { outfitOf, uid } from './creator/helpers';
 
 const views = ['front', 'back', 'detail'];
@@ -50,7 +51,9 @@ export function CanvasView({ studio, project, outfitId, app, d }) {
   const sheetInput = useRef(null);
   const onImportSheet = useCallback(() => sheetInput.current?.click(), []);
   const canonId = (d.draft.style.references || []).find(reference => reference.canon)?.assetId;
-  const importSheet = useCallback(async source => { if (await run(() => importMain({ ...source, outfitId }))) notify(t('canvas.views.imported')); }, [run, importMain, outfitId, notify, t]);
+  // 畫布上一律是正式立繪：已經有正式立繪時，匯入的三視圖算主要那套穿搭。
+  const sheetOutfit = project.character.adopted?.character ? mainOutfitId(project) : outfitId;
+  const importSheet = useCallback(async source => { if (await run(() => importMain({ ...source, outfitId: sheetOutfit }))) notify(t('canvas.views.imported')); }, [run, importMain, sheetOutfit, notify, t]);
   const onUseCanon = useCallback(() => { if (canonId) importSheet({ fromAssetId: canonId }); }, [canonId, importSheet]);
   const applyCrop = async boxes => {
     const done = await run(() => adjustViews(boxes));
@@ -94,7 +97,8 @@ function PartInspector({ project, draft, edit, outfitId, part, app, onClose }) {
   const [drawing, setDrawing] = useState(false);
   const outfit = outfitOf(draft, outfitId);
   const slot = outfit?.equipped.find(item => item.componentId === part.id);
-  const portrait = assetFor(project, 'character', outfitId);
+  // 裝備的框選位置記在正式立繪上（畫布上一律顯示正式立繪）。
+  const portrait = assetFor(project, 'character');
   const design = assetFor(project, part.id);
   const cropAsset = part.crop && project.assets.find(asset => asset.id === part.crop.assetId);
   const shots = Object.fromEntries(views.map(id => [id, id === 'front' ? design : assetFor(project, part.id, outfitId, id)]));
@@ -116,12 +120,12 @@ function PartInspector({ project, draft, edit, outfitId, part, app, onClose }) {
     setDrawing(true);
     try {
       const region = part.crop && portrait && part.crop.assetId === portrait.id ? { x: part.crop.x, y: part.crop.y, width: part.crop.width, height: part.crop.height } : undefined;
-      const done = await app.draw({ targetId: part.id, view, variants: count, note, region });
+      const done = await app.draw({ targetId: part.id, view, variants: count, note, region, outfitId });
       if (done) setNote('');
     } finally { setDrawing(false); }
   }
   return <aside className="inspector" aria-label={t('canvas.inspector.aria', { name: part.name })}>
-    <header className="inspector-head"><span>{part.designStatus === 'proposed' ? t('canvas.inspector.proposed') : t('canvas.inspector.piece')}</span><button type="button" className="icon-btn" aria-label={t('ui.close')} onClick={onClose}><X size={18} /></button></header>
+    <header className="inspector-head"><span>{part.designStatus === 'proposed' ? (part.crop ? t('canvas.inspector.proposed') : t('canvas.inspector.proposedText')) : t('canvas.inspector.piece')}</span><button type="button" className="icon-btn" aria-label={t('ui.close')} onClick={onClose}><X size={18} /></button></header>
     <div className="inspector-body">
       <div className="inspector-art">
         {design ? <img src={design.url} alt={t('canvas.part.designAlt', { name: part.name })} />
@@ -129,7 +133,7 @@ function PartInspector({ project, draft, edit, outfitId, part, app, onClose }) {
             : <span className="part-icon"><Sparkle size={30} weight="light" /></span>}
       </div>
       {!design && <p className="inspector-note">{cropAsset ? t('canvas.inspector.cropNote') : t('canvas.inspector.noDesign')}</p>}
-      {jobs.map(({ job, view: state }) => <button type="button" key={job.id} className={`rack-item tone-${state.tone}`} onClick={() => app.openSummon(job.id)}><span className="rack-copy"><b>{state.action === 'handoff' ? t('canvas.status.sendInCodex') : sharedText(state.labelKey, state.labelParams, state.label)}</b><small>{t('canvas.inspector.openJob')}</small></span></button>)}
+      {jobs.map(({ job, view: state }) => <button type="button" key={job.id} className={`rack-item tone-${state.tone}`} onClick={() => app.openSummon(job.id)}><span className="rack-copy"><b>{state.action === 'handoff' && job.status !== 'failed' ? t('canvas.status.sendInCodex') : sharedText(state.labelKey, state.labelParams, state.label)}</b><small>{t('canvas.inspector.openJob')}</small></span></button>)}
       <label className="field"><span>{t('panels.part.name')}</span><input value={part.name} maxLength={160} onChange={event => { const value = event.target.value; set(item => { item.name = value || item.name; }, `part-name-${part.id}`); }} /></label>
       <div className="form-row">
         <label className="field"><span>{t('panels.part.kind')}</span><select value={part.kind} onChange={event => { const value = event.target.value; set(item => { item.kind = value; }); }}>{Object.entries(kindNames()).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>

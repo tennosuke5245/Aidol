@@ -1,0 +1,136 @@
+{
+ "demo|{}": {
+  "text": "## 結構化角色 DNA（AIDOL 編譯；角色長相以文字設定為準）\n- 身形：青年・7.5 頭身・纖瘦・高挑\n- 髮：層次短髮・短・自然・側分・柔軟・銀白\n- 眼與神情：冷靜・銳利・平直・琥珀\n- 穿搭「主要穿搭」：旅行機能・平衡・多層・機能・深藍／青綠／黃銅\n- 色票：銀白 #D8DAE0（髮）、琥珀 #C28A3E（眼）、深藍 #2C3446（主色）、青綠 #3D8A84（輔色）、黃銅 #B38B4D（金屬）、墨 #1F1F23（點綴）\n- 鎖定特徵：銀白短髮；琥珀金色眼睛；黃銅月牙扣具（每張都必須保留）\n\n## 畫風方向 A · 輕渲染\n- 形：構圖簡潔・細節乾淨・髮束平衡\n- 繪：渲染輕・背景留白・配件少\n- 色：飽和自然・明度中・對比平衡\n- 原則：簡化的是刻畫，不是顏色。\n- 有繪風參考時，畫法以參考圖為準（線條、陰影）；這裡只補充參考圖沒有涵蓋的部分。\n\n## English brief\nyoung-adult proportions, 7.5-head body proportion, slim build, tall slender silhouette, layered short hair with a side tuft, short hair length, natural hair volume, side-swept bangs, soft hair texture, silver-white hair, cool composed expression, sharp anime eye shape, straight relaxed eyebrows, amber eyes, practical travel outfit with a compact utility jacket, balanced outfit silhouette, restrained layered clothing construction, functional garment details only where useful, outfit colors 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, color palette: 銀白 #D8DAE0, 琥珀 #C28A3E, 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, 墨 #1F1F23, line art, rendering and character drawing style must follow the supplied style reference image (線條、陰影), not a generic anime look, simple uncluttered composition, clean simplified detail, balanced hair clump detail, light anime rendering with one primary shadow layer and restrained highlights, empty negative-space background, only one or two meaningful accessories, natural saturation, mid-value balance, balanced contrast, simplify rendering, not color, must keep: 銀白短髮; 琥珀金色眼睛; 黃銅月牙扣具",
+  "prompt": "young-adult proportions, 7.5-head body proportion, slim build, tall slender silhouette, layered short hair with a side tuft, short hair length, natural hair volume, side-swept bangs, soft hair texture, silver-white hair, cool composed expression, sharp anime eye shape, straight relaxed eyebrows, amber eyes, practical travel outfit with a compact utility jacket, balanced outfit silhouette, restrained layered clothing construction, functional garment details only where useful, outfit colors 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, color palette: 銀白 #D8DAE0, 琥珀 #C28A3E, 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, 墨 #1F1F23, line art, rendering and character drawing style must follow the supplied style reference image (線條、陰影), not a generic anime look, simple uncluttered composition, clean simplified detail, balanced hair clump detail, light anime rendering with one primary shadow layer and restrained highlights, empty negative-space background, only one or two meaningful accessories, natural saturation, mid-value balance, balanced contrast, simplify rendering, not color, must keep: 銀白短髮; 琥珀金色眼睛; 黃銅月牙扣具"
+ },
+ "demo|{\"framing\":\"frontView\"}": {
+  "text": "## 結構化角色 DNA（AIDOL 編譯；角色長相以文字設定為準）\n- 身形：青年・7.5 頭身・纖瘦・高挑\n- 髮：層次短髮・短・自然・側分・柔軟・銀白\n- 眼與神情：冷靜・銳利・平直・琥珀\n- 穿搭「主要穿搭」：旅行機能・平衡・多層・機能・深藍／青綠／黃銅\n- 色票：銀白 #D8DAE0（髮）、琥珀 #C28A3E（眼）、深藍 #2C3446（主色）、青綠 #3D8A84（輔色）、黃銅 #B38B4D（金屬）、墨 #1F1F23（點綴）\n- 鎖定特徵：銀白短髮；琥珀金色眼睛；黃銅月牙扣具（每張都必須保留）\n- 取景：正面全身\n\n## 畫風方向 A · 輕渲染\n- 形：構圖簡潔・細節乾淨・髮束平衡\n- 繪：渲染輕・背景留白・配件少\n- 色：飽和自然・明度中・對比平衡\n- 原則：簡化的是刻畫，不是顏色。\n- 有繪風參考時，畫法以參考圖為準（線條、陰影）；這裡只補充參考圖沒有涵蓋的部分。\n\n## English brief\nyoung-adult proportions, 7.5-head body proportion, slim build, tall slender silhouette, layered short hair with a side tuft, short hair length, natural hair volume, side-swept bangs, soft hair texture, silver-white hair, cool composed expression, sharp anime eye shape, straight relaxed eyebrows, amber eyes, practical travel outfit with a compact utility jacket, balanced outfit silhouette, restrained layered clothing construction, functional garment details only where useful, outfit colors 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, color palette: 銀白 #D8DAE0, 琥珀 #C28A3E, 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, 墨 #1F1F23, single character, full-body front view, orthographic, neutral A-pose, feet parallel, arms slightly away from the body, plain light gray background, whole body in frame with margin above the head and below the feet, no text, line art, rendering and character drawing style must follow the supplied style reference image (線條、陰影), not a generic anime look, simple uncluttered composition, clean simplified detail, balanced hair clump detail, light anime rendering with one primary shadow layer and restrained highlights, empty negative-space background, only one or two meaningful accessories, natural saturation, mid-value balance, balanced contrast, simplify rendering, not color, must keep: 銀白短髮; 琥珀金色眼睛; 黃銅月牙扣具",
+  "prompt": "young-adult proportions, 7.5-head body proportion, slim build, tall slender silhouette, layered short hair with a side tuft, short hair length, natural hair volume, side-swept bangs, soft hair texture, silver-white hair, cool composed expression, sharp anime eye shape, straight relaxed eyebrows, amber eyes, practical travel outfit with a compact utility jacket, balanced outfit silhouette, restrained layered clothing construction, functional garment details only where useful, outfit colors 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, color palette: 銀白 #D8DAE0, 琥珀 #C28A3E, 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, 墨 #1F1F23, single character, full-body front view, orthographic, neutral A-pose, feet parallel, arms slightly away from the body, plain light gray background, whole body in frame with margin above the head and below the feet, no text, line art, rendering and character drawing style must follow the supplied style reference image (線條、陰影), not a generic anime look, simple uncluttered composition, clean simplified detail, balanced hair clump detail, light anime rendering with one primary shadow layer and restrained highlights, empty negative-space background, only one or two meaningful accessories, natural saturation, mid-value balance, balanced contrast, simplify rendering, not color, must keep: 銀白短髮; 琥珀金色眼睛; 黃銅月牙扣具"
+ },
+ "full|{}": {
+  "text": "## 結構化角色 DNA（AIDOL 編譯；角色長相以文字設定為準）\n- 身形：青少年・5.5 頭身・柔和・嬌小\n- 髮：雙馬尾・長・蓬鬆・齊瀏海・波浪・櫻粉・靛藍挑染\n- 眼與神情：害羞・圓・上揚・紫\n- 穿搭「主要穿搭」：旅行機能・平衡・多層・機能・深藍／青綠／黃銅\n- 色票：銀白 #D8DAE0（髮）、琥珀 #C28A3E（眼）、深藍 #2C3446（主色）、青綠 #3D8A84（輔色）、黃銅 #B38B4D（金屬）、墨 #1F1F23（點綴）\n- 鎖定特徵：銀白短髮；琥珀金色眼睛；黃銅月牙扣具（每張都必須保留）\n\n## 畫風方向 A · 輕渲染\n- 形：構圖簡潔・細節乾淨・髮束平衡\n- 繪：渲染輕・背景留白・配件少\n- 色：飽和自然・明度中・對比平衡\n- 原則：簡化的是刻畫，不是顏色。\n- 有繪風參考時，畫法以參考圖為準（線條、陰影）；這裡只補充參考圖沒有涵蓋的部分。\n\n## English brief\nteenage proportions, 5.5-head body proportion, soft rounded build, petite height impression, twin tails, long hair length, fluffy hair volume, full bangs, wavy hair texture, soft cherry-pink hair, one restrained indigo-blue accent streak, shy, slightly flustered expression, round anime eye shape, arched eyebrows, violet eyes, practical travel outfit with a compact utility jacket, balanced outfit silhouette, restrained layered clothing construction, functional garment details only where useful, outfit colors 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, color palette: 銀白 #D8DAE0, 琥珀 #C28A3E, 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, 墨 #1F1F23, line art, rendering and character drawing style must follow the supplied style reference image (線條、陰影), not a generic anime look, simple uncluttered composition, clean simplified detail, balanced hair clump detail, light anime rendering with one primary shadow layer and restrained highlights, empty negative-space background, only one or two meaningful accessories, natural saturation, mid-value balance, balanced contrast, simplify rendering, not color, must keep: 銀白短髮; 琥珀金色眼睛; 黃銅月牙扣具",
+  "prompt": "teenage proportions, 5.5-head body proportion, soft rounded build, petite height impression, twin tails, long hair length, fluffy hair volume, full bangs, wavy hair texture, soft cherry-pink hair, one restrained indigo-blue accent streak, shy, slightly flustered expression, round anime eye shape, arched eyebrows, violet eyes, practical travel outfit with a compact utility jacket, balanced outfit silhouette, restrained layered clothing construction, functional garment details only where useful, outfit colors 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, color palette: 銀白 #D8DAE0, 琥珀 #C28A3E, 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, 墨 #1F1F23, line art, rendering and character drawing style must follow the supplied style reference image (線條、陰影), not a generic anime look, simple uncluttered composition, clean simplified detail, balanced hair clump detail, light anime rendering with one primary shadow layer and restrained highlights, empty negative-space background, only one or two meaningful accessories, natural saturation, mid-value balance, balanced contrast, simplify rendering, not color, must keep: 銀白短髮; 琥珀金色眼睛; 黃銅月牙扣具"
+ },
+ "full|{\"canon\":true,\"outfitId\":\"combat\",\"directionId\":\"B\"}": {
+  "text": "## 結構化角色 DNA（AIDOL 編譯；長相以定稿為準，這裡只補充定稿上看不到的部分）\n- 身形：青少年・5.5 頭身・柔和・嬌小\n- 髮：雙馬尾・長・蓬鬆・齊瀏海・波浪・櫻粉・靛藍挑染\n- 眼與神情：害羞・圓・上揚・紫\n- 穿搭「主要穿搭」：旅行機能・平衡・多層・機能・深藍／青綠／黃銅\n- 色票：銀白 #D8DAE0（髮）、琥珀 #C28A3E（眼）、深藍 #2C3446（主色）、青綠 #3D8A84（輔色）、黃銅 #B38B4D（金屬）、墨 #1F1F23（點綴）\n- 鎖定特徵：銀白短髮；琥珀金色眼睛；黃銅月牙扣具（每張都必須保留）\n\n## 畫風方向 B · 標準\n- 形：構圖平衡・細節平衡・髮束平衡\n- 繪：渲染標準・背景暗示・配件平衡\n- 色：飽和自然・明度中・對比平衡\n- 原則：簡化的是刻畫，不是顏色。\n- 有繪風參考時，畫法以參考圖為準（線條、陰影）；這裡只補充參考圖沒有涵蓋的部分。\n\n## English brief\nteenage proportions, 5.5-head body proportion, soft rounded build, petite height impression, twin tails, long hair length, fluffy hair volume, full bangs, wavy hair texture, soft cherry-pink hair, one restrained indigo-blue accent streak, shy, slightly flustered expression, round anime eye shape, arched eyebrows, violet eyes, practical travel outfit with a compact utility jacket, balanced outfit silhouette, restrained layered clothing construction, functional garment details only where useful, outfit colors 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, color palette: 銀白 #D8DAE0, 琥珀 #C28A3E, 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, 墨 #1F1F23, line art, rendering and character drawing style must follow the supplied style reference image (線條、陰影), not a generic anime look, balanced composition, balanced detail density, balanced hair clump detail, standard anime rendering, background only lightly implied, balanced accessory count, natural saturation, mid-value balance, balanced contrast, simplify rendering, not color, must keep: 銀白短髮; 琥珀金色眼睛; 黃銅月牙扣具",
+  "prompt": "teenage proportions, 5.5-head body proportion, soft rounded build, petite height impression, twin tails, long hair length, fluffy hair volume, full bangs, wavy hair texture, soft cherry-pink hair, one restrained indigo-blue accent streak, shy, slightly flustered expression, round anime eye shape, arched eyebrows, violet eyes, practical travel outfit with a compact utility jacket, balanced outfit silhouette, restrained layered clothing construction, functional garment details only where useful, outfit colors 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, color palette: 銀白 #D8DAE0, 琥珀 #C28A3E, 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, 墨 #1F1F23, line art, rendering and character drawing style must follow the supplied style reference image (線條、陰影), not a generic anime look, balanced composition, balanced detail density, balanced hair clump detail, standard anime rendering, background only lightly implied, balanced accessory count, natural saturation, mid-value balance, balanced contrast, simplify rendering, not color, must keep: 銀白短髮; 琥珀金色眼睛; 黃銅月牙扣具"
+ },
+ "accent|{}": {
+  "text": "## 結構化角色 DNA（AIDOL 編譯；角色長相以文字設定為準）\n- 身形：青年・7.5 頭身・纖瘦・高挑\n- 髮：層次短髮・短・自然・側分・柔軟・銀白・櫻粉挑染\n- 眼與神情：冷靜・銳利・平直・琥珀\n- 穿搭「主要穿搭」：旅行機能・平衡・多層・機能・深藍／青綠／黃銅\n- 色票：銀白 #D8DAE0（髮）、琥珀 #C28A3E（眼）、深藍 #2C3446（主色）、青綠 #3D8A84（輔色）、黃銅 #B38B4D（金屬）、墨 #1F1F23（點綴）\n- 鎖定特徵：銀白短髮；琥珀金色眼睛；黃銅月牙扣具（每張都必須保留）\n\n## 畫風方向 A · 輕渲染\n- 形：構圖簡潔・細節乾淨・髮束平衡\n- 繪：渲染輕・背景留白・配件少\n- 色：飽和自然・明度中・對比平衡\n- 原則：簡化的是刻畫，不是顏色。\n- 有繪風參考時，畫法以參考圖為準（線條、陰影）；這裡只補充參考圖沒有涵蓋的部分。\n\n## English brief\nyoung-adult proportions, 7.5-head body proportion, slim build, tall slender silhouette, layered short hair with a side tuft, short hair length, natural hair volume, side-swept bangs, soft hair texture, silver-white hair, one restrained soft cherry-pink accent streak, cool composed expression, sharp anime eye shape, straight relaxed eyebrows, amber eyes, practical travel outfit with a compact utility jacket, balanced outfit silhouette, restrained layered clothing construction, functional garment details only where useful, outfit colors 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, color palette: 銀白 #D8DAE0, 琥珀 #C28A3E, 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, 墨 #1F1F23, line art, rendering and character drawing style must follow the supplied style reference image (線條、陰影), not a generic anime look, simple uncluttered composition, clean simplified detail, balanced hair clump detail, light anime rendering with one primary shadow layer and restrained highlights, empty negative-space background, only one or two meaningful accessories, natural saturation, mid-value balance, balanced contrast, simplify rendering, not color, must keep: 銀白短髮; 琥珀金色眼睛; 黃銅月牙扣具",
+  "prompt": "young-adult proportions, 7.5-head body proportion, slim build, tall slender silhouette, layered short hair with a side tuft, short hair length, natural hair volume, side-swept bangs, soft hair texture, silver-white hair, one restrained soft cherry-pink accent streak, cool composed expression, sharp anime eye shape, straight relaxed eyebrows, amber eyes, practical travel outfit with a compact utility jacket, balanced outfit silhouette, restrained layered clothing construction, functional garment details only where useful, outfit colors 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, color palette: 銀白 #D8DAE0, 琥珀 #C28A3E, 深藍 #2C3446, 青綠 #3D8A84, 黃銅 #B38B4D, 墨 #1F1F23, line art, rendering and character drawing style must follow the supplied style reference image (線條、陰影), not a generic anime look, simple uncluttered composition, clean simplified detail, balanced hair clump detail, light anime rendering with one primary shadow layer and restrained highlights, empty negative-space background, only one or two meaningful accessories, natural saturation, mid-value balance, balanced contrast, simplify rendering, not color, must keep: 銀白短髮; 琥珀金色眼睛; 黃銅月牙扣具"
+ },
+ "diff": [
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "年齡感",
+   "from": "青年",
+   "to": "青少年"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "頭身比",
+   "from": "7.5 頭身",
+   "to": "5.5 頭身"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "體型",
+   "from": "纖瘦",
+   "to": "柔和"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "身高感",
+   "from": "高挑",
+   "to": "嬌小"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "髮型",
+   "from": "層次短髮",
+   "to": "雙馬尾"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "髮長",
+   "from": "短",
+   "to": "長"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "蓬度",
+   "from": "自然",
+   "to": "蓬鬆"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "瀏海",
+   "from": "側分",
+   "to": "齊瀏海"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "髮質",
+   "from": "柔軟",
+   "to": "波浪"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "髮色",
+   "from": "銀白",
+   "to": "櫻粉"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "挑染",
+   "from": "未設定",
+   "to": "靛藍"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "神情",
+   "from": "冷靜",
+   "to": "害羞"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "眼型",
+   "from": "銳利",
+   "to": "圓"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "眉",
+   "from": "平直",
+   "to": "上揚"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "眼色",
+   "from": "琥珀",
+   "to": "紫"
+  },
+  {
+   "area": "角色 DNA",
+   "areaKey": "dna",
+   "label": "補充",
+   "from": "空白",
+   "to": "補充"
+  }
+ ]
+}

@@ -37,7 +37,9 @@
     "adoptMain": "立ち絵に採用",
     "adopt": "これを採用",
     "older": "以前の設定で描いたもの",
-    "staleView": "三面図が変わりました"
+    "staleView": "三面図が変わりました",
+    "pickedByQa": "Design QA が代わりに採用",
+    "outfitRemoved": "衣装は削除済み"
   },
   "opening": "開いています…",
   "reopen": "Codex をもう一度開く",
@@ -66,7 +68,36 @@
     "partDesign": "{{name}}のデザイン画",
     "canon": "決定稿：この絵のとおりに描く",
     "viewFront": "正面：これをもとに描く",
-    "view": "確定済みの{{view}}"
+    "view": "確定済みの{{view}}",
+    "expressionFraming": "構図の参考（採用済みの表情）"
   },
-  "viewTarget": "三面図・{{view}}"
+  "viewTarget": "三面図・{{view}}",
+  "direct": {
+    "drawingSub": "AIDOL があなたの Codex で描いています。1枚描けるたびに1枚ずつめくれます。",
+    "stop": "止める",
+    "again": "もう一度描く",
+    "useCodexApp": "Codex App に任せる",
+    "switch": "AIDOL に直接描かせる",
+    "usageLimit": "Codex の利用枠を使い切りました。{{time}} 以降に回復するので、そのあともう一度描いてください。"
+  },
+  "qa": {
+    "running": "Design QA がこの候補を確認しています…",
+    "picked": "Design QA：{{summary}}",
+    "none": "Design QA の判断ではまだ使える候補がありません：{{summary}}",
+    "pickBadge": "QA のおすすめ",
+    "passBadge": "使える",
+    "failBadge": "描き直し",
+    "score": "{{total}}／25",
+    "issueSep": "；",
+    "ask": "Design QA に選んでもらう",
+    "needsCodex": "Design QA を使うには先に Codex に接続してください"
+  },
+  "expressionTarget": "表情集・{{name}}",
+  "outfitTarget": "衣装・{{name}}",
+  "outfitRemovedTarget": "削除した衣装・{{name}}",
+  "outfitRemovedTitle": "この衣装は削除されました",
+  "outfitRemoved": "これらの絵は採用できず、ギャラリーに残ります。衣装を元に戻せば採用できます。",
+  "outfitRemovedWaiting": "送信する必要はありません。描く場合は先に衣装を元に戻してください。",
+  "outfitRemovedDrawing": "この衣装は削除されたため、描いている絵は採用できません（ギャラリーに残ります）。",
+  "cancel": "描くのをやめる"
 }

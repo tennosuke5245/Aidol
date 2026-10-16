@@ -6,6 +6,7 @@ import multer from 'multer';
 import { CodexClient, codexVersion } from './codex/client.mjs';
 import { characterYaml, parseCharacterYaml, characterSchema, DomainError, turnaroundLabels } from '../shared/domain.mjs';
 import { skillSource, skillStatus, installSkill } from '../scripts/install-skill.mjs';
+import { registerAutoDraw, codexDrawAccess } from './autodraw.mjs';
 
 const route = handler => (request, response, next) => Promise.resolve(handler(request, response)).catch(next);
 const writeJson = async (file, value) => {
@@ -36,7 +37,7 @@ async function verifyHandoff(store, id, jobId, request) {
 // 背景 Codex（聊天、自動拆解）在系統暫存區的空資料夾裡工作，不用角色資料夾：
 // Windows 上被程式當成工作位置的資料夾不能搬，用角色資料夾會讓「刪除角色」搬不動；
 // 也免得 Codex 順著資料夾往上讀到不相干的 AGENTS.md 或 skills。需要的圖片以完整路徑附上。
-export function registerCodexRoutes(app, store, { client = new CodexClient(), version = codexVersion, workDir = path.join(os.tmpdir(), 'aidol-codex') } = {}) {
+export function registerCodexRoutes(app, store, { client = new CodexClient(), version = codexVersion, workDir = path.join(os.tmpdir(), 'aidol-codex'), drawAccess, autopilotTiming } = {}) {
   const codexWorkDir = async () => { await mkdir(workDir, { recursive: true }); return workDir; };
   // 刪除或復原角色時資料夾搬不動：先請背景 Codex 放開（閒著就重開），再讓核心搬一次。
   store.setFolderReleaser(() => (client.release ? client.release() : 'none'));
@@ -55,11 +56,14 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
       const cliVersion = await version(); await client.start();
       const [auth, catalog] = await Promise.all([client.request('account/read', { refreshToken: false }), client.request('model/list', { limit: 100, includeHidden: false })]);
       response.json({ available: true, version: cliVersion, authenticated: Boolean(auth.account), accountType: auth.account?.type || null, planType: auth.account?.planType || null, models: catalog.data,
-        capabilities: { textDraft: true, imageGeneration: false, appImageHandoff: true }, skill });
+        capabilities: { textDraft: true, imageGeneration: drawableAccount(auth.account), appImageHandoff: true }, skill });
     } catch {
       response.json({ available: false, authenticated: false, version: null, models: [], capabilities: { textDraft: false, imageGeneration: false, appImageHandoff: true }, skill, error: '未能連線至本機 Codex CLI。請確認 Codex 已安裝並登入；AIDOL 不會變更登入。', code: 'CODEX_UNAVAILABLE' });
     }
   }));
+
+  // AIDOL 直接畫：ChatGPT 方案登入、不是 Free（API key 登入會另外計費，不畫）。
+  const drawableAccount = (account) => Boolean(account && account.type === 'chatgpt' && account.planType !== 'free');
 
   app.get('/api/codex/models', route(async (_request, response) => {
     await client.start(); const result = await client.request('model/list', { limit: 100, includeHidden: false }); response.json(result);
@@ -206,21 +210,30 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
     // 貼進 Codex 的交接訊息只寫「畫什麼、資料在哪」：工作資料夾用相對於工作區的路徑，
     // 回報與回收規則在 AIDOL skill、細節在 instructions.md，不在這裡重複（太長會把 Codex 輸入框塞爆）。
     const project = await store.getProject(id);
-    const redrawView = job.targetId === 'character' && job.outputView !== 'front' ? turnaroundLabels[job.outputView] : '';
-    const target = redrawView ? `三視圖的${redrawView}` : job.targetId === 'character' ? (job.framing === 'frontView' ? '正面全身' : '立繪') : project.character.components?.[job.targetId]?.name || job.targetId;
+    const redrawView = job.targetId === 'character' && job.outputView !== 'front' && job.outputView !== 'expression' ? turnaroundLabels[job.outputView] : '';
+    const expressionTarget = job.targetId === 'character' && job.outputView === 'expression' ? `表情集的「${job.expressionLabel || job.expression}」` : '';
+    // 衣裝差分：另一套穿搭的立繪（照正式立繪只換衣服）。
+    const outfitName = job.outfitVariant ? project.character.outfits?.[job.outfitId]?.name || job.outfitId : '';
+    const target = expressionTarget || (redrawView ? `三視圖的${redrawView}` : job.targetId === 'character' ? (outfitName ? `穿搭「${outfitName}」的立繪` : job.framing === 'frontView' ? '正面全身' : '立繪') : project.character.components?.[job.targetId]?.name || job.targetId);
     const count = (job.variants || 1) > 1 ? `，畫 ${job.variants} 張` : '';
     const styled = (job.context?.styleReferences || []).some((reference) => reference.role === 'style');
     const canon = (job.context?.styleReferences || []).some((reference) => reference.canon);
     const prompt = [
       `$aidol 請完成 AIDOL 工作：${project.character.name || project.name}・${target}${count}。`,
       `工作資料夾：${path.relative(workspace, directory)}（先讀 instructions.md；input.yaml 與 handoff.json 也在這裡）`,
-      ...(canon ? ['這次有定稿：設計照定稿，不要改。'] : []),
+      ...(canon ? [outfitName ? '這次有定稿：長相照定稿，衣服換成這套穿搭。' : '這次有定稿：設計照定稿，不要改。'] : []),
+      ...(outfitName ? [`這次畫穿搭「${outfitName}」：照正式立繪畫同一個角色，只換衣服。`] : []),
       ...(redrawView ? [job.viewRedo ? `這次重畫${redrawView}：原本那張有問題，沒有附上；設計照正面，不要改。` : `這次畫${redrawView}：設計照正面，不要改。`] : []),
+      ...(expressionTarget ? [`這次畫${expressionTarget}：胸像，設計照正面，只改表情。`] : []),
       ...(styled ? ['這次附了繪風參考，畫法以它為準。'] : []),
     ].join('\n');
     const url = buildHandoffUrl(workspace, prompt);
+    // AIDOL 直接畫到一半核心重開過（畫面顯示「中斷了」；這裡拿到的 job 已經是畫面看到的樣子）：
+    // 那次沒畫完的進度要收尾存起來，不然改交給 Codex App 後就不再算「中斷」，畫面會一直以為還在畫。
+    const interrupted = job.runner === 'auto' && Boolean(job.progress?.startedAt) && !store.drawingJobs.has(jobId);
     const keep = ['running', 'review'].includes(job.status);
-    const updated = await store.updateJob(id, jobId, { ...(keep ? {} : { status: 'handed_off' }), handoff: { workspace, url, submitUrl, progressUrl: `${submitUrl.replace(/\/submit$/, '')}/progress`, createdAt: new Date().toISOString() } });
+    // 交給 Codex App（包括「AIDOL 直接畫」失敗後改交給 Codex App）：之後的進度來自 Skill 回報，不是核心自己的對話。
+    const updated = await store.updateJob(id, jobId, { ...(keep ? {} : { status: 'handed_off' }), ...(interrupted ? { progress: { ...job.progress, finishedAt: job.progress.finishedAt || new Date().toISOString() } } : {}), runner: 'codex-app', handoff: { workspace, url, submitUrl, progressUrl: `${submitUrl.replace(/\/submit$/, '')}/progress`, createdAt: new Date().toISOString() } });
     response.json({ url, prompt, workspace, submitUrl, job: updated });
   }));
 
@@ -271,5 +284,7 @@ export function registerCodexRoutes(app, store, { client = new CodexClient(), ve
       response.json({ jobId, status: job.status, progress: job.progress || null });
     });
   }));
-  return { close: () => client.close(), decompose };
+  // AIDOL 直接畫、Design QA、全自動（server/autodraw.mjs）。畫圖與審查也在系統暫存區的 aidol-codex 裡，不用角色資料夾。
+  const autodraw = registerAutoDraw(app, store, { client, workDir, decompose, ...(drawAccess ? { access: drawAccess } : { access: () => codexDrawAccess(client) }), ...(autopilotTiming ? { timing: autopilotTiming } : {}) });
+  return { close: async () => { await autodraw.close(); return client.close(); }, decompose, autodraw };
 }

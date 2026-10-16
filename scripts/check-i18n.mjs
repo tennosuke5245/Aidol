@@ -111,7 +111,9 @@ sharedKeys.add('comparison.noOutfit');
 for (const key of Object.keys(workspace.comparisonText.view)) sharedKeys.add(`comparison.view.${key}`);
 const diff = readFileSync(path.join(root, 'shared', 'character-diff.mjs'), 'utf8');
 for (const match of diff.matchAll(/\bT\(\s*[`']([\w.${}]+)[`']/g)) if (!match[1].includes('${')) sharedKeys.add(`diff.${match[1]}`);
-for (const field of ['hairStyle', 'outfitStyle', 'age', 'headRatio', 'build', 'height', 'length', 'volume', 'bangs', 'texture', 'color', 'accent', 'mood', 'eyeShape', 'brows', 'eyeColor', 'silhouette', 'layers', 'detail']) sharedKeys.add(`diff.field.${field}`);
+for (const field of ['hairStyle', 'outfitStyle', 'age', 'headRatio', 'build', 'height', 'length', 'volume', 'bangs', 'texture', 'color', 'accent', 'mood', 'eyeShape', 'brows', 'eyeColor', 'silhouette', 'layers', 'detail', 'species', 'ears', 'horns', 'tail', 'wings', 'featureColor', 'skin', 'accentStyle', 'eyeColorLeft', 'pupil', 'faceShape', 'speciesExtras', 'hairExtras', 'faceMarks', 'eyeColorRight', 'scene',
+  // 外觀文字描述的欄位名（character-diff.mjs 的 identityNames，2026-10-14 起）。
+  'hairText', 'eyesText', 'silhouetteText', 'appearanceText', 'signatureText', 'faceText', 'bodyText', 'outfitText', 'accessoriesText', 'colorsText', 'skinText', 'otherText']) sharedKeys.add(`diff.field.${field}`);
 for (const locale of LOCALES.filter((item) => item !== SOURCE)) {
   const have = keysOf(locale, 'shared');
   for (const key of sharedKeys) if (!have.has(key)) problems.push(`src/locales/${locale}/shared.json：缺少 ${key}`);
@@ -148,19 +150,30 @@ const dynamicKeys = {
   'canvas.annotation.textAria': ['note', 'text'],
   'canvas.annotation.placeholder': ['note', 'text'],
   'canvas.annotation.emptyHint': ['note', 'text'],
-  'creator.categories': ['persona', 'body', 'hair', 'face', 'outfit', 'color', 'gear', 'style'],
-  'creator.hints': ['persona', 'body', 'hair', 'face', 'outfit', 'color', 'gear', 'style'],
+  'creator.categories': ['persona', 'species', 'body', 'hair', 'face', 'outfit', 'color', 'gear', 'style'],
+  'creator.hints': ['persona', 'species', 'body', 'hair', 'face', 'outfit', 'color', 'gear', 'style'],
+  'creator.species': ['ears', 'horns', 'tail', 'wings'],
   'creator.style.presetNotes': libraries.mixerPresets.map((preset) => preset.id),
   'creator.style.groups': libraries.mixerGroups.map((group) => group.id),
   'creator.style.roles': roles,
-  'gallery.adopted': ['main', 'design', 'sheetSide', 'sheetBack', 'sheetFrontQuarter', 'sheetBackQuarter', 'sheetOtherSide', ...views],
+  'gallery.adopted': ['main', 'design', 'sheetSide', 'sheetBack', 'sheetFrontQuarter', 'sheetBackQuarter', 'sheetOtherSide', 'expression', 'outfit', ...views],
   'gallery.view': views,
-  'gallery.filter': ['all', 'main', 'gear'],
+  'gallery.filter': ['all', 'main', 'expression', 'gear'],
   'history': historyKeys,
   'history.view': views,
   'panels.part.kinds': ['accessory', 'garment', 'footwear', 'hair', 'weapon', 'body', 'other'],
   'panels.reference.roles': roles,
   'summon.reference.role': [...roles, 'other'],
+  'panels.settings.drawWith': ['aidol', 'codex-app', 'aidolHint', 'codex-appHint'],
+  'autopilot.phase': ['drawing', 'reviewing', 'split', 'detecting'],
+  'autopilot.reason': ['AUTOPILOT_NEEDS_SCREEN', 'AUTOPILOT_WAIT_TIMEOUT', 'DRAW_USAGE_LIMIT', 'AUTOPILOT_STEP_LIMIT', 'AUTOPILOT_REVIEW_FAILED', 'AUTOPILOT_FRONT_NEEDS_SPLIT'],
+  'autopilot.log': ['started', 'waiting', 'drawing', 'reviewing', 'adopted', 'redraw', 'drawFailed', 'reviewFailed', 'gaveUp', 'userPicked', 'staleBatch', 'removed', 'outfitRemoved', 'paused', 'stopped', 'done', 'failed'],
+  'autopilot.waitReason': ['split', 'detecting'],
+  'sheet.section': ['portrait', 'profile', 'turnaround', 'expressions', 'outfits', 'gear', 'palette'],
+  'sheet.ready': ['portrait', 'profile'],
+  'sheet.count': ['turnaround', 'expressions', 'outfits', 'gear', 'palette'],
+  'sheet.empty': ['portrait', 'profile', 'turnaround', 'expressions', 'outfits', 'gear', 'palette'],
+  'sheet.themes': ['light', 'dark'],
 };
 const handledElsewhere = new Set(['shared', 'errors', 'lib']);
 for (const file of sourceFiles) {

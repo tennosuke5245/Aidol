@@ -34,10 +34,13 @@ Your character lives in a plain YAML file, so nothing is locked inside a chat hi
 ## Features
 
 - **Canvas.** Open a character and you see the main illustration in the middle, with boots, jacket, accessories and other pieces lined up on both sides and linked to it. Drag things around; they stay where you put them.
-- **Character creator.** Pick hair, bangs, eyes, body type and outfit style from thumbnails. Use sliders for age, height and hair length, and turn nine knobs to set the art style.
-- **Drawing with Codex.** Press "Start drawing" (開始繪製) and AIDOL opens a new Codex chat with the request already filled in. You press send. Each image flips over on its card as it arrives, and you choose which one to keep.
+- **Character creator.** Pick hair, bangs, eyes, body type and outfit style from thumbnails. Use sliders for age, height and hair length, and turn nine knobs to set the art style. Every color can be custom (color board, hex code, or an eyedropper that picks from anywhere on screen), and there are skin tones, heterochromia, pupil shapes, facial features, highlights and ombré. Species applies elf, animal ears, dragonkin, angel and more in one click, then you fine-tune ears, horns, tail and wings. Stuck? Roll the dice to randomize a page, and undo if you don't like it. The palette page can also pull the main colors from an illustration or reference image.
+- **Drawing with your Codex.** Press "Start drawing" and AIDOL draws directly with your Codex (it counts toward your ChatGPT plan), with no app switching. In settings you can hand jobs off to the Codex App instead and press send yourself. Each image flips over on its card as it arrives, and you choose which one to keep.
+- **Autopilot with Design QA.** Press "Autopilot" in the top bar. AIDOL draws the full-body front, Design QA picks the best image from each batch and adopts it for you, then each angle you chose (side, back, front 3/4…) is drawn from the front one at a time. Every score and issue is visible, and you can swap back or redraw anything. You can also just ask Design QA to pick from a single batch.
 - **Automatic outfit breakdown.** Once you pick a main illustration, Codex looks at it and lists what the character is wearing. Each piece shows up on the canvas, cropped from the illustration.
 - **Turnaround.** Draw the front first, then add the side and back on the canvas one at a time. AIDOL sizes the three to match with the feet aligned and lines them up under the character. If one view comes out wrong, redraw just that one and say what to fix; the old image is not sent to the AI, so the mistake isn't copied. You can also import a turnaround you already have; AIDOL splits it along each figure's outline, so nothing from the neighbor slips in. Add a front 3/4, back 3/4 or other-side view when the design needs it. Click any view to compare them all side by side with the feet aligned, and pin notes on the images ("the tail grows from the middle of the lower back"); every later drawing sends those notes to the AI. Exported ZIPs include a `views/` folder with the notes.
+- **Expression sheet.** "Expressions" in the top bar draws bust-up expressions one at a time from the main illustration's front (neutral, happy, angry… or your own). Draw "Neutral" first to set the framing so the whole set lines up, or press "Draw the rest" to hand it to autopilot. Download the set as one labeled image; the ZIP export gets an `expressions/` folder too.
+- **Wardrobe.** The top of the Outfit page is a wardrobe with an illustration for each outfit. Start a new outfit from an occasion (day off, pajamas, uniform, winter…). Drawing another outfit keeps the face, hair and body from the main illustration and changes only the clothes, so the main illustration stays as it is.
 - **Final design.** Attach an earlier design sheet when you create a character and choose "Draw exactly as this (final design)". Every later drawing keeps that design and only changes the view, pose and layout, and the AI can fill in the character's look from it.
 - **AI-written profiles.** Write a rough idea and let the AI fill in the profile. You see every change before it is applied.
 - **Nothing gets lost.** Everything saves automatically, with undo/redo and a full save history. Images are never overwritten.
@@ -54,8 +57,8 @@ Your character lives in a plain YAML file, so nothing is locked inside a chat hi
 |---|---|
 | Windows | The desktop app. Other systems are not tested yet. |
 | [Bun](https://bun.sh/) | Running and building AIDOL |
-| Codex CLI (signed in) | AI-written profiles and outfit breakdown |
-| Codex App | Drawing. It uses your own subscription; AIDOL never switches to the separately billed Image API. |
+| Codex CLI (signed in) | AI-written profiles, outfit breakdown, Design QA, and direct drawing when signed in with a ChatGPT account (not an API key, not the free plan). Drawing counts toward your ChatGPT plan; once that runs out, credits are used if you have them. AIDOL never switches to the separately billed Image API. |
+| Codex App | Optional: only if you want to press send in the Codex App yourself. |
 | Rust + MSVC build tools | Only for building the desktop app ([Tauri prerequisites](https://tauri.app/start/prerequisites/)) |
 
 ## Download
@@ -87,7 +90,7 @@ The desktop app starts its own local service, so you don't need to run Bun or Vi
 
 AIDOL only shows what really happened. There is no fake progress bar.
 
-1. **Ready to send.** The job is ready and Codex has a new chat open. Press send in Codex.
+1. **Ready to send.** Only when handing off to the Codex App: the job is ready and Codex has a new chat open. Press send in Codex. When AIDOL draws directly, this step is skipped.
 2. **Drawing n/N.** Codex reported that it started. `n` is how many images have come back.
 3. **New images.** Real images arrived. You can pick one even while the rest are still drawing.
 4. **Adopted.** The main illustration or outfit sheet is updated. Images that arrive later still go into the gallery.
@@ -95,7 +98,7 @@ AIDOL only shows what really happened. There is no fake progress bar.
 
 Images drawn with older settings can still be used; they are just marked as such.
 
-Codex reports progress through the [AIDOL Skill](.agents/skills/aidol/SKILL.md), which ships with this repo and is attached to every job. It only sends images back to AIDOL on your own machine (localhost).
+When AIDOL draws directly, progress and images come from the Codex chat AIDOL opens itself. When you hand off to the Codex App, Codex reports progress through the [AIDOL Skill](.agents/skills/aidol/SKILL.md), which ships with this repo and is attached to every job. It only sends images back to AIDOL on your own machine (localhost), never through a proxy.
 
 ## Where your data lives
 

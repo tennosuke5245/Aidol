@@ -12,6 +12,7 @@ import { characterNodeSize, columnX, containBox, cropInFrame, layoutPorts, partN
 import { CropThumb } from './CropThumb';
 import { getLocale, t, useT } from './i18n';
 import '@xyflow/react/dist/style.css';
+import { readUi, writeUi } from './ui-state';
 
 const statusIcons = { success: Check, amber: Sparkle, blue: Clock, neutral: CircleDashed, error: WarningCircle };
 const kindIcons = { garment: TShirt, footwear: Sneaker, accessory: Diamond, weapon: Sword, hair: Sparkle, body: PersonSimple, other: Package };
@@ -258,10 +259,11 @@ function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, o
   const creationOffset = useRef(0);
   const knownParts = useRef(null);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
-  // 每個節點的位置排好就記在本機（v3）：拖一個節點不會讓其他節點重排，離開再回來也一樣。
-  const storageKey = `aidol-layout-v3-${project.id}`;
-  const readSaved = useCallback(() => { try { return JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch { return {}; } }, [storageKey]);
-  const writeSaved = useCallback(positions => { try { localStorage.setItem(storageKey, JSON.stringify(positions)); } catch {} }, [storageKey]);
+  // 每個節點的位置排好就記下來（v3）：拖一個節點不會讓其他節點重排，離開再回來也一樣。
+  // 2026-10-14 起記在本機核心（ui-state.js），桌面版重開也還在。
+  const storageKey = `layout:${project.id}`;
+  const readSaved = useCallback(() => { const saved = readUi(storageKey, {}); return saved && typeof saved === 'object' && !Array.isArray(saved) ? { ...saved } : {}; }, [storageKey]);
+  const writeSaved = useCallback(positions => { writeUi(storageKey, positions); }, [storageKey]);
 
   // 剛拆出來的裝備：淡入並畫出關聯線，讓人看到「從角色長出去」。
   const partIds = Object.keys(project.character.components).join('|');
@@ -307,7 +309,8 @@ function GraphCanvas({ project, outfitId, selectedId, onSelect, onOpenCreator, o
   }, [project.canvasAnnotations, positionDrafts, changePositionDraft]);
   useEffect(() => { setSelectedCanvasId(null); }, [selectedId]);
 
-  const portrait = assetFor(project, 'character', outfitId);
+  // 畫布上一律顯示正式立繪（主要那套）；其他套穿搭的立繪在捏角色的衣櫃裡看。
+  const portrait = assetFor(project, 'character');
   // 三視圖：正式圖拆好之後，人物節點顯示「正面」那張（整張三視圖用放大鈕看），下方一排是三個視角。
   const views = portrait && project.views?.assetId === portrait.id ? project.views : null;
   const viewItems = useMemo(() => (views?.status === 'done' ? views.items || {} : {}), [views]);

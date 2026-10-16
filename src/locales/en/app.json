@@ -20,10 +20,13 @@
     "frontFromPortrait": "Draw \"{{name}}\" from the front based on the current main illustration: keep the design and draw one full-body figure facing forward in an A-pose.",
     "drawView": "Draw the {{view}} view of \"{{name}}\" from the front view: keep the design exactly and draw one full-body figure at the same height as the front.",
     "viewFix": "Fix this time: {{note}}",
-    "viewNote": "Also note: {{note}}"
+    "viewNote": "Also note: {{note}}",
+    "expression": "Draw the \"{{expression}}\" expression for \"{{name}}\" from the main illustration: a front-facing bust shot. Keep the design; change only the expression.",
+    "outfit": "Draw \"{{name}}\" in the \"{{outfit}}\" outfit from the main illustration: keep the face, hair and body, and change only the clothes."
   },
   "chatFailed": "The AI didn't finish writing: {{message}}",
   "proposalApplied": "Applied the AI's settings.",
+  "proposalAppliedKept": "Applied the AI's settings. The outfit with the main illustration can't be deleted, so it was kept.",
   "writingFromBrief": "The AI is writing settings from your description. They'll show up under Profile when ready.",
   "briefRequest": "Based on this description, fill in the profile, character DNA (body, hair, face), palette, locked features and main outfit for \"{{name}}\":",
   "opening": "Opening AIDOL…",
@@ -36,6 +39,7 @@
   "settingsTitle": "Character file and Codex connection",
   "skillInstalled": "AIDOL Skill is installed in Codex.",
   "yamlSaved": "The character file passed the checks and was saved.",
+  "yamlSavedKept": "The character file was saved. The outfit with the main illustration can't be deleted, so it was kept.",
   "history": {
     "title": "Save history",
     "hint": "Every change is saved automatically. Loading an old save stores it as a new save, and all images and later saves are kept.",
@@ -66,5 +70,6 @@
     "purgeConfirm": "Really delete?",
     "purged": "Permanently deleted \"{{name}}\"."
   },
-  "readingCanon": "The AI is reading the final design to fill in the look…"
+  "readingCanon": "The AI is reading the final design to fill in the look…",
+  "jobCancelled": "Cancelled this draw."
 }

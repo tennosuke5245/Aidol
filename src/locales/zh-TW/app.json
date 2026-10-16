@@ -20,10 +20,13 @@
     "frontFromPortrait": "照目前的正式立繪為「{{name}}」畫正面全身：設計不改，只畫成正面、A 字站姿的全身一個人。",
     "drawView": "照正面畫「{{name}}」的{{view}}：設計完全不改，只畫一個全身的{{view}}，身高和正面一樣。",
     "viewFix": "這次要修正：{{note}}",
-    "viewNote": "另外請注意：{{note}}"
+    "viewNote": "另外請注意：{{note}}",
+    "expression": "照正式立繪畫「{{name}}」的表情「{{expression}}」：胸像、正面，設計不改，只改表情。",
+    "outfit": "照正式立繪為「{{name}}」畫套裝「{{outfit}}」：臉、髮型、身形不變，只換成這套的衣服。"
   },
   "chatFailed": "AI 沒有寫成：{{message}}",
   "proposalApplied": "已套用 AI 寫的設定。",
+  "proposalAppliedKept": "已套用 AI 寫的設定；正式立繪那套不能刪，已經放回去了。",
   "writingFromBrief": "AI 正在依你的描述寫設定，寫好會出現在「角色」。",
   "briefRequest": "請依這段描述，替角色「{{name}}」補完人設、角色 DNA（身形、髮型、五官）、色票、鎖定特徵與主要套裝：",
   "opening": "正在打開 AIDOL…",
@@ -36,6 +39,7 @@
   "settingsTitle": "原始設定檔與 Codex 連線",
   "skillInstalled": "AIDOL Skill 已安裝到 Codex。",
   "yamlSaved": "設定檔已通過檢查並儲存。",
+  "yamlSavedKept": "設定檔已儲存；正式立繪那套不能刪，已經放回去了。",
   "history": {
     "title": "存檔紀錄",
     "hint": "每次修改都會自動存檔。讀取舊存檔會再存成一個新的存檔，圖片與後面的紀錄都會保留。",
@@ -64,5 +68,6 @@
     "purgeConfirm": "確定永久刪除？",
     "purged": "已永久刪除「{{name}}」。"
   },
-  "readingCanon": "AI 正在看定稿，把外觀填進設定…"
+  "readingCanon": "AI 正在看定稿，把外觀填進設定…",
+  "jobCancelled": "這次不畫了。"
 }

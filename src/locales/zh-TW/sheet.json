@@ -1,0 +1,71 @@
+{
+  "title": "設定資料集",
+  "subtitle": "把角色排成一張長圖，直接交給客戶或夥伴。勾選要放的內容，下載 PNG。",
+  "open": "設定資料集",
+  "openTitle": "把正式立繪、三視圖、表情集、衣櫃、裝備和配色表排成一張圖",
+  "menu": "匯出設定資料集",
+  "titleLabel": "標題",
+  "subtitleLabel": "副標",
+  "subtitlePlaceholder": "例如：軌道城市的信使",
+  "include": "要放的內容",
+  "section": {
+    "portrait": "正式立繪",
+    "profile": "設定",
+    "turnaround": "三視圖",
+    "expressions": "表情集",
+    "outfits": "衣櫃",
+    "gear": "裝備",
+    "palette": "配色表"
+  },
+  "ready": {
+    "portrait": "已有正式立繪",
+    "profile": "外觀、個性、一定要保留的特徵"
+  },
+  "count": {
+    "turnaround_other": "{{count}} 個角度",
+    "expressions_other": "{{count}} 個表情",
+    "outfits_other": "{{count}} 套",
+    "gear_other": "{{count}} 件",
+    "palette_other": "{{count}} 色"
+  },
+  "empty": {
+    "portrait": "還沒有正式立繪",
+    "profile": "還沒有設定",
+    "turnaround": "還沒有拆好的三視圖（正面以外至少一個角度）",
+    "expressions": "還沒有畫好的表情",
+    "outfits": "另一套還沒有立繪",
+    "gear": "還沒有裝備",
+    "palette": "還沒有色票"
+  },
+  "theme": "底色",
+  "themes": {
+    "light": "淺色",
+    "dark": "深色"
+  },
+  "download": "下載 PNG",
+  "downloading": "準備圖片…",
+  "downloaded": "已下載設定資料集",
+  "failed": "排不出來，關掉再打開試一次。",
+  "hint": "圖在這台電腦上排好，不會上傳。",
+  "scaled": "內容很多，整張縮小成 {{percent}}% 才放得下；少勾幾個區塊，字和圖會大一點。",
+  "nothing": "至少勾一項。",
+  "rendering": "排版中…",
+  "previewLabel": "「{{name}}」設定資料集預覽",
+  "fileName": "{{name}}-設定資料集.png",
+  "separator": "、",
+  "metaSeparator": "・",
+  "notes": "設計標註",
+  "locks": "一定要保留",
+  "stale": "（舊設計）",
+  "heterochromia": "右眼{{right}}、左眼{{left}}",
+  "featureColor": "特徵色：{{color}}",
+  "noteHeading": "{{title}}（{{view}}）",
+  "field": {
+    "species": "種族",
+    "body": "身形",
+    "skin": "膚色",
+    "hair": "頭髮",
+    "eyes": "眼睛",
+    "face": "臉"
+  }
+}

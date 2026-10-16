@@ -152,6 +152,184 @@ export const eyeColors = [
   { id: 'red', label: '赤', hex: '#A34E4B', prompt: 'crimson-red eyes' },
 ];
 
+// ── 2026-10-13 起：捏角色強化（膚色、挑染方式、髮型細節、瞳孔、臉型、臉部特徵、種族、自訂色的名稱）──
+// 顏色欄位（髮色、挑染、眼色、膚色）可以存下面的代號，也可以存自訂的 #RRGGBB。
+
+// 膚色以顏色命名，不以族裔命名。
+export const skinTones = [
+  { id: 'porcelain', label: '白皙', hex: '#F6E3D8', prompt: 'porcelain fair skin tone' },
+  { id: 'fair', label: '自然', hex: '#F1D0BA', prompt: 'fair skin tone' },
+  { id: 'warm', label: '暖米', hex: '#E2B794', prompt: 'warm beige skin tone' },
+  { id: 'tan', label: '小麥', hex: '#C98F66', prompt: 'light tan skin tone' },
+  { id: 'bronze', label: '古銅', hex: '#A0673F', prompt: 'bronze skin tone' },
+  { id: 'deep', label: '深褐', hex: '#6F4530', prompt: 'deep brown skin tone' },
+  { id: 'ebony', label: '深棕', hex: '#4A2E22', prompt: 'dark brown skin tone' },
+];
+
+// 挑染方式：prompt 的 {color} 換成顏色的英文描述，brief 是交給 AI 的繁中寫法。舊資料沒有寫方式的一律當「挑染」。
+export const hairDyeStyles = [
+  { id: 'streak', label: '挑染', brief: '{color}挑染', prompt: 'one restrained {color} accent streak' },
+  { id: 'inner', label: '內層', brief: '內層染{color}', prompt: '{color} inner-layer hair color hidden under the outer layer, visible at the nape and when the hair moves' },
+  { id: 'ombre', label: '漸層', brief: '髮尾漸層成{color}', prompt: 'hair gradient fading into {color} toward the tips' },
+  { id: 'split', label: '雙色', brief: '左右雙色（角色的左半邊{color}）', prompt: "split-dye hair: the character's left half is {color}, the right half is the main hair color" },
+];
+
+// 髮型細節（可複選）。有分邊的一律寫角色自己的左邊，各個角度才不會畫反。
+export const hairExtras = [
+  { id: 'ahoge', label: '呆毛', prompt: 'a single ahoge strand sticking up from the top of the head' },
+  { id: 'braid', label: '編髮', prompt: "a small braid on the character's left side" },
+  { id: 'bun', label: '丸子頭', prompt: 'a round hair bun' },
+  { id: 'sidelocks', label: '長鬢角', prompt: 'long sidelocks framing the face' },
+];
+
+export const pupils = [
+  { id: 'round', label: '圓瞳', prompt: 'round pupils' },
+  { id: 'slit', label: '豎瞳', prompt: 'vertical slit pupils' },
+  { id: 'star', label: '星瞳', prompt: 'star-shaped pupils' },
+  { id: 'heart', label: '心瞳', prompt: 'heart-shaped pupils' },
+  { id: 'cross', label: '十字瞳', prompt: 'cross-shaped pupils' },
+  { id: 'ring', label: '環瞳', prompt: 'ring-shaped hollow pupils' },
+  { id: 'hollow', label: '無光', prompt: 'lifeless eyes without highlights' },
+];
+
+export const faceShapes = [
+  { id: 'round', label: '圓臉', prompt: 'round soft face shape' },
+  { id: 'oval', label: '鵝蛋臉', prompt: 'oval face shape' },
+  { id: 'sharp', label: '尖下巴', prompt: 'sharp V-line jaw' },
+  { id: 'square', label: '方臉', prompt: 'square jawline' },
+];
+
+// 臉部特徵（可複選）。
+export const faceMarks = [
+  { id: 'mole', label: '淚痣', prompt: "a small beauty mark under the character's left eye" },
+  { id: 'freckles', label: '雀斑', prompt: 'light freckles across the nose and cheeks' },
+  { id: 'blush', label: '紅暈', prompt: 'soft blush on the cheeks' },
+  { id: 'scar', label: '傷疤', prompt: "a small scar on the character's left cheek" },
+  { id: 'eyeliner', label: '紅眼妝', prompt: 'red eyeshadow at the outer corners of the eyes' },
+];
+
+// 種族的特徵。prompt 是空字串的選項（人耳、沒有角…）不寫進描述。
+export const earTypes = [
+  { id: 'human', label: '人耳', prompt: '' },
+  { id: 'pointed', label: '尖耳', prompt: 'short pointed ears' },
+  { id: 'long', label: '長尖耳', prompt: 'long pointed elf ears' },
+  { id: 'cat', label: '貓耳', prompt: 'cat ears on top of the head' },
+  { id: 'fox', label: '狐耳', prompt: 'large fox ears on top of the head' },
+  { id: 'wolf', label: '狼耳', prompt: 'wolf ears on top of the head' },
+  { id: 'rabbit', label: '兔耳', prompt: 'long rabbit ears on top of the head' },
+  { id: 'bear', label: '熊耳', prompt: 'small round bear ears on top of the head' },
+  { id: 'fin', label: '鰭耳', prompt: 'fin-shaped ears' },
+  { id: 'mechanical', label: '機械耳', prompt: 'mechanical ear covers with small antennas' },
+];
+export const hornTypes = [
+  { id: 'none', label: '沒有', prompt: '' },
+  { id: 'small', label: '小角', prompt: 'a pair of small horns' },
+  { id: 'curved', label: '彎角', prompt: 'a pair of curved demon horns' },
+  { id: 'ram', label: '羊角', prompt: 'curled ram horns on both sides of the head' },
+  { id: 'dragon', label: '龍角', prompt: 'a pair of dragon horns sweeping backward' },
+  { id: 'oni', label: '鬼角', prompt: 'a pair of short straight oni horns on the forehead' },
+  { id: 'antlers', label: '鹿角', prompt: 'deer antlers' },
+  { id: 'unicorn', label: '獨角', prompt: 'a single unicorn horn on the forehead' },
+];
+export const tailTypes = [
+  { id: 'none', label: '沒有', prompt: '' },
+  { id: 'cat', label: '貓尾', prompt: 'a slender cat tail' },
+  { id: 'fox', label: '狐尾', prompt: 'a large fluffy fox tail' },
+  { id: 'nineFox', label: '九尾', prompt: 'nine fluffy fox tails' },
+  { id: 'wolf', label: '狼尾', prompt: 'a bushy wolf tail' },
+  { id: 'rabbit', label: '兔尾', prompt: 'a small round fluffy rabbit tail' },
+  { id: 'dragon', label: '龍尾', prompt: 'a long scaled dragon tail' },
+  { id: 'devil', label: '惡魔尾', prompt: 'a thin devil tail with a spade-shaped tip' },
+  { id: 'fish', label: '魚尾', prompt: 'a fish tail in place of legs (mermaid lower body)' },
+];
+export const wingTypes = [
+  { id: 'none', label: '沒有', prompt: '' },
+  { id: 'feather', label: '羽翼', prompt: 'feathered wings on the back' },
+  { id: 'bat', label: '蝠翼', prompt: 'bat-like membrane wings on the back' },
+  { id: 'dragon', label: '龍翼', prompt: 'dragon wings on the back' },
+  { id: 'fairy', label: '妖精翅', prompt: 'translucent insect-like fairy wings' },
+  { id: 'head', label: '頭翼', prompt: 'a pair of small wings on the sides of the head' },
+  { id: 'mechanical', label: '機械翼', prompt: 'mechanical wings made of metal panels' },
+];
+export const speciesExtras = [
+  { id: 'halo', label: '光環', prompt: 'a glowing halo floating above the head' },
+  { id: 'fangs', label: '虎牙', prompt: 'small visible fangs' },
+  { id: 'scales', label: '鱗片', prompt: 'patches of scales on the cheeks and forearms' },
+  { id: 'markings', label: '紋路', prompt: 'decorative markings on the skin' },
+  { id: 'joints', label: '機械關節', prompt: 'visible mechanical joints and panel seams on the limbs' },
+  { id: 'thirdEye', label: '第三隻眼', prompt: 'a third eye on the forehead' },
+  { id: 'gem', label: '額間寶石', prompt: 'a gem embedded in the forehead' },
+];
+// 種族：選了就套用 preset 的特徵（之後可以再細調）。prompt 是整體主題；獸耳類共用同一句，細節交給特徵。
+export const speciesKinds = [
+  { id: 'human', label: '人類', prompt: '', preset: { ears: 'human', horns: 'none', tail: 'none', wings: 'none', extras: [] } },
+  { id: 'elf', label: '精靈', prompt: 'elf', preset: { ears: 'long', horns: 'none', tail: 'none', wings: 'none', extras: [] } },
+  { id: 'cat', label: '貓耳族', prompt: 'kemonomimi (animal-eared human)', preset: { ears: 'cat', horns: 'none', tail: 'cat', wings: 'none', extras: [] } },
+  { id: 'fox', label: '狐耳族', prompt: 'kemonomimi (animal-eared human)', preset: { ears: 'fox', horns: 'none', tail: 'fox', wings: 'none', extras: [] } },
+  { id: 'wolf', label: '狼耳族', prompt: 'kemonomimi (animal-eared human)', preset: { ears: 'wolf', horns: 'none', tail: 'wolf', wings: 'none', extras: [] } },
+  { id: 'rabbit', label: '兔耳族', prompt: 'kemonomimi (animal-eared human)', preset: { ears: 'rabbit', horns: 'none', tail: 'rabbit', wings: 'none', extras: [] } },
+  { id: 'dragon', label: '龍人', prompt: 'dragonkin', preset: { ears: 'pointed', horns: 'dragon', tail: 'dragon', wings: 'none', extras: ['scales'] } },
+  { id: 'demon', label: '惡魔', prompt: 'demon', preset: { ears: 'pointed', horns: 'curved', tail: 'devil', wings: 'none', extras: [] } },
+  { id: 'angel', label: '天使', prompt: 'angel', preset: { ears: 'human', horns: 'none', tail: 'none', wings: 'feather', extras: ['halo'] } },
+  { id: 'vampire', label: '吸血鬼', prompt: 'vampire', preset: { ears: 'pointed', horns: 'none', tail: 'none', wings: 'none', extras: ['fangs'] } },
+  { id: 'oni', label: '鬼族', prompt: 'oni', preset: { ears: 'pointed', horns: 'oni', tail: 'none', wings: 'none', extras: ['fangs'] } },
+  { id: 'merfolk', label: '人魚', prompt: 'merfolk', preset: { ears: 'fin', horns: 'none', tail: 'fish', wings: 'none', extras: ['scales'] } },
+  { id: 'android', label: '仿生人', prompt: 'android', preset: { ears: 'mechanical', horns: 'none', tail: 'none', wings: 'none', extras: ['joints'] } },
+  { id: 'fairy', label: '妖精', prompt: 'fairy', preset: { ears: 'pointed', horns: 'none', tail: 'none', wings: 'fairy', extras: [] } },
+  { id: 'other', label: '其他', prompt: '' },
+];
+
+// 表情集（2026-10-13 起）：同一個角色的胸像表情，照正面定稿一張一張畫。
+// label 是名稱；brief 是交給 AI 的繁中說明；prompt 是英文。有分邊的動作（眨眼）一律寫角色自己的左邊。
+export const expressionPresets = [
+  { id: 'neutral', label: '一般', brief: '平常的樣子，放鬆、嘴巴閉著', prompt: 'neutral relaxed expression, mouth closed' },
+  { id: 'smile', label: '微笑', brief: '閉著嘴的溫和微笑', prompt: 'gentle closed-mouth smile' },
+  { id: 'joy', label: '開心', brief: '開心地笑，眼睛發亮、嘴巴張開', prompt: 'big happy smile, bright eyes, open mouth' },
+  { id: 'laugh', label: '大笑', brief: '放聲大笑，眼睛瞇起來、嘴巴張大', prompt: 'laughing out loud, eyes squeezed shut, wide open mouth' },
+  { id: 'anger', label: '生氣', brief: '生氣，眉頭皺起、咬著牙', prompt: 'angry expression, furrowed brows, gritted teeth' },
+  { id: 'sad', label: '難過', brief: '難過，眉尾下垂、眼眶泛淚', prompt: 'sad expression, drooping brows, teary eyes' },
+  { id: 'cry', label: '哭', brief: '哭泣，眼淚流下臉頰', prompt: 'crying, tears streaming down the cheeks' },
+  { id: 'surprised', label: '驚訝', brief: '驚訝，眼睛睜大、嘴巴微張', prompt: 'surprised expression, wide eyes, small open mouth' },
+  { id: 'shy', label: '害羞', brief: '害羞，臉紅、視線移開', prompt: 'embarrassed blushing expression, averted gaze' },
+  { id: 'smug', label: '得意', brief: '得意的壞笑，一邊嘴角上揚', prompt: 'smug confident smirk' },
+  { id: 'deadpan', label: '無言', brief: '無言以對，半閉著眼', prompt: 'deadpan unimpressed expression, half-lidded eyes' },
+  { id: 'scared', label: '害怕', brief: '害怕，眼睛睜大、肩膀縮起', prompt: 'frightened expression, wide eyes, tense shoulders' },
+  { id: 'wink', label: '眨眼', brief: '俏皮地閉起角色的左眼眨眼、微笑', prompt: "playful wink with the character's left eye closed, small smile" },
+  { id: 'sleepy', label: '睏', brief: '想睡，眼睛半閉', prompt: 'sleepy drowsy expression, eyes half closed' },
+  { id: 'determined', label: '認真', brief: '認真、下定決心，眼神專注', prompt: 'determined serious expression, focused eyes' },
+  { id: 'pout', label: '嘟嘴', brief: '鼓起臉頰嘟嘴', prompt: 'pouting expression, puffed cheeks' },
+];
+// 還沒動過表情集的角色，預設是這六個。
+export const defaultExpressionSet = ['neutral', 'joy', 'anger', 'sad', 'surprised', 'shy'];
+
+// 自訂色的稱呼：色相加明暗或彩度，例如「淺」＋「藍」。程式依 HSL 自動挑（shared/colors.mjs）。
+export const colorHues = [
+  { id: 'red', label: '紅', prompt: 'red' },
+  { id: 'orange', label: '橘', prompt: 'orange' },
+  { id: 'brown', label: '棕', prompt: 'brown' },
+  { id: 'yellow', label: '黃', prompt: 'yellow' },
+  { id: 'olive', label: '橄欖綠', prompt: 'olive' },
+  { id: 'lime', label: '黃綠', prompt: 'lime green' },
+  { id: 'green', label: '綠', prompt: 'green' },
+  { id: 'teal', label: '青綠', prompt: 'teal' },
+  { id: 'cyan', label: '水藍', prompt: 'cyan' },
+  { id: 'blue', label: '藍', prompt: 'blue' },
+  { id: 'indigo', label: '靛藍', prompt: 'indigo' },
+  { id: 'purple', label: '紫', prompt: 'purple' },
+  { id: 'magenta', label: '紫紅', prompt: 'magenta' },
+  { id: 'pink', label: '粉紅', prompt: 'pink' },
+  { id: 'white', label: '白', prompt: 'white' },
+  { id: 'gray', label: '灰', prompt: 'gray' },
+  { id: 'black', label: '黑', prompt: 'black' },
+];
+export const colorTones = [
+  { id: 'pale', label: '淡', prompt: 'pale' },
+  { id: 'light', label: '淺', prompt: 'light' },
+  { id: 'vivid', label: '鮮', prompt: 'vivid' },
+  { id: 'muted', label: '灰', prompt: 'muted' },
+  { id: 'dark', label: '深', prompt: 'dark' },
+];
+
 export const outfitStyles = [
   { id: 'soft-casual', hint: '柔軟上衣配直筒褲，乾淨日常', label: '日常休閒', prompt: 'simple contemporary casual outfit with a clean soft top and straight trousers', defaults: { silhouette: 'balanced', layers: 'single', detail: 'clean' } },
   { id: 'academy', hint: '現代學院制服，外套結構收斂', label: '學院制服', prompt: 'clean modern academy uniform with a restrained structured jacket', defaults: { silhouette: 'fitted', layers: 'layered', detail: 'clean' } },
@@ -176,6 +354,19 @@ export const detailOptions = [
   { id: 'clean', label: '簡潔', prompt: 'clean minimal garment detailing' },
   { id: 'functional', label: '機能', prompt: 'functional garment details only where useful' },
   { id: 'statement', label: '重點', prompt: 'one clear statement garment detail' },
+];
+
+// 穿搭情境（2026-10-13 起）：新增套裝時一鍵套用（名稱、對應的服裝風格），也寫進交給 AI 的描述。
+// style：有對應的服裝風格就一起套用；沒有的（睡衣、冬裝…）只寫情境。
+export const outfitScenes = [
+  { id: 'casual', label: '便服', prompt: 'everyday casual clothes for a day off', style: 'soft-casual' },
+  { id: 'sleepwear', label: '睡衣', prompt: 'comfortable pajamas' },
+  { id: 'uniform', label: '制服', prompt: 'a school or work uniform', style: 'academy' },
+  { id: 'formal', label: '正式', prompt: 'formal party attire', style: 'formal' },
+  { id: 'winter', label: '冬裝', prompt: 'warm winter clothes with a coat and scarf' },
+  { id: 'sports', label: '運動', prompt: 'sportswear for training' },
+  { id: 'festival', label: '祭典', prompt: 'traditional festival clothing such as a yukata' },
+  { id: 'battle', label: '戰鬥', prompt: 'a battle-ready combat outfit' },
 ];
 
 export const paletteUses = [

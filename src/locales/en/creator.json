@@ -8,17 +8,19 @@
     "outfit": "Outfit",
     "color": "Palette",
     "gear": "Pieces",
-    "style": "Art style"
+    "style": "Art style",
+    "species": "Species"
   },
   "hints": {
     "persona": "Name, personality and story. Not sure what to write? Let the AI do it.",
-    "body": "Age, head ratio and build.",
-    "hair": "Click a style to try it on. Colors are below.",
-    "face": "Expression, eye shape, brows and eye color.",
+    "body": "Age, head ratio, build and skin tone.",
+    "hair": "Click a style to choose it. Colors, highlights and details are below.",
+    "face": "Expression, eye shape, brows, eyes (heterochromia too) and facial features.",
     "outfit": "Pick a style, then choose colors from the character's palette.",
     "color": "The character's own colors, used for outfits and accessories.",
     "gear": "Put each piece on or take it off, or draw its design on its own.",
-    "style": "Turn the knobs to change the feel of the image."
+    "style": "Turn the knobs to change the feel of the image.",
+    "species": "Pick a species to apply its features, then fine-tune ears, horns, tail and wings below."
   },
   "stage": {
     "label": "Character",
@@ -26,14 +28,20 @@
     "zoom": "Enlarge main illustration",
     "portraitAlt": "Main illustration of {{name}}",
     "changedTitle": "The look has changed since this illustration",
-    "changedHint": "Press \"Start drawing\" to redraw with the new settings",
+    "changedHint": "Press \"{{button}}\" to redraw with the new settings",
     "portraitTitle": "Main illustration",
-    "portraitHint": "Click to enlarge. Adjust the look on the right, then press \"Start drawing\" for a new one",
+    "portraitHint": "Click to enlarge. Adjust the look, then press \"{{button}}\" for a new one",
     "emptyTitle": "No main illustration yet",
-    "emptyHint": "Pick a look on the right, then choose \"Draw front\"",
+    "emptyHint": "Pick a look, then press \"{{button}}\"",
     "canonAlt": "Final design of {{name}}",
     "canonTitle": "This is the final design",
-    "canonHint": "No main illustration yet. \"Draw front\" follows this image without changing the design"
+    "canonHint": "No main illustration yet. \"{{button}}\" follows this image without changing the design",
+    "outfitTitle": "Outfit \"{{outfit}}\"",
+    "outfitHint": "The illustration for this outfit. The main illustration uses \"{{main}}\".",
+    "outfitEmptyTitle": "\"{{outfit}}\" has no illustration yet",
+    "outfitEmptyHint": "Press \"Draw this outfit\" to keep the face, hair and body from the main illustration and change only the clothes",
+    "outfitPreviewTitle": "{{name}} · {{outfit}}",
+    "outfitAlt": "{{name}} in \"{{outfit}}\""
   },
   "draw": {
     "notePlaceholder": "What should this one show? e.g. a cool stance, holding a letter (optional)",
@@ -52,7 +60,10 @@
     "turnaroundNote": "Turnaround: front, side and back in one image, split into three automatically once you adopt it",
     "firstFront": "Draw front",
     "frontNote": "Draw the front first. Once you pick one, add the side and back on the canvas one at a time; they line up into a turnaround automatically.",
-    "notePlaceholderFront": "Anything to watch for? e.g. sleeves long enough to cover the hands (optional)"
+    "notePlaceholderFront": "Anything to watch for? e.g. sleeves long enough to cover the hands (optional)",
+    "outfit": "Draw this outfit",
+    "notePlaceholderOutfit": "Anything to watch for in this outfit? e.g. rolled-up sleeves (optional)",
+    "canonOutfit": "Keeps the final design's face and hair; only the clothes change"
   },
   "gear": {
     "add": "Add piece",
@@ -91,23 +102,36 @@
     "age": "Age",
     "headRatio": "Head ratio",
     "height": "Height",
-    "build": "Build"
+    "build": "Build",
+    "skin": "Skin tone"
   },
   "hair": {
     "tags": "Hairstyle tags",
     "all": "All",
     "color": "Hair color",
-    "accent": "Highlight",
+    "accent": "Highlights & dye",
     "length": "Length",
     "volume": "Volume",
     "bangs": "Bangs",
-    "texture": "Texture"
+    "texture": "Texture",
+    "dyeStyle": "Dye style",
+    "noDye": "None",
+    "accentColor": "Highlight color",
+    "extras": "Details"
   },
   "face": {
     "mood": "Expression",
     "eyeShape": "Eye shape",
     "brows": "Brows",
-    "eyeColor": "Eye color"
+    "eyeColor": "Eye color",
+    "hetero": "Heterochromia",
+    "heteroHint": "Click an eye above to choose which one to change. Now changing: {{eye}}. Left and right are the character's own: in a front view the right eye is on the viewer's left.",
+    "rightEye": "Right eye",
+    "leftEye": "Left eye",
+    "whichEye": "Which eye to change",
+    "pupil": "Pupils",
+    "shape": "Face shape",
+    "marks": "Facial features"
   },
   "outfit": {
     "tabs": "Outfits",
@@ -130,7 +154,9 @@
     "goPalette": "Go to Palette",
     "silhouette": "Silhouette",
     "layers": "Layers",
-    "detail": "Detail"
+    "detail": "Detail",
+    "scene": "Occasion",
+    "sceneNone": "None"
   },
   "palette": {
     "changeColor": "Change color",
@@ -142,8 +168,18 @@
     "empty": "No colors yet. Give the character 4–8 colors of their own to use for outfits and accessories.",
     "defaultName": "Color {{number}}",
     "add": "Add color",
-    "importHint": "Pick a color under Hair or Face first",
-    "import": "Use hair and eye colors"
+    "importHint": "Pick a color under Hair, Face, Body or Species first",
+    "import": "Use the character's colors",
+    "fromImage": "Colors from an image",
+    "fromImageSource": "Image to pick from",
+    "fromImageHint": "Click an image to pull out its main colors, then click a color to add it.",
+    "fromImageLoading": "Reading colors…",
+    "fromImageFailed": "Couldn't read this image. Try another one.",
+    "fromImageAdd": "Add to palette",
+    "fromImageAdded": "Already in the palette",
+    "fromImageAddAll": "Add all ({{count}})",
+    "fromImageEmpty": "No main illustration or reference images yet. Draw one or add a reference image to pick colors from it.",
+    "fromImageNone": "Couldn't find distinct colors in this image (it may be mostly background). Try another one."
   },
   "style": {
     "presets": "Presets",
@@ -200,12 +236,54 @@
     "remove": "Remove \"{{name}}\"",
     "ask": "Ask the AI",
     "askPlaceholder": "What should it add? e.g. flesh out the backstory, give them a signature accessory. Leave blank to fill in from the current profile.",
-    "asking": "The AI is writing (about 30 seconds)…",
+    "asking": "The AI is writing (usually 1–3 minutes)…",
     "askButton": "Fill in with AI",
     "askHint": "The AI's suggestions are listed first. Nothing changes until you press Apply.",
     "fillRequest": "Based on the current profile, \"{{profile}}\", fill in this character's settings and look.",
     "readCanon": "Fill in the look from the final design",
     "readCanonHint": "The AI looks at the final design and fills in what it can see: hair, eyes, outfit, colors and more. You see the changes first and nothing changes until you apply them.",
-    "readCanonRequest": "Fill in the visible appearance from the final design image."
+    "readCanonRequest": "Fill in the visible appearance from the final design image.",
+    "suggestHetero": "Heterochromia (right eye {{right}}, left eye {{left}})"
+  },
+  "multiNote": "Pick any",
+  "species": {
+    "ears": "Ears",
+    "horns": "Horns",
+    "tail": "Tail",
+    "wings": "Wings",
+    "extras": "Other features",
+    "extrasNote": "Pick any",
+    "color": "Feature color",
+    "colorNote": "If unset, ears and tail match the hair",
+    "colorFollow": "Match hair",
+    "humanHint": "No special features",
+    "otherHint": "Mix your own features below"
+  },
+  "dice": {
+    "title": "Roll the dice: randomize this page (Ctrl+Z to undo)",
+    "label": "Randomize {{page}}",
+    "done": "Randomized this page. Not into it? Undo.",
+    "undo": "Undo"
+  },
+  "wardrobe": {
+    "label": "Wardrobe",
+    "main": "Main",
+    "scenes": "Occasion",
+    "scenesHint": "Start a new outfit from an occasion. You can change everything later. Outfits started this way keep only hair and body pieces, so the clothes are designed fresh.",
+    "blank": "Copy this outfit",
+    "delete": "Delete this outfit",
+    "deleteMain": "This outfit has the main illustration, so it can't be deleted. To delete it, first draw another outfit, then open that illustration in the Gallery and choose \"Make it the main illustration\".",
+    "deleted": "Deleted the \"{{name}}\" outfit",
+    "deletedDrawn": "Deleted the \"{{name}}\" outfit. Its images are still in the Gallery",
+    "undo": "Undo",
+    "mainKept": "The outfit with the main illustration can't be deleted, so it was put back.",
+    "full": "You can have up to {{limit}} outfits. Delete one first.",
+    "restore": "Restore the \"{{name}}\" outfit",
+    "restored": "Restored the \"{{name}}\" outfit",
+    "drawAll_one": "Draw the rest ({{count}} outfit left)",
+    "drawAll_other": "Draw the rest ({{count}} outfits left)",
+    "drawAllHint": "Autopilot draws them one by one from the main illustration, and Design QA puts the best image of each into the wardrobe. You can stop any time.",
+    "drawAllNeedsDirect": "Switch the drawing method to \"AIDOL draws directly\" in Settings to draw them all automatically, or press \"Draw this outfit\" for each one.",
+    "drawAllRunning": "Autopilot is running. Try again when it finishes."
   }
 }

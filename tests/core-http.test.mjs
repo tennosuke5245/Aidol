@@ -95,3 +95,47 @@ test('靜態前端與整合callback共用本機服務', async (t) => {
   await close();
   assert.equal(closed, true);
 });
+
+test('連接埠被占用：說清楚是連接埠被占用（Node 與 Bun 都一樣）', async (t) => {
+  const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'aidol-port-'));
+  t.after(() => fs.rm(dataDir, { recursive: true, force: true }));
+  const first = await startServer({ dataDir, demo: false, port: 0, announce: false });
+  t.after(() => first.close());
+  await assert.rejects(startServer({ dataDir, demo: false, port: first.port, announce: false }), (error) => error.code === 'PORT_IN_USE' && error.message.includes(String(first.port)));
+});
+
+test('畫面狀態存在核心（2026-10-14）：讀寫、null 刪掉、名稱與大小檢查、同時改不互相蓋掉、永久刪除角色時一起清掉', async (t) => {
+  const { json, store } = await setup(t);
+  assert.deepEqual((await json('/api/ui-state')).body, { values: {} });
+  const saved = await json('/api/ui-state', 'PATCH', { values: { 'pref:variants': 2, 'layout:rin': { character: { x: 1, y: 2 } }, 'last-project': 'rin' } });
+  assert.equal(saved.response.status, 200);
+  assert.deepEqual(saved.body, { updated: 3 }, '只回改了幾筆，不回整份');
+  assert.equal((await json('/api/ui-state')).body.values['pref:variants'], 2);
+  // 同時送好幾個（拖節點時會連續送）：每個都留著。
+  await Promise.all(Array.from({ length: 8 }, (_, index) => json('/api/ui-state', 'PATCH', { values: { [`pref:k${index}`]: index } })));
+  const all = (await json('/api/ui-state')).body.values;
+  assert.deepEqual(Array.from({ length: 8 }, (_, index) => all[`pref:k${index}`]), [0, 1, 2, 3, 4, 5, 6, 7]);
+  await json('/api/ui-state', 'PATCH', { values: { 'last-project': null } });
+  assert.equal((await json('/api/ui-state')).body.values['last-project'], undefined, 'null 刪掉');
+  assert.equal((await json('/api/ui-state', 'PATCH', { values: { '../x': 1 } })).response.status, 422);
+  assert.equal((await json('/api/ui-state', 'PATCH', { values: [] })).response.status, 422);
+  assert.equal((await json('/api/ui-state', 'PATCH', { values: { 'pref:big': 'x'.repeat(70 * 1024) } })).response.status, 413);
+  // 永久刪除角色：它的節點位置、參考線一起清掉，別的不動。
+  const project = await store.createProject({ name: '要刪的' });
+  await json('/api/ui-state', 'PATCH', { values: { [`layout:${project.id}`]: { a: 1 }, [`guides:${project.id}`]: [{ y: 0.5 }] } });
+  const removed = await store.deleteProject(project.id);
+  assert.ok((await json('/api/ui-state')).body.values[`layout:${project.id}`], '還在資源回收區（可以復原）時保留');
+  await store.purgeTrash(removed.trashId);
+  const after = (await json('/api/ui-state')).body.values;
+  assert.equal(after[`layout:${project.id}`], undefined);
+  assert.equal(after[`guides:${project.id}`], undefined);
+  assert.deepEqual(after['layout:rin'], { character: { x: 1, y: 2 } });
+  // 檔案壞了（寫到一半斷電、空檔、開頭有 BOM）：當成空的，下次存的時候重寫一份。
+  const { writeFile } = await import('node:fs/promises');
+  for (const broken of ['', '\u0000\u0000\u0000', '{"values":{"a"', '\uFEFF{"values":{}}']) {
+    await writeFile(store._uiStatePath(), broken);
+    assert.equal((await json('/api/ui-state')).response.status, 200);
+    assert.equal((await json('/api/ui-state', 'PATCH', { values: { 'pref:after': 1 } })).response.status, 200);
+    assert.equal((await json('/api/ui-state')).body.values['pref:after'], 1);
+  }
+});

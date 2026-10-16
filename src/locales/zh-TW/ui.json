@@ -4,5 +4,19 @@
   "knobStep": "{{control}}：{{step}}",
   "knobCompare": "{{label}}：{{step}}",
   "close": "關閉",
-  "language": "語言"
+  "language": "語言",
+  "color": {
+    "picker": "調色盤",
+    "area": "顏色：左右調鮮豔、上下調明暗",
+    "hue": "色相",
+    "hex": "色碼",
+    "eyedropper": "吸管",
+    "eyedropperHint": "從畫面上任何地方吸一個顏色（例如參考圖、立繪）",
+    "palette": "角色色票",
+    "recent": "最近用過",
+    "done": "完成",
+    "custom": "自訂顏色",
+    "customHint": "自訂顏色：色板、色碼或吸管",
+    "customNamed": "自訂：{{name}} {{hex}}"
+  }
 }

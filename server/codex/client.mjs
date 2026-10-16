@@ -12,6 +12,7 @@ function stopProcess(child) {
     execFile('taskkill', ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true }, (error) => { if (error) child.kill(); });
   } else child.kill();
 }
+const abortError = () => Object.assign(new Error('已停下。'), { name: 'AbortError', code: 'ABORTED' });
 // 被訊號結束的程序 exitCode 仍是 null，要一起看 signalCode。
 const exited = (child) => child.exitCode != null || child.signalCode != null;
 export function codexCommand() {
@@ -133,18 +134,24 @@ export class CodexClient extends EventEmitter {
     try { return await this.#turn(options); } finally { this.activeTurns--; }
   }
 
-  async #turn({ prompt, images = [], cwd = this.cwd, model, outputSchema, timeoutMs = 180000 }) {
+  // draw：畫圖工作。只有這種對話開放 Codex 內建的圖片生成工具；圖從 imageGeneration 項目直接收（base64），
+  // 不靠 agent 執行指令或回傳檔案。onImage 每畫好一張就呼叫一次；signal 中止時打斷這一輪。
+  async #turn({ prompt, images = [], cwd = this.cwd, model, outputSchema, timeoutMs = 180000, draw = false, onImage, onImageStarted, signal }) {
+    if (signal?.aborted) throw abortError();
     await this.start();
     const { thread } = await this.request('thread/start', {
       ...(model ? { model } : {}), cwd, approvalPolicy: 'never', sandbox: 'read-only',
-      developerInstructions: '以繁體中文撰寫。這是 AIDOL 人物設計資料工作。只回傳指定描述，不修改檔案，不執行指令，不呼叫外部工具，不產生圖片。',
+      developerInstructions: draw
+        ? '以繁體中文撰寫。這是 AIDOL 的畫圖工作。只用內建的圖片生成工具畫圖，把附上的參考圖交給它；不要執行指令、不要改檔案、不要使用任何腳本、外掛或 API key。畫完用一句話說明畫了幾張，不要做別的事。'
+        : '以繁體中文撰寫。這是 AIDOL 人物設計資料工作。只回傳指定描述，不修改檔案，不執行指令，不呼叫外部工具，不產生圖片。',
     });
     let stop;
     const completed = new Promise((resolve, reject) => {
       const textItems = new Map();
+      const drawn = [];
       const timer = setTimeout(() => {
         this.request('turn/interrupt', { threadId: thread.id, turnId: stop?.turnId }).catch(() => {});
-        finish(new Error('角色描述工作逾時，結果尚未完成。'));
+        finish(new Error(draw ? '畫圖逾時，結果尚未完成。' : '角色描述工作逾時，結果尚未完成。'));
       }, timeoutMs);
       const listener = message => {
         if (message.params?.threadId !== thread.id) return;
@@ -153,31 +160,50 @@ export class CodexClient extends EventEmitter {
           textItems.set(params.itemId, (textItems.get(params.itemId) || '') + params.delta);
         }
         if (method === 'item/completed' && params.item?.type === 'agentMessage') textItems.set(params.item.id, params.item.text);
+        if (draw && method === 'item/started' && params.item?.type === 'imageGeneration') onImageStarted?.();
+        if (draw && method === 'item/completed' && params.item?.type === 'imageGeneration') {
+          const item = params.item;
+          const image = { id: item.id, result: typeof item.result === 'string' ? item.result : '', savedPath: item.savedPath || null, revisedPrompt: item.revisedPrompt || null, status: item.status || null, failure: item.failure || null };
+          drawn.push(image);
+          onImage?.(image);
+        }
         if (method === 'turn/completed') {
-          if (params.turn.status !== 'completed') finish(new Error(params.turn.error?.message || '角色描述工作未完成。'));
-          else finish(null, [...textItems.values()].join('\n'));
+          if (params.turn.status !== 'completed') finish(Object.assign(new Error(params.turn.error?.message || (draw ? '這次沒有畫完。' : '角色描述工作未完成。')), { images: drawn, turnError: params.turn.error || null }));
+          else finish(null, [...textItems.values()].join('\n'), drawn);
         }
       };
       const disconnected = error => finish(error);
-      const finish = (error, text) => {
-        clearTimeout(timer); this.off('notification', listener); this.off('disconnected', disconnected);
-        error ? reject(error) : resolve(text);
+      const aborted = () => {
+        this.request('turn/interrupt', { threadId: thread.id, turnId: stop?.turnId }).catch(() => {});
+        finish(abortError());
+      };
+      const finish = (error, text, result = drawn) => {
+        clearTimeout(timer); this.off('notification', listener); this.off('disconnected', disconnected); signal?.removeEventListener('abort', aborted);
+        error ? reject(error) : resolve({ text, images: result });
       };
       stop = { finish };
-      this.on('notification', listener); this.on('disconnected', disconnected);
+      this.on('notification', listener); this.on('disconnected', disconnected); signal?.addEventListener('abort', aborted, { once: true });
+      // thread/start 還沒回來時就按了停下：那時加的監聽不會再觸發，這裡直接當作停下。
+      if (signal?.aborted) aborted();
     });
     completed.catch(() => {});
+    // 已經停下就不開始這一輪（thread 開好了沒關係，不會花額度）。
+    if (signal?.aborted) { stop.finish(abortError()); throw abortError(); }
     try {
       const { turn } = await this.request('turn/start', {
-        // 圖片以本機路徑附上（app-server 的 localImage 輸入），只供讀圖分析。
+        // 圖片以本機路徑附上（app-server 的 localImage 輸入）：讀圖分析，或畫圖時當參考圖。
         threadId: thread.id, input: [{ type: 'text', text: prompt }, ...images.map((file) => ({ type: 'localImage', path: file }))],
         ...(outputSchema ? { outputSchema } : {}),
       });
       stop.turnId = turn.id;
-      const text = await completed;
-      return { threadId: thread.id, turnId: turn.id, text };
+      // 在 turn/start 回來之前就按了停下：那時還沒有 turn id，現在補打斷一次。
+      if (signal?.aborted) this.request('turn/interrupt', { threadId: thread.id, turnId: turn.id }).catch(() => {});
+      const { text, images: drawnImages } = await completed;
+      return { threadId: thread.id, turnId: turn.id, text, ...(draw ? { images: drawnImages } : {}) };
     } catch (error) {
-      stop.finish(error); completed.catch(() => {}); throw error;
+      stop.finish(error); completed.catch(() => {});
+      if (error && typeof error === 'object') error.threadId ??= thread.id;
+      throw error;
     }
   }
 

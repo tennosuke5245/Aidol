@@ -26,8 +26,9 @@ export function Lockup({ height = 32, className = '' }) {
 
 const toneIcons = { success: Check, amber: Sparkle, blue: Clock, error: WarningCircle, neutral: CircleDashed };
 // 狀態一律「圖示＋文字」，顏色只是補充。
-export function StatusPill({ tone = 'neutral', children, running = false }) {
-  const Icon = running ? ArrowsClockwise : toneIcons[tone] || CircleDashed;
+// icon：換掉預設的圖示（例如「以前的正式立繪」用時鐘，不用看起來像「等待中」的虛線圈）。
+export function StatusPill({ tone = 'neutral', children, running = false, icon }) {
+  const Icon = running ? ArrowsClockwise : icon || toneIcons[tone] || CircleDashed;
   return <span className={`pill tone-${tone}`}><Icon size={12} weight="bold" className={running ? 'spin-slow' : ''} />{children}</span>;
 }
 
@@ -153,7 +154,8 @@ export function Drawer({ title, onClose, children }) {
   closeRef.current = onClose;
   useEffect(() => {
     const prior = document.activeElement; box.current?.focus();
-    const handle = event => { if (event.key === 'Escape') closeRef.current(); };
+    // 抽屜上面還開著對話框（例如看大圖）時，Esc 只關對話框。
+    const handle = event => { if (event.key === 'Escape' && !event.defaultPrevented && !document.querySelector('.modal-backdrop')) { event.preventDefault(); closeRef.current(); } };
     document.addEventListener('keydown', handle);
     return () => { document.removeEventListener('keydown', handle); prior?.focus?.(); };
   }, []);

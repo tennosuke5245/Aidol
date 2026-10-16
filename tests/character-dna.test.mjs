@@ -9,6 +9,7 @@ import { demoCharacter, newCharacter, validateCharacter, parseCharacterYaml, cha
 import { compileBrief, dnaRows, directionOf, hasDna, mixerDiff } from '../shared/prompt-compiler.mjs';
 import { describeChanges } from '../shared/character-diff.mjs';
 import { mixerKeys, mixerPresets, hairStyles } from '../shared/libraries.mjs';
+import * as L from '../shared/libraries.mjs';
 import { ProjectStore } from '../server/store.mjs';
 import { startServer } from '../server/http.mjs';
 import { registerCodexRoutes } from '../server/integrations.mjs';
@@ -89,6 +90,8 @@ test('設定差異以設計師的語言列出，取代閱讀整份 YAML', () => 
   assert.ok(labels.includes('髮色:銀白→墨黑'));
   assert.ok(labels.includes('方向 A 渲染:輕→標準'));
   assert.ok(labels.includes('新增 米白:—→#EFE6D2'));
+  assert.equal(changes.find(change => change.label === '新增 米白').swatch, '#EFE6D2', '畫面畫得出色塊');
+  assert.equal(changes.find(change => change.label === '髮色').swatch, L.findOption(L.hairColors, 'black').hex);
   assert.ok(labels.includes('主要穿搭：胸前扣具:穿戴→未穿戴'));
   assert.ok(changes.some(change => change.area === '鎖定特徵'));
   assert.deepEqual(describeChanges(before, structuredClone(before)), []);

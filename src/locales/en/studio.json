@@ -4,7 +4,10 @@
     "part": "Adopted as this piece's design.",
     "mainDecomposing": "Adopted as the main illustration. Breaking down the outfit…",
     "main": "Adopted as the main illustration.",
-    "view": "Placed in the turnaround as the {{view}} view"
+    "view": "Placed in the turnaround as the {{view}} view",
+    "expression": "Added to the expression sheet: {{name}}",
+    "outfit": "Set as the illustration for the \"{{name}}\" outfit.",
+    "mainFromOutfit": "\"{{name}}\" is now the main illustration. The previous one moved to \"{{previous}}\"."
   },
   "imported": "Imported the image. You'll find it in the Gallery.",
   "referenceSaved": "Saved the reference image and what it's for.",

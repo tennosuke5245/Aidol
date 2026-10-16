@@ -293,5 +293,170 @@
     "threeQuarter": "七分身",
     "half": "半身",
     "closeup": "アップ"
+  },
+  "skinTones": {
+    "porcelain": "色白",
+    "fair": "ナチュラル",
+    "warm": "ウォームベージュ",
+    "tan": "小麦色",
+    "bronze": "ブロンズ",
+    "deep": "ディープブラウン",
+    "ebony": "ダークブラウン"
+  },
+  "hairDyeStyles": {
+    "streak": "メッシュ",
+    "inner": "インナーカラー",
+    "ombre": "グラデーション",
+    "split": "ツートン"
+  },
+  "hairExtras": {
+    "ahoge": "アホ毛",
+    "braid": "編み込み",
+    "bun": "お団子",
+    "sidelocks": "長いもみあげ"
+  },
+  "pupils": {
+    "round": "丸",
+    "slit": "縦長",
+    "star": "星",
+    "heart": "ハート",
+    "cross": "十字",
+    "ring": "リング",
+    "hollow": "ハイライトなし"
+  },
+  "faceShapes": {
+    "round": "丸顔",
+    "oval": "卵型",
+    "sharp": "シャープな顎",
+    "square": "四角い輪郭"
+  },
+  "faceMarks": {
+    "mole": "泣きぼくろ",
+    "freckles": "そばかす",
+    "blush": "頬の赤み",
+    "scar": "傷あと",
+    "eyeliner": "赤いアイメイク"
+  },
+  "earTypes": {
+    "human": "人の耳",
+    "pointed": "とがった耳",
+    "long": "長いとがり耳",
+    "cat": "猫耳",
+    "fox": "狐耳",
+    "wolf": "狼耳",
+    "rabbit": "うさ耳",
+    "bear": "熊耳",
+    "fin": "ひれ耳",
+    "mechanical": "機械の耳"
+  },
+  "hornTypes": {
+    "none": "なし",
+    "small": "小さな角",
+    "curved": "曲がった角",
+    "ram": "羊の角",
+    "dragon": "竜の角",
+    "oni": "鬼の角",
+    "antlers": "鹿の角",
+    "unicorn": "一本角"
+  },
+  "tailTypes": {
+    "none": "なし",
+    "cat": "猫のしっぽ",
+    "fox": "狐のしっぽ",
+    "nineFox": "九尾",
+    "wolf": "狼のしっぽ",
+    "rabbit": "うさぎのしっぽ",
+    "dragon": "竜のしっぽ",
+    "devil": "悪魔のしっぽ",
+    "fish": "魚の尾"
+  },
+  "wingTypes": {
+    "none": "なし",
+    "feather": "羽根の翼",
+    "bat": "コウモリの翼",
+    "dragon": "竜の翼",
+    "fairy": "妖精の羽",
+    "head": "頭の翼",
+    "mechanical": "機械の翼"
+  },
+  "speciesExtras": {
+    "halo": "光輪",
+    "fangs": "八重歯",
+    "scales": "うろこ",
+    "markings": "紋様",
+    "joints": "機械の関節",
+    "thirdEye": "第三の目",
+    "gem": "額の宝石"
+  },
+  "speciesKinds": {
+    "human": "人間",
+    "elf": "エルフ",
+    "cat": "猫耳族",
+    "fox": "狐耳族",
+    "wolf": "狼耳族",
+    "rabbit": "うさ耳族",
+    "dragon": "竜人",
+    "demon": "悪魔",
+    "angel": "天使",
+    "vampire": "吸血鬼",
+    "oni": "鬼",
+    "merfolk": "人魚",
+    "android": "アンドロイド",
+    "fairy": "妖精",
+    "other": "その他"
+  },
+  "colorHues": {
+    "red": "赤",
+    "orange": "オレンジ",
+    "brown": "茶",
+    "yellow": "黄",
+    "olive": "オリーブ",
+    "lime": "黄緑",
+    "green": "緑",
+    "teal": "青緑",
+    "cyan": "水色",
+    "blue": "青",
+    "indigo": "藍",
+    "purple": "紫",
+    "magenta": "赤紫",
+    "pink": "ピンク",
+    "white": "白",
+    "gray": "グレー",
+    "black": "黒"
+  },
+  "colorTones": {
+    "pale": "淡い",
+    "light": "明るい",
+    "vivid": "鮮やかな",
+    "muted": "くすんだ",
+    "dark": "濃い"
+  },
+  "expressionPresets": {
+    "neutral": "通常",
+    "smile": "微笑み",
+    "joy": "喜び",
+    "laugh": "大笑い",
+    "anger": "怒り",
+    "sad": "悲しみ",
+    "cry": "泣き",
+    "surprised": "驚き",
+    "shy": "照れ",
+    "smug": "ドヤ顔",
+    "deadpan": "無表情",
+    "scared": "怯え",
+    "wink": "ウインク",
+    "sleepy": "眠い",
+    "determined": "真剣",
+    "pout": "ふくれっ面"
+  },
+  "outfitScenes": {
+    "casual": "私服",
+    "sleepwear": "パジャマ",
+    "uniform": "制服",
+    "formal": "フォーマル",
+    "winter": "冬服",
+    "sports": "スポーツ",
+    "festival": "お祭り",
+    "battle": "戦闘"
   }
 }

@@ -20,7 +20,7 @@
     "newImages_other": "新しい画像 {{count}}",
     "drawing": "描画中",
     "failed": "今回は描けませんでした",
-    "sendInCodex": "Codex で送信",
+    "sendInCodex": "送信待ち",
     "notWorn": "未着用",
     "changed": "設定変更あり",
     "adopted": "採用済み",
@@ -195,7 +195,8 @@
     "worn": "着用",
     "removeKeepHint": "画像のあるパーツは残し、外すだけにします",
     "removeHint": "このパーツをキャラクターから削除",
-    "remove": "削除"
+    "remove": "削除",
+    "proposedText": "AI が提案したパーツ"
   },
   "rack": {
     "label": "描画の進行状況"

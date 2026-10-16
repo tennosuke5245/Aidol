@@ -4,5 +4,19 @@
   "knobStep": "{{control}}: {{step}}",
   "knobCompare": "{{label}}: {{step}}",
   "close": "Close",
-  "language": "Language"
+  "language": "Language",
+  "color": {
+    "picker": "Color picker",
+    "area": "Color: left–right for vividness, up–down for brightness",
+    "hue": "Hue",
+    "hex": "Hex code",
+    "eyedropper": "Eyedropper",
+    "eyedropperHint": "Pick a color from anywhere on screen (a reference image, the illustration…)",
+    "palette": "Character palette",
+    "recent": "Recently used",
+    "done": "Done",
+    "custom": "Custom color",
+    "customHint": "Custom color: color board, hex code or eyedropper",
+    "customNamed": "Custom: {{name}} {{hex}}"
+  }
 }

@@ -121,3 +121,26 @@ test('回收helper省略視角時使用背面工作，候選採用不覆寫部�
     assert.ok(accepted.character.components.coat.views.back);
   } finally { await running.close(); await rm(directory, { recursive: true, force: true }); }
 });
+
+test('AIDOL 直接畫到一半核心重開過，改交給 Codex App：進度收尾、可以不畫了（2026-10-14）', async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'aidol-interrupted-'));
+  const running = await startServer({ dataDir: directory, demo: false, port: 0, announce: false, registerIntegrations: registerCodexRoutes });
+  try {
+    const project = await running.store.createProject({ name: '中斷測試' });
+    const job = await running.store.createJob(project.id, { targetId: 'character', prompt: '畫正面', kind: 'generate', baseRevision: 1 });
+    // 核心畫到一半就停了：紀錄上還是「畫中」，但這個核心沒有在畫它。
+    await running.store.updateJob(project.id, job.id, { runner: 'auto', status: 'running', progress: { startedAt: new Date().toISOString() } });
+    assert.equal((await running.store.getJob(project.id, job.id)).status, 'failed', '畫面上顯示中斷了');
+    const response = await fetch(`${running.url}/api/projects/${project.id}/jobs/${job.id}/handoff`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    assert.ok(response.ok, await response.clone().text());
+    const handed = await running.store.getJob(project.id, job.id);
+    assert.equal(handed.status, 'handed_off');
+    assert.ok(handed.progress.finishedAt, '那次沒畫完的進度收尾了，畫面不會一直以為還在畫');
+    const cancelled = await fetch(`${running.url}/api/projects/${project.id}/jobs/${job.id}/cancel`, { method: 'POST' });
+    assert.ok(cancelled.ok, await cancelled.clone().text());
+    assert.equal((await running.store.getJob(project.id, job.id)).status, 'cancelled');
+    // 收掉之後 Codex 才交圖：不收。
+    const again = await fetch(`${running.url}/api/projects/${project.id}/jobs/${job.id}/handoff`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    assert.equal(again.status, 409);
+  } finally { await running.close(); await rm(directory, { recursive: true, force: true }); }
+});

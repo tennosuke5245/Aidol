@@ -76,7 +76,16 @@
     "skillNotInstalled": "每次送出都會附上專案 Skill；也可以安裝到你的 Codex。",
     "skillUpdate": "更新 AIDOL Skill",
     "skillInstall": "安裝到 Codex",
-    "notice": "文字設定由 Codex CLI 協作；圖片在 Codex App 畫。AIDOL 會在 Codex 開好新對話，你按送出後，Skill 會回報進度並把圖送回來。不會改用另行計費的 Image API。"
+    "notice": "文字設定由 Codex CLI 協作。畫圖可以讓 AIDOL 直接用你的 Codex 畫（算在 ChatGPT 方案的額度），也可以交給 Codex App、由你按送出。不會改用另行計費的 Image API。",
+    "drawWith": {
+      "title": "畫圖方式",
+      "aidol": "AIDOL 直接畫",
+      "aidolHint": "按「開始繪製」就畫，不用切到 Codex App。用你的 ChatGPT 方案額度；額度用完後，如果你有 credits 會扣 credits。",
+      "codex-app": "交給 Codex App",
+      "codex-appHint": "AIDOL 在 Codex App 開好新對話、填好提示，你自己按送出。",
+      "available": "你的 Codex 可以直接畫（方案：{{plan}}）。",
+      "unavailable": "要用 ChatGPT 帳號登入 Codex（不是 API key、不是免費方案），才能讓 AIDOL 直接畫。"
+    }
   },
   "history": {
     "saveNumber": "第 {{revision}} 次存檔",

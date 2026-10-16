@@ -76,7 +76,16 @@
     "skillNotInstalled": "The project Skill is attached every time you send a job. You can also install it into your Codex.",
     "skillUpdate": "Update AIDOL Skill",
     "skillInstall": "Install in Codex",
-    "notice": "Text settings are written with the Codex CLI; images are drawn in the Codex App. AIDOL opens a new Codex chat for you, and after you press send, the Skill reports progress and sends the images back. AIDOL never switches to the separately billed Image API."
+    "notice": "Text settings are written with the Codex CLI. Images can be drawn by AIDOL directly with your Codex (counts toward your ChatGPT plan), or handed to the Codex App where you press send. AIDOL never switches to the separately billed Image API.",
+    "drawWith": {
+      "title": "How to draw",
+      "aidol": "AIDOL draws directly",
+      "aidolHint": "Start drawing and it just draws — no switching to the Codex App. Uses your ChatGPT plan; once that runs out, credits are used if you have them.",
+      "codex-app": "Hand off to the Codex App",
+      "codex-appHint": "AIDOL opens a new Codex App chat with the prompt filled in, and you press send.",
+      "available": "Your Codex can draw directly (plan: {{plan}}).",
+      "unavailable": "Sign in to Codex with a ChatGPT account (not an API key, not the free plan) to let AIDOL draw directly."
+    }
   },
   "history": {
     "saveNumber": "Save {{revision}}",

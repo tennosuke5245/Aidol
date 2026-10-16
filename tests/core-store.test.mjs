@@ -94,20 +94,92 @@ test('候選不跨部件工作、不覆寫圖檔；用較早設定畫的圖照�
   const newer = structuredClone(updated.character);
   newer.persona.description = '新的背景描述';
   await store.updateCharacter(project.id, { baseRevision: 2, character: newer });
-  const persisted = await store.getProject(project.id);
+  let persisted = await store.getProject(project.id);
+  // 2026-10-14 起：只改人設文字不算「用較早的設定畫的」；改了會影響長相的設定（這裡是外套的描述）才算。
+  assert.equal(persisted.candidates[0].olderSettings, false, '只改人設文字不標較早的設定');
+  assert.equal(persisted.jobs.find((item) => item.id === job.id).olderSettings, false);
+  const looks = structuredClone(persisted.character);
+  looks.components.coat.description = '深藍長外套';
+  await store.updateCharacter(project.id, { baseRevision: 3, character: looks });
+  persisted = await store.getProject(project.id);
   assert.equal(persisted.candidates[0].status, 'pending', '設定改版不把畫好的圖鎖住');
   assert.equal(persisted.candidates[0].olderSettings, true);
+  assert.equal(persisted.jobs.find((item) => item.id === job.id).olderSettings, true);
   assert.equal(job.context.yaml, await fs.readFile(job.context.snapshotPath, 'utf8'));
   assert.equal(parseCharacterYaml(job.context.yaml).revision, 2);
-  await assert.rejects(store.acceptCandidate(project.id, first.candidate.id, { baseRevision: 2 }), { code: 'REVISION_CONFLICT' });
-  const adopted = await store.acceptCandidate(project.id, first.candidate.id, { baseRevision: 3 });
-  assert.equal(adopted.character.revision, 4);
+  await assert.rejects(store.acceptCandidate(project.id, first.candidate.id, { baseRevision: 3 }), { code: 'REVISION_CONFLICT' });
+  const adopted = await store.acceptCandidate(project.id, first.candidate.id, { baseRevision: 4 });
+  assert.equal(adopted.character.revision, 5);
   assert.equal(adopted.character.adopted.coat, first.asset.id);
   assert.equal(adopted.character.persona.description, '新的背景描述', '採用圖不改動之後的文字設定');
-  const swapped = await store.acceptCandidate(project.id, second.candidate.id, { baseRevision: 4 });
+  const swapped = await store.acceptCandidate(project.id, second.candidate.id, { baseRevision: 5 });
   assert.equal(swapped.character.adopted.coat, second.asset.id);
-  const back = await store.acceptCandidate(project.id, first.candidate.id, { baseRevision: 5 });
+  const back = await store.acceptCandidate(project.id, first.candidate.id, { baseRevision: 6 });
   assert.equal(back.character.adopted.coat, first.asset.id, '採用過的圖可以再換回來');
+});
+
+test('用較早的設定畫的：採用、拆解裝備多存的版本不算，之後真的改了長相才算', async (t) => {
+  const { store, project } = await setup(t);
+  const job = await store.createJob(project.id, { targetId: 'character', prompt: '畫正面', kind: 'generate', baseRevision: 1 });
+  const first = await store.addAsset(project.id, { buffer: png, mimeType: 'image/png', targetId: 'character', jobId: job.id });
+  const second = await store.addAsset(project.id, { buffer: png, mimeType: 'image/png', targetId: 'character', jobId: job.id });
+  const adopted = await store.acceptCandidate(project.id, first.candidate.id, { baseRevision: 1 });
+  assert.equal(adopted.character.revision, 2);
+  const after = await store.getProject(project.id);
+  assert.equal(after.candidates.find((item) => item.id === second.candidate.id).olderSettings, false, '剛採用另一張：不標較早的設定');
+  assert.equal(after.candidates.find((item) => item.id === first.candidate.id).olderSettings, false);
+  // 存檔紀錄缺了中間的版本（很舊的資料）：照舊當成改過。
+  const state = await store._read(project.id);
+  assert.equal(store._olderSettings({ ...state, history: state.history.filter((entry) => entry.revision !== 1) }, 1), true);
+  // 改了色票：之前畫的都標。
+  const looks = structuredClone(after.character);
+  looks.palette = [...(looks.palette || []), { id: 'sw-new', name: '新色', hex: '#123456' }];
+  await store.updateCharacter(project.id, { baseRevision: 2, character: looks });
+  const changed = await store.getProject(project.id);
+  assert.equal(changed.candidates.find((item) => item.id === second.candidate.id).olderSettings, true);
+  // 改回原本的色票：中間改過就算（畫的那時候和現在之間改過）。
+  assert.equal(store._olderSettings(await store._read(project.id), 2), true);
+});
+
+test('不畫了：還沒送出或失敗的繪製可以收掉；有圖等你挑、已結束的不行', async (t) => {
+  const { store, project } = await setup(t);
+  const job = await store.createJob(project.id, { targetId: 'character', prompt: '畫正面', kind: 'generate', baseRevision: 1 });
+  const cancelled = await store.cancelJob(project.id, job.id);
+  assert.equal(cancelled.jobs.find((item) => item.id === job.id).status, 'cancelled');
+  await assert.rejects(store.cancelJob(project.id, job.id), { code: 'JOB_ENDED' });
+  const drawn = await store.createJob(project.id, { targetId: 'character', prompt: '再畫一張', kind: 'generate', baseRevision: 1 });
+  await store.addAsset(project.id, { buffer: png, mimeType: 'image/png', targetId: 'character', jobId: drawn.id });
+  await assert.rejects(store.cancelJob(project.id, drawn.id), { code: 'JOB_HAS_IMAGES' });
+  const busy = await store.createJob(project.id, { targetId: 'character', prompt: '畫中', kind: 'generate', baseRevision: 1 });
+  store.markDrawing(busy.id, true);
+  await assert.rejects(store.cancelJob(project.id, busy.id), { code: 'JOB_DRAWING' });
+  store.markDrawing(busy.id, false);
+  await assert.rejects(store.cancelJob(project.id, 'job-missing'), { code: 'JOB_NOT_FOUND' });
+  // AIDOL 直接畫到一半核心重開過（畫面顯示中斷了）：可以收掉。
+  await store.updateJob(project.id, busy.id, { runner: 'auto', status: 'running', progress: { startedAt: new Date().toISOString() } });
+  assert.equal((await store.cancelJob(project.id, busy.id)).jobs.find((item) => item.id === busy.id).status, 'cancelled');
+  // 收掉之後：不再收圖、不能改回別的狀態（交給 Codex 的途中剛好按了不畫了）。
+  await assert.rejects(store.addAsset(project.id, { buffer: png, mimeType: 'image/png', targetId: 'character', jobId: busy.id }), { code: 'JOB_ENDED' });
+  await assert.rejects(store.updateJob(project.id, busy.id, { status: 'handed_off' }), { code: 'JOB_ENDED' });
+  await store.updateJob(project.id, busy.id, { note: 'ok' });
+});
+
+test('用較早的設定畫的：還沒送出的繪製在採用新立繪後也算舊的（附的圖已經換了）；舊紀錄照句型認', async (t) => {
+  const { store, project } = await setup(t);
+  const drawn = await store.createJob(project.id, { targetId: 'character', prompt: '畫正面', kind: 'generate', baseRevision: 1 });
+  const unsent = await store.createJob(project.id, { targetId: 'character', prompt: '另一張', kind: 'generate', baseRevision: 1 });
+  const image = await store.addAsset(project.id, { buffer: png, mimeType: 'image/png', targetId: 'character', jobId: drawn.id });
+  await store.acceptCandidate(project.id, image.candidate.id, { baseRevision: 1 });
+  const after = await store.getProject(project.id);
+  assert.equal(after.jobs.find((item) => item.id === unsent.id).olderSettings, true, '還沒送出的：正式立繪換了');
+  // 恢復存檔把正式立繪換回去（不是採用那一步）：還沒送出的照樣算舊的。
+  const second = await store.createJob(project.id, { targetId: 'character', prompt: '再一張', kind: 'generate', baseRevision: 2 });
+  await store.restore(project.id, { historyId: after.history.find((entry) => entry.revision === 1).id, baseRevision: 2 });
+  assert.equal((await store.getProject(project.id)).jobs.find((item) => item.id === second.id).olderSettings, true, '恢復存檔換了正式立繪');
+  // 2026-10-09 以前沒有 messageKey 的採用紀錄：照句型認出是採用，畫好的圖不標。
+  const state = await store._read(project.id);
+  const legacy = { ...state, history: state.history.filter((entry) => entry.revision <= 2).map(({ messageKey, ...entry }) => entry), character: { ...state.character, revision: 2 } };
+  assert.equal(store._olderSettings(legacy, 1), false);
 });
 
 test('AI 提案寫好後設定又改過，套用時只合併提案改的欄位', async (t) => {

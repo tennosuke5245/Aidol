@@ -28,7 +28,7 @@ export function DrawRack({ project, onOpen, limit = 3 }) {
     const shots = project.candidates.filter(item => item.jobId === job.id).slice(-3).map(item => project.assets.find(asset => asset.id === item.assetId)).filter(Boolean);
     return <button type="button" key={job.id} className={`rack-item tone-${view.tone}`} onClick={() => onOpen(job.id)}>
       <span className="rack-cards">{shots.length ? shots.map(asset => <img key={asset.id} src={asset.url} alt="" />) : Array.from({ length: Math.min(3, progress.expected) }, (_, i) => <i key={i} />)}</span>
-      <span className="rack-copy"><b>{sessionLabel(job, view)}</b><small>{viewTargetLabel(project, job.targetId, job.outputView)}</small></span>
+      <span className="rack-copy"><b>{sessionLabel(job, view)}</b><small>{viewTargetLabel(project, job.targetId, job.outputView, job.expression, job.outfitId)}</small></span>
     </button>;
   })}</div>;
 }

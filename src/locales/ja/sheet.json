@@ -1,0 +1,71 @@
+{
+  "title": "設定資料",
+  "subtitle": "キャラクターを 1 枚の長い画像にまとめて、クライアントや仲間にそのまま渡せます。入れる内容を選んで PNG をダウンロードします。",
+  "open": "設定資料",
+  "openTitle": "立ち絵・三面図・表情集・ワードローブ・装備・カラーパレットを 1 枚にまとめる",
+  "menu": "設定資料を書き出す",
+  "titleLabel": "タイトル",
+  "subtitleLabel": "サブタイトル",
+  "subtitlePlaceholder": "例：軌道都市の配達人",
+  "include": "入れる内容",
+  "section": {
+    "portrait": "立ち絵",
+    "profile": "設定",
+    "turnaround": "三面図",
+    "expressions": "表情集",
+    "outfits": "ワードローブ",
+    "gear": "装備",
+    "palette": "カラーパレット"
+  },
+  "ready": {
+    "portrait": "立ち絵あり",
+    "profile": "外見・性格・必ず残す特徴"
+  },
+  "count": {
+    "turnaround_other": "{{count}} 方向",
+    "expressions_other": "{{count}} 種類",
+    "outfits_other": "{{count}} 着",
+    "gear_other": "{{count}} 点",
+    "palette_other": "{{count}} 色"
+  },
+  "empty": {
+    "portrait": "まだ立ち絵がありません",
+    "profile": "まだ設定がありません",
+    "turnaround": "三面図がまだありません（正面以外に 1 方向以上必要）",
+    "expressions": "まだ表情がありません",
+    "outfits": "ほかの衣装にまだ立ち絵がありません",
+    "gear": "まだ装備がありません",
+    "palette": "まだパレットがありません"
+  },
+  "theme": "背景",
+  "themes": {
+    "light": "ライト",
+    "dark": "ダーク"
+  },
+  "download": "PNG をダウンロード",
+  "downloading": "準備中…",
+  "downloaded": "設定資料をダウンロードしました",
+  "failed": "作成できませんでした。閉じてからもう一度お試しください。",
+  "hint": "この PC 上で作成し、アップロードはしません。",
+  "scaled": "内容が多いため、全体を {{percent}}% に縮小しています。項目を減らすと文字や画像が大きくなります。",
+  "nothing": "少なくとも 1 つ選んでください。",
+  "rendering": "レイアウト中…",
+  "previewLabel": "「{{name}}」の設定資料プレビュー",
+  "fileName": "{{name}}-設定資料.png",
+  "separator": "、",
+  "metaSeparator": "・",
+  "notes": "デザインメモ",
+  "locks": "必ず残す",
+  "stale": "（旧デザイン）",
+  "heterochromia": "右目{{right}}・左目{{left}}",
+  "featureColor": "特徴色：{{color}}",
+  "noteHeading": "{{title}}（{{view}}）",
+  "field": {
+    "species": "種族",
+    "body": "体型",
+    "skin": "肌",
+    "hair": "髪",
+    "eyes": "目",
+    "face": "顔"
+  }
+}

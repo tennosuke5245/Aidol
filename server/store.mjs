@@ -5,17 +5,31 @@ import { randomUUID, createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { ZipArchive } from 'archiver';
-import { DomainError, idPattern, outputViews, viewLabels, turnaroundViews, allViews, extraViews, turnaroundLabels, viewSpecs, validateCharacter, parseCharacterYaml, characterYaml, newCharacter, demoCharacter } from '../shared/domain.mjs';
+import { DomainError, idPattern, outputViews, viewLabels, turnaroundViews, allViews, extraViews, turnaroundLabels, viewSpecs, isAngleView, validateCharacter, parseCharacterYaml, characterYaml, newCharacter, demoCharacter } from '../shared/domain.mjs';
+import { isOutfitVariant, mainOutfitId, outfitPortraitId, outfitRemoved, restoreOutfit } from '../shared/wardrobe.mjs';
+import { EXPRESSION_LIMIT, customExpressionKey, expressionFront, expressionInfo, expressionList, expressionStale, framingReference } from '../shared/expressions.mjs';
 import { validateCanvasAnnotationInput, canvasAnnotationDefaults } from '../shared/canvas-annotations.mjs';
 import { compileBrief } from '../shared/prompt-compiler.mjs';
 import { canonChanges } from '../shared/canon.mjs';
-import { FRONT_SPEC, TURNAROUND_SPEC, normalizeViewBoxes, viewNotesText, bodyRect, toBodyPoint, toImagePoint, NOTE_LIMIT, NOTE_TEXT_MAX, NOTE_TITLE_MAX } from '../shared/turnaround.mjs';
+import { FRONT_SPEC, FRONT_SPEC_BODY, TURNAROUND_SPEC, normalizeViewBoxes, viewNotesText, bodyRect, toBodyPoint, toImagePoint, NOTE_LIMIT, NOTE_TEXT_MAX, NOTE_TITLE_MAX } from '../shared/turnaround.mjs';
 
 const referenceRoleLabels = { style: '繪風參考', identity: '角色特徵參考', color: '配色參考', clothing: '服裝結構參考', material: '材質參考', composition: '構圖參考' };
-import { mergeCharacter } from '../shared/character-diff.mjs';
+import { looksChanged, mergeCharacter } from '../shared/character-diff.mjs';
 import { jobPresentation, workspaceSummary } from '../shared/agent-workspace.mjs';
-import { framings, variantCounts } from '../shared/libraries.mjs';
+import { framings, variantCounts, expressionPresets } from '../shared/libraries.mjs';
 
+// 從圖來的版本（採用、改成正式立繪、拆解裝備、匯入正式三視圖）：不是使用者改設定，畫好的圖「用較早的設定畫的」不看這些。
+// 還沒送出的繪製比較嚴：採用、匯入換了它要附的圖，只有拆解裝備不算（參考圖凍結在準備的那一刻）。
+const imageSteps = new Set(['sheetAdopted', 'partAdopted', 'decomposeAdded', 'decomposeMoved', 'sheetImported']);
+const decomposeSteps = new Set(['decomposeAdded', 'decomposeMoved']);
+const swapSteps = new Set(['sheetAdopted', 'partAdopted', 'sheetImported']);
+const forImages = { skip: imageSteps, counts: new Set() };
+const forJobs = { skip: decomposeSteps, counts: swapSteps, swaps: true };
+// 2026-10-09 以前的存檔紀錄沒有 messageKey，照固定句型認出是哪一種（和 src/history-legacy.js 同一套）。
+const legacySteps = [[/^採用角色設定稿候選$/, 'sheetAdopted'], [/^採用.+?(正面主圖|完整主圖|背面|細節)候選$/, 'partAdopted'], [/^AI 拆解裝備：新增 \d+ 件$/, 'decomposeAdded'], [/^AI 拆解裝備：更新位置$/, 'decomposeMoved'], [/^匯入正式三視圖$/, 'sheetImported']];
+// 畫面狀態的名稱：種類（小寫英文與 -）或「種類:代號」。
+const uiStateKey = /^[a-z][a-z0-9-]{0,40}(?::[A-Za-z0-9_.-]{1,120})?$/;
+const stepKey = (entry) => entry.messageKey || legacySteps.find(([pattern]) => pattern.test(entry.message || ''))?.[1] || null;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const clone = (value) => structuredClone(value);
 // 角色選單上最先顯示：新圖 → 繪製中 → 等你送出 → 失敗。
@@ -43,6 +57,7 @@ const validId = (id) => {
 };
 // 介面語言：繁體中文（原文）、English、日本語；不提供簡體中文。
 const preferenceLocales = ['zh-TW', 'en', 'ja'];
+const drawModes = ['aidol', 'codex-app'];
 const mimeExtensions = { 'image/png': '.png', 'image/jpeg': '.jpg', 'image/webp': '.webp', 'image/gif': '.gif' };
 // ── 匯出設計包的清理（2026-10-09）──
 // 設計包會被帶出電腦分享。已知的路徑欄位直接改寫成包內路徑；Codex 寫的自由文字
@@ -137,6 +152,12 @@ export class ProjectStore {
     this.decomposing = new Set();
     // 正在背景找三視圖的角色（核心重開後就不在這裡，畫面會看到「中斷了，可以再試一次」）。
     this.detectingViews = new Set();
+    // 「AIDOL 直接畫」正在畫的工作、Design QA 正在審的工作、正在跑的全自動（核心重開後就不在這裡）。
+    this.drawingJobs = new Set();
+    this.reviewingJobs = new Set();
+    this.autopilots = new Set();
+    this.lookSteps = new Map(); // 「這一版有沒有改到長相」（_olderSettings 用）
+    this.uiStateQueue = Promise.resolve(); // 畫面狀態一次寫一個（拖節點時會連續送）
     this.folderReleaser = null;
     this.moveAttempts = 6; // 資料夾被佔用時，一輪搬移最多試幾次（約兩秒）。
     this.ready = null;
@@ -148,18 +169,63 @@ export class ProjectStore {
   // 這台電腦的介面偏好（目前只有語言）。桌面版每次啟動的本機網址 port 都不同，瀏覽器的儲存會跟著換，
   // 所以語言要記在資料資料夾裡，換 port 也記得。
   // 還沒選過語言、但已經有自己建立的角色：是語系功能之前的安裝，那時介面只有繁中，預設維持繁中（inferred）。
-  async getPreferences() {
+  // 偏好只認得的欄位：locale（介面語言）、drawWith（畫圖方式：aidol＝AIDOL 直接畫、codex-app＝交給 Codex App）。
+  async _savedPreferences() {
     const saved = await fs.readFile(path.join(this.dataDir, 'preferences.json'), 'utf8').then(JSON.parse, () => ({}));
-    if (preferenceLocales.includes(saved?.locale)) return { locale: saved.locale };
+    return { ...(preferenceLocales.includes(saved?.locale) ? { locale: saved.locale } : {}), ...(drawModes.includes(saved?.drawWith) ? { drawWith: saved.drawWith } : {}) };
+  }
+  async getPreferences() {
+    const saved = await this._savedPreferences();
+    if (saved.locale) return saved;
     const folders = await fs.readdir(path.join(this.dataDir, 'projects'), { withFileTypes: true }).catch(() => []);
     const ownProjects = folders.some((folder) => folder.isDirectory() && folder.name !== 'rin' && new RegExp(idPattern).test(folder.name));
-    return ownProjects ? { locale: 'zh-TW', inferred: true } : {};
+    return ownProjects ? { ...saved, locale: 'zh-TW', inferred: true } : saved;
   }
   async savePreferences(input = {}) {
-    if (!preferenceLocales.includes(input.locale)) throw new DomainError('不支援這個介面語言。', 422, 'INVALID_LOCALE');
+    const hasLocale = input.locale !== undefined;
+    const hasDraw = input.drawWith !== undefined;
+    if (!hasDraw && !preferenceLocales.includes(input.locale)) throw new DomainError('不支援這個介面語言。', 422, 'INVALID_LOCALE');
+    if (hasLocale && !preferenceLocales.includes(input.locale)) throw new DomainError('不支援這個介面語言。', 422, 'INVALID_LOCALE');
+    if (hasDraw && !drawModes.includes(input.drawWith)) throw new DomainError('不支援這種畫圖方式。', 422, 'INVALID_DRAW_MODE');
+    const next = { ...(await this._savedPreferences()), ...(hasLocale ? { locale: input.locale } : {}), ...(hasDraw ? { drawWith: input.drawWith } : {}) };
     await fs.mkdir(this.dataDir, { recursive: true });
-    await atomic(path.join(this.dataDir, 'preferences.json'), JSON.stringify({ locale: input.locale }, null, 2));
-    return { locale: input.locale };
+    await atomic(path.join(this.dataDir, 'preferences.json'), JSON.stringify(next, null, 2));
+    return next;
+  }
+
+  // 畫面狀態（2026-10-14 起）：畫布節點位置、並排看的參考線、捏角色的偏好、上次打開的角色。
+  // 桌面版每次啟動的連接埠不同，瀏覽器儲存跟著網址走、每次都會不見，所以存在資料夾裡的 ui-state.json（不進角色版本）。
+  // 名稱：「種類」或「種類:代號」（例如 pref:variants、layout:<角色 ID>）；值是 JSON，null＝刪掉。
+  _uiStatePath() { return path.join(this.dataDir, 'ui-state.json'); }
+  // 讀不到、或檔案壞了（例如寫到一半斷電）：當成空的，下次存的時候重寫一份完整的，不會從此再也存不了。
+  async _readUiState() {
+    const saved = await fs.readFile(this._uiStatePath(), 'utf8').then((text) => { try { return JSON.parse(text); } catch { return null; } }, () => null);
+    const values = saved?.values;
+    return values && typeof values === 'object' && !Array.isArray(values) ? values : {};
+  }
+  async getUiState() { await this.init(); return { values: await this._readUiState() }; }
+  async updateUiState(input = {}, { prune } = {}) {
+    await this.init();
+    const changes = input?.values;
+    if (!changes || typeof changes !== 'object' || Array.isArray(changes)) throw new DomainError('畫面狀態的格式不正確。', 422, 'INVALID_UI_STATE');
+    const entries = Object.entries(changes);
+    if (entries.length > 200) throw new DomainError('一次改的畫面狀態太多。', 422, 'INVALID_UI_STATE');
+    for (const [key, value] of entries) {
+      if (!uiStateKey.test(key)) throw new DomainError('畫面狀態的名稱不正確。', 422, 'INVALID_UI_STATE');
+      if (value !== null && JSON.stringify(value).length > 64 * 1024) throw new DomainError('畫面狀態太大。', 413, 'UI_STATE_TOO_LARGE');
+    }
+    const run = this.uiStateQueue.then(async () => {
+      const values = await this._readUiState();
+      for (const [key, value] of entries) { if (value === null) delete values[key]; else values[key] = value; }
+      if (prune) for (const key of Object.keys(values)) if (prune(key)) delete values[key];
+      const text = JSON.stringify({ version: 1, values });
+      if (text.length > 2 * 1024 * 1024) throw new DomainError('畫面狀態太大。', 413, 'UI_STATE_TOO_LARGE');
+      await fs.mkdir(this.dataDir, { recursive: true });
+      await atomic(this._uiStatePath(), text);
+      return { updated: entries.length };
+    });
+    this.uiStateQueue = run.catch(() => {});
+    return run;
   }
 
   // 刪除角色＝把整個角色資料夾移到 <資料夾>/trash/，不直接刪檔：刪除後可以馬上復原，也能從角色選單的「資源回收區」找回。
@@ -169,6 +235,18 @@ export class ProjectStore {
     return this._withProject(id, async () => { await this._read(id); return action(this.projectDir(id)); });
   }
   markDecomposing(id, running) { if (running) this.decomposing.add(id); else this.decomposing.delete(id); }
+  markDrawing(jobId, running) { if (running) this.drawingJobs.add(jobId); else this.drawingJobs.delete(jobId); }
+  markReviewing(jobId, running) { if (running) this.reviewingJobs.add(jobId); else this.reviewingJobs.delete(jobId); }
+  markAutopilot(id, running) { if (running) this.autopilots.add(id); else this.autopilots.delete(id); }
+  // 全自動的狀態（project.json 的 autopilot，不進版本）：updater 拿到目前的狀態，回傳新的狀態。
+  async saveAutopilot(id, updater) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      state.autopilot = updater(state.autopilot ? clone(state.autopilot) : null);
+      await this._saveMetadata(state);
+      return this._public(state);
+    });
+  }
   // 背景 Codex 的整合登記：資料夾搬不動時呼叫，回傳 'released'（放開了）、'busy'（正在忙）或 'none'（沒在跑）。
   setFolderReleaser(release) { this.folderReleaser = release; }
   async _moveFolder(from, to) {
@@ -183,6 +261,7 @@ export class ProjectStore {
   async deleteProject(id) {
     return this._withProject(id, async () => {
       const state = await this._read(id);
+      for (const key of this.lookSteps.keys()) if (key.startsWith(`${id}:`)) this.lookSteps.delete(key);
       const deletedAt = now();
       const trashId = `${id}--${deletedAt.replace(/[^0-9]/g, '').slice(0, 14)}-${randomUUID().slice(0, 8)}`;
       // 先寫刪除紀錄再搬：搬移中途出事時，資源回收區裡的資料夾一定認得出是哪個角色。
@@ -234,6 +313,13 @@ export class ProjectStore {
     const info = await this._trashInfo(validTrashId(trashId));
     if (!info) throw new DomainError('資源回收區裡找不到這個角色。', 404, 'TRASH_NOT_FOUND');
     await fs.rm(this.trashDir(trashId), { recursive: true, force: true });
+    // 這個角色已經完全不在了（沒有復原回去、資源回收區也沒有別份）：它的畫面狀態（節點位置、參考線）一起清掉。
+    // 清不掉也不影響刪除本身（檔案已經刪了）。
+    try {
+      const others = await fs.readdir(path.join(this.dataDir, 'trash')).catch(() => []);
+      const elsewhere = await exists(path.join(this.projectDir(info.id), 'project.json')) || others.some((name) => name.startsWith(`${info.id}--`));
+      if (!elsewhere) await this.updateUiState({ values: {} }, { prune: (key) => key.endsWith(`:${info.id}`) });
+    } catch { /* 留著幾筆用不到的節點位置沒關係 */ }
     return { trashId, id: info.id, name: info.name };
   }
 
@@ -329,12 +415,56 @@ export class ProjectStore {
   _public(state) {
     const result = clone(state);
     if (result.views?.status === 'detecting' && !this.detectingViews.has(state.id)) result.views = { ...result.views, status: 'failed', error: '找三視圖中斷了（核心重新啟動過），可以再試一次。', errorCode: 'VIEWS_INTERRUPTED' };
-    // 2026-10-07 起畫好的圖不論用哪一版設定都可採用；olderSettings 只是提示「用較早設定畫的」。
-    result.candidates = result.candidates.map((candidate) => ({ ...candidate, olderSettings: candidate.baseRevision !== state.character.revision }));
+    // 「AIDOL 直接畫」與 Design QA 在核心裡跑：核心重開過，紀錄上還在跑的其實已經停了。
+    result.jobs = result.jobs.map((job) => {
+      let shown = job;
+      // 畫到一半（可能已經回來幾張、工作已是 review）時核心重開：補上結束時間，畫面才不會一直停在「繪製中」。
+      if (job.runner === 'auto' && job.progress?.startedAt && !job.progress.finishedAt && !this.drawingJobs.has(job.id)) {
+        const failure = { at: job.updatedAt || job.createdAt, message: '畫圖中斷了（核心重新啟動過），可以再畫一次。', code: 'DRAW_INTERRUPTED' };
+        shown = job.status === 'running' ? { ...shown, status: 'failed', failure } : { ...shown, progress: { ...job.progress, finishedAt: failure.at }, failure };
+      }
+      if (job.review?.status === 'running' && !this.reviewingJobs.has(job.id)) shown = { ...shown, review: { ...job.review, status: 'failed', error: 'Design QA 中斷了（核心重新啟動過），可以再審一次。', errorCode: 'REVIEW_INTERRUPTED' } };
+      return shown;
+    });
+    if (result.autopilot?.status === 'running' && !this.autopilots.has(state.id)) result.autopilot = { ...result.autopilot, status: 'interrupted' };
+    // 2026-10-07 起畫好的圖不論用哪一版設定都可採用；olderSettings 只是提示「用較早設定畫的」：
+    // 2026-10-14 起只有之後真的改過會影響長相的設定才算（採用、拆解裝備多存的版本不算）。
+    const imageLook = this._lastLookRevision(state, forImages), jobLook = this._lastLookRevision(state, forJobs);
+    result.candidates = result.candidates.map((candidate) => ({ ...candidate, olderSettings: this._olderSettings(state, candidate.baseRevision, imageLook) }));
+    // 已經有圖回來的工作照畫好的圖的規則；還沒送出的照比較嚴的規則。
+    result.jobs = result.jobs.map((job) => ({ ...job, olderSettings: this._olderSettings(state, job.baseRevision, ['review', 'accepted'].includes(job.status) ? imageLook : jobLook) }));
     // 標註存的是人物範圍裡的位置；畫面要的是在目前那張角度圖上的位置。
     if (result.viewNotes) result.viewNotes = result.viewNotes.map((note) => ({ ...note, ...toImagePoint(note, bodyRect(result.views, note.view)) }));
     result.proposals = result.proposals.map((proposal) => ({ ...proposal, olderSettings: proposal.baseRevision !== state.character.revision }));
     return result;
+  }
+
+  // 最後一次「改到長相」的版本（存檔紀錄缺了版本也算）：比這一版早的都是用較早的設定畫的。
+  // 從最新的存檔往回找到第一個就停；每一版的判斷記在記憶體裡（存檔紀錄只會往後加，不會改）。
+  // skip：不算的那幾種版本；counts：一定算的（還沒送出的繪製：換了正式立繪就是舊的）。
+  // swaps：正式立繪這類採用的圖換過也算（恢復存檔、改 YAML 換了正式立繪，不一定是採用那一步）。
+  _lastLookRevision(state, { skip, counts, swaps = false }) {
+    const history = state.history || [];
+    const current = state.character.revision;
+    if (!history.length || history.at(-1).revision !== current) return current;
+    for (let index = history.length - 1; index > 0; index -= 1) {
+      const entry = history[index], previous = history[index - 1];
+      if (entry.revision !== previous.revision + 1) return entry.revision;
+      const step = stepKey(entry);
+      if (counts.has(step)) return entry.revision;
+      if (swaps && JSON.stringify(entry.character?.adopted || {}) !== JSON.stringify(previous.character?.adopted || {})) return entry.revision;
+      if (skip.has(step)) continue;
+      const key = `${state.id}:${entry.id}`;
+      if (!this.lookSteps.has(key)) this.lookSteps.set(key, looksChanged(previous.character, entry.character));
+      if (this.lookSteps.get(key)) return entry.revision;
+    }
+    return history[0].revision > 1 ? history[0].revision : 0;
+  }
+
+  // 從那一版到現在，使用者有沒有改過會影響長相的設定（lastLook：_lastLookRevision 的結果）。
+  _olderSettings(state, baseRevision, lastLook = this._lastLookRevision(state, forImages)) {
+    if (!Number.isInteger(baseRevision) || baseRevision === state.character.revision) return false;
+    return baseRevision > state.character.revision || baseRevision < lastLook;
   }
 
   _cas(state, baseRevision) {
@@ -351,16 +481,20 @@ export class ProjectStore {
     if (targetId !== 'character' && !Object.hasOwn(state.character.components, targetId)) throw new DomainError('找不到指定的角色部件。', 422, 'UNKNOWN_COMPONENT');
   }
 
-  _changedTargets(before, after) {
+  // mainOutfit：正式立繪那套（衣裝差分）：只有這套改了才算正式立繪要重畫；改別套只影響衣櫃裡那套的立繪。
+  _changedTargets(before, after, mainOutfit = null) {
     const changed = new Set();
     if (JSON.stringify(before.identity) !== JSON.stringify(after.identity) || JSON.stringify(before.style) !== JSON.stringify(after.style)) Object.keys(after.adopted).forEach((target) => changed.add(target));
-    if (JSON.stringify(before.outfits) !== JSON.stringify(after.outfits)) changed.add('character');
+    const outfits = (character) => JSON.stringify(mainOutfit ? character.outfits?.[mainOutfit] ?? null : character.outfits);
+    if (outfits(before) !== outfits(after)) changed.add('character');
+    // 裝備改了：正式立繪那套有穿（改之前或之後）才算正式立繪要重畫；只有別套穿的，只影響那套的立繪。
+    const wornByMain = (character, partId) => !mainOutfit || Boolean(character.outfits?.[mainOutfit]?.equipped?.some((item) => item.componentId === partId && item.enabled));
     // 裁切位置與草案狀態只是整理資訊，不代表外觀改了。
     const looks = (component) => component && JSON.stringify({ ...component, crop: undefined, designStatus: undefined });
     for (const [id, component] of Object.entries(after.components)) {
-      if (looks(before.components[id]) !== looks(component)) { changed.add(id); changed.add('character'); }
+      if (looks(before.components[id]) !== looks(component)) { changed.add(id); if (wornByMain(before, id) || wornByMain(after, id)) changed.add('character'); }
     }
-    for (const id of Object.keys(before.components)) if (!after.components[id]) changed.add('character');
+    for (const id of Object.keys(before.components)) if (!after.components[id] && wornByMain(before, id)) changed.add('character');
     return [...changed].filter((target) => after.adopted[target]);
   }
 
@@ -378,7 +512,9 @@ export class ProjectStore {
       const { id, name, createdAt, updatedAt, character, assets } = project;
       const assetUrl = (assetId) => assets.find((asset) => asset.id === assetId)?.url || null;
       // 角色庫的「等你處理」：依每份工作自己的穿搭判斷，只列有證據的下一步。
-      const attention = Object.keys(character.outfits).flatMap((outfitId) => workspaceSummary(project, outfitId).attentionJobs.map((job) => {
+      // 套裝刪掉了的工作也要看（裝備的圖不分穿搭，照樣等你挑；那套的立繪工作已經當成結束，不會列出來）。
+      const outfitIds = [...new Set([...Object.keys(character.outfits), ...project.jobs.map((job) => job.outfitId).filter((outfitId) => typeof outfitId === 'string' && outfitId)])];
+      const attention = outfitIds.flatMap((outfitId) => workspaceSummary(project, outfitId).attentionJobs.map((job) => {
         const view = jobPresentation(project, job, outfitId);
         const targetName = job.targetId === 'character' ? '立繪' : character.components[job.targetId]?.name || '部件';
         return { jobId: job.id, targetId: job.targetId, targetName, label: view.label, labelKey: view.labelKey, labelParams: view.labelParams, tone: view.tone, action: view.action, createdAt: job.createdAt, thumbnailUrl: assetUrl(view.candidate?.assetId) || assetUrl(character.adopted[job.targetId]) || assetUrl(character.adopted.character) };
@@ -483,13 +619,31 @@ export class ProjectStore {
       const state = await this._read(id);
       this._cas(state, input.baseRevision);
       const character = this._validateUpdate(state, input);
-      state.syncTargets = [...new Set([...state.syncTargets, ...this._changedTargets(state.character, character)])].filter((target) => character.adopted[target]);
+      // 直接改設定換正式立繪（例如 YAML）：照已經刪掉的套裝畫的那張也不行（和採用候選同一條規則）。
+      const main = character.adopted.character;
+      const mainOutfit = main && main !== state.character.adopted.character ? state.assets.find((item) => item.id === main)?.outfitId : null;
+      if (mainOutfit && !Object.hasOwn(character.outfits, mainOutfit)) throw new DomainError('這套穿搭已經刪掉了，這張不能採用。要用的話，先在圖鑑放大這張，按「復原套裝」。', 409, 'OUTFIT_REMOVED');
+      const kept = this._keepMainOutfit(state, character);
+      state.syncTargets = [...new Set([...state.syncTargets, ...this._changedTargets(state.character, character, state.character.adopted.character ? mainOutfitId(state) : null)])].filter((target) => character.adopted[target]);
       state.character = { ...character, schema_version: 2, revision: state.character.revision + 1 };
       state.name = character.name;
       this._history(state, '更新人物設定', 'settingsUpdated');
       await this._save(state);
-      return this._public(state);
+      // notice：這次存檔核心自己改了什麼（畫面提示一次，不存進角色）。
+      return kept ? { ...this._public(state), notice: 'MAIN_OUTFIT_KEPT' } : this._public(state);
     });
+  }
+
+  // 正式立繪那套不能刪：這次存檔（Ctrl＋Z 退到新增那套之前、重做、AI 提案、YAML）拿掉了它，就照原本的放回原位。
+  // 不然正式立繪的衣服對不上任何一套，三視圖、表情集、全自動都會照錯的那套畫。這次同時換了正式立繪時照這次的。
+  // 「主要那套」和畫面一樣用 mainOutfitId（正式立繪沒記穿搭時是第一套，例如範例角色、匯入的圖）。
+  _keepMainOutfit(state, character) {
+    const main = state.character.adopted.character;
+    const outfitId = main ? mainOutfitId(state) : null;
+    if (!outfitId || character.adopted.character !== main || Object.hasOwn(character.outfits, outfitId)) return false;
+    if (!restoreOutfit(character, outfitId, state.character.outfits[outfitId], Object.keys(state.character.outfits).indexOf(outfitId))) return false;
+    validateCharacter(character, state.assets.map((asset) => asset.id));
+    return true;
   }
 
   async saveProposal(id, input) {
@@ -519,14 +673,15 @@ export class ProjectStore {
         proposed = mergeCharacter(base, proposal.character, state.character);
       }
       const character = this._validateUpdate(state, { character: { ...proposed, adopted: state.character.adopted, revision: state.character.revision } });
-      state.syncTargets = [...new Set([...state.syncTargets, ...this._changedTargets(state.character, character)])].filter((target) => character.adopted[target]);
+      const kept = this._keepMainOutfit(state, character);
+      state.syncTargets = [...new Set([...state.syncTargets, ...this._changedTargets(state.character, character, state.character.adopted.character ? mainOutfitId(state) : null)])].filter((target) => character.adopted[target]);
       state.character = { ...character, schema_version: 2, revision: baseRevision + 1 };
       state.name = character.name;
       proposal.status = 'accepted';
       proposal.acceptedAt = now();
       this._history(state, '採用人物設定提案', 'proposalAccepted');
       await this._save(state);
-      return this._public(state);
+      return kept ? { ...this._public(state), notice: 'MAIN_OUTFIT_KEPT' } : this._public(state);
     });
   }
 
@@ -722,7 +877,9 @@ export class ProjectStore {
       try {
         const asset = { id: assetId, url: `/api/projects/${id}/assets/${assetId}`, name: label.trim() || '圖片', targetId: 'character', role: 'design', view: 'front', version: state.assets.filter((item) => item.targetId === 'character' && item.role === 'design' && item.view === 'front').length + 1, createdAt: now(), mimeType: actualMime, sha256: createHash('sha256').update(content).digest('hex'), imported: true, ...(outfitId ? { outfitId } : {}) };
         state.assets.push(asset);
+        const previousMain = state.character.adopted.character;
         state.character.adopted.character = assetId;
+        this._keepDisplacedMain(state, previousMain);
         state.syncTargets = state.syncTargets.filter((target) => target !== 'character');
         this._validateUpdate(state, { character: state.character });
         state.character.revision += 1;
@@ -777,6 +934,101 @@ export class ProjectStore {
       views.updatedAt = now();
       await this._saveMetadata(state);
       if (removed) await fs.rm(await this._assetPath(id, removed), { force: true }).catch(() => {});
+      return this._public(state);
+    });
+  }
+
+  // ── 衣櫃 ──
+  // 某套穿搭的一張立繪要換成正式立繪：原本的正式立繪放進它那套的衣櫃（不會不見），這套的衣櫃空出來。
+  _moveMainToWardrobe(state, outfitId) {
+    const items = { ...(state.wardrobe?.items || {}) };
+    const previousOutfit = mainOutfitId(state);
+    delete items[outfitId];
+    if (previousOutfit && previousOutfit !== outfitId && state.character.adopted.character) items[previousOutfit] = { assetId: state.character.adopted.character, at: now() };
+    state.wardrobe = { ...(state.wardrobe || {}), items };
+  }
+
+  // 正式立繪換掉了（恢復存檔等）：被換下來的那張如果是另一套穿搭的，而那套衣櫃是空的，就放回去。
+  _keepDisplacedMain(state, previousMain) {
+    const current = state.character.adopted.character;
+    if (!previousMain || previousMain === current) return;
+    const asset = state.assets.find((item) => item.id === previousMain);
+    if (!asset?.outfitId || !isOutfitVariant(state, asset.outfitId) || outfitPortraitId(state, asset.outfitId)) return;
+    state.wardrobe = { ...(state.wardrobe || {}), items: { ...(state.wardrobe?.items || {}), [asset.outfitId]: { assetId: previousMain, at: now() } } };
+  }
+
+  // 把另一套穿搭現在的立繪設成正式立繪（衣櫃裡的「改成正式立繪」；匯入的立繪沒有候選也可以）。
+  async promoteOutfit(id, outfitId, { baseRevision } = {}) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      this._cas(state, baseRevision);
+      if (!isOutfitVariant(state, outfitId)) throw new DomainError('這套穿搭已經是正式立繪那套，或找不到這套穿搭。', 409, 'OUTFIT_NOT_VARIANT');
+      const assetId = outfitPortraitId(state, outfitId);
+      if (!assetId) throw new DomainError('這套穿搭還沒有立繪。', 409, 'OUTFIT_NO_PORTRAIT');
+      this._moveMainToWardrobe(state, outfitId);
+      state.character.adopted.character = assetId;
+      state.syncTargets = state.syncTargets.filter((target) => target !== 'character');
+      this._validateUpdate(state, { character: state.character });
+      state.character.revision += 1;
+      this._history(state, '採用角色設定稿候選', 'sheetAdopted');
+      await this._save(state);
+      return this._public(state);
+    });
+  }
+
+  // ── 表情集 ──
+  // preset：加一個預設表情；name（＋note）：加一個自訂表情。已經在表情集裡的不重複加。
+  // restore：復原剛拿掉的表情（畫面上的「復原」）：{ key, index, custom: { name, note }, item }，
+  // 放回原本的位置；畫好的那張還在而且是這個表情的，就一起放回去。
+  async addExpression(id, { preset, name, note, restore } = {}) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      const list = expressionList(state.expressions);
+      let key;
+      let at = list.length;
+      const custom = { ...(state.expressions?.custom || {}) };
+      const items = { ...(state.expressions?.items || {}) };
+      const text = (value) => (typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '');
+      const customEntry = (rawName, rawNote) => {
+        const label = text(rawName), detail = text(rawNote);
+        if (!label || label.length > 40 || detail.length > 300) throw new DomainError('自訂表情要有 1 至 40 字的名稱，說明最多 300 字。', 422, 'INVALID_EXPRESSION');
+        return { name: label, ...(detail ? { note: detail } : {}) };
+      };
+      if (restore !== undefined) {
+        key = restore?.key;
+        const isPreset = expressionPresets.some((item) => item.id === key);
+        if (typeof key !== 'string' || !(isPreset || customExpressionKey.test(key))) throw new DomainError('沒有這個表情。', 422, 'UNKNOWN_EXPRESSION');
+        if (list.includes(key)) return this._public(state);
+        if (!isPreset) custom[key] = customEntry(restore.custom?.name, restore.custom?.note);
+        if (Number.isInteger(restore.index)) at = Math.max(0, Math.min(list.length, restore.index));
+        const item = restore.item;
+        const asset = typeof item?.assetId === 'string' && state.assets.find((entry) => entry.id === item.assetId && entry.view === 'expression' && entry.expression === key);
+        if (asset) items[key] = { assetId: asset.id, sourceAssetId: typeof item.sourceAssetId === 'string' ? item.sourceAssetId : null, sourceMain: typeof item.sourceMain === 'string' ? item.sourceMain : null, at: typeof item.at === 'string' ? item.at : now() };
+      } else if (preset !== undefined) {
+        if (!expressionPresets.some((item) => item.id === preset)) throw new DomainError('沒有這個表情。', 422, 'UNKNOWN_EXPRESSION');
+        key = preset;
+      } else {
+        key = `custom-${randomUUID().replace(/-/g, '').slice(0, 8)}`;
+        custom[key] = customEntry(name, note);
+      }
+      if (list.includes(key)) return this._public(state);
+      if (list.length >= EXPRESSION_LIMIT) throw new DomainError(`表情集最多 ${EXPRESSION_LIMIT} 個表情。`, 422, 'EXPRESSION_LIMIT');
+      state.expressions = { ...(state.expressions || {}), list: [...list.slice(0, at), key, ...list.slice(at)], custom, items };
+      await this._saveMetadata(state);
+      return this._public(state);
+    });
+  }
+
+  // 從表情集拿掉：畫好的那張留在圖鑑（不刪檔）。
+  async removeExpression(id, key) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      const list = expressionList(state.expressions);
+      if (!list.includes(key)) return this._public(state);
+      const { [key]: _item, ...items } = state.expressions?.items || {};
+      const { [key]: _custom, ...custom } = state.expressions?.custom || {};
+      state.expressions = { ...(state.expressions || {}), list: list.filter((item) => item !== key), items, custom };
+      await this._saveMetadata(state);
       return this._public(state);
     });
   }
@@ -918,24 +1170,39 @@ export class ProjectStore {
     return path.join(this.projectDir(projectId), 'assets', `${validId(asset.id)}${mimeExtensions[asset.mimeType]}`);
   }
 
-  async createJob(id, { targetId = 'character', prompt, kind = 'refine', region, baseRevision, outfitId, outputView = 'front', directionId, variants = 1, framing }) {
+  async createJob(id, { targetId = 'character', prompt, kind = 'refine', region, baseRevision, outfitId, outputView = 'front', directionId, variants = 1, framing, expression }) {
     return this._withProject(id, async () => {
       const state = await this._read(id);
       this._cas(state, baseRevision);
       this._target(state, targetId);
-      if (targetId === 'character' ? !allViews.includes(outputView) : !outputViews.includes(outputView)) throw new DomainError(targetId === 'character' ? '角色工作只接受 front（整張），或三視圖的一個角度（side、back、frontQuarter、backQuarter、otherSide）。' : '輸出視角必須是 front、full、back 或 detail。', 422, 'INVALID_OUTPUT_VIEW');
+      if (targetId === 'character' ? !(allViews.includes(outputView) || outputView === 'expression') : !outputViews.includes(outputView)) throw new DomainError(targetId === 'character' ? '角色工作只接受 front（整張）、三視圖的一個角度（side、back、frontQuarter、backQuarter、otherSide），或表情集的一個表情（expression）。' : '輸出視角必須是 front、full、back 或 detail。', 422, 'INVALID_OUTPUT_VIEW');
       // 畫（或重畫）三視圖的單一角度（側面、背面或加的角度）：要先有拆好的正面，設計照正面與其他已確認的角度畫。
       // 不附這個角度原本的那張（多半就是畫壞了才重畫，附了 AI 會照抄），也不附整張正式圖（三視圖裡有畫壞的那個角度）。
-      const viewRedraw = targetId === 'character' && outputView !== 'front';
+      const viewRedraw = targetId === 'character' && isAngleView(outputView);
       const views = state.views;
       if (viewRedraw && !(views?.status === 'done' && views.assetId === state.character.adopted.character && views.items?.front)) throw new DomainError('要先有拆好的正面，才能畫側面或背面。', 409, 'VIEWS_NOT_READY');
       const viewRedo = viewRedraw && Boolean(views.items?.[outputView]);
       const otherViews = viewRedraw ? Object.entries(views.items).filter(([view]) => view !== outputView).map(([view, item]) => ({ view, assetId: item.assetId })) : [];
+      // 表情集：照正面（定稿）畫胸像表情。附上已經畫好的一個表情當「取景參考」，整套才對得齊；
+      // 重畫時不附這個表情原本的那張（多半就是畫壞了才重畫，附了 AI 會照抄）。
+      const expressionJob = targetId === 'character' && outputView === 'expression';
+      const expressionData = expressionJob ? expressionInfo(state.expressions, expression) : null;
+      if (expressionJob && (!expressionData || !expressionList(state.expressions).includes(expression))) throw new DomainError('找不到這個表情，請先把它加進表情集。', 422, 'UNKNOWN_EXPRESSION');
+      const expressionSource = expressionJob ? expressionFront(state) : null;
+      if (expressionJob && !expressionSource) throw new DomainError('要先有正式立繪，才能畫表情。', 409, 'EXPRESSION_NEEDS_FRONT');
+      const framingAsset = expressionJob ? framingReference(state, expression) : null;
+      const expressionRedo = expressionJob && Boolean(state.expressions?.items?.[expression]?.assetId);
       const outfitIds = Object.keys(state.character.outfits);
       if (outfitId !== undefined && (typeof outfitId !== 'string' || !Object.hasOwn(state.character.outfits, outfitId))) throw new DomainError('找不到這次工作指定的穿搭。', 422, 'UNKNOWN_OUTFIT');
-      if (outfitId === undefined && outfitIds.length > 1) throw new DomainError('角色有多套穿搭，請明確選擇這次工作使用的穿搭。', 422, 'MISSING_OUTFIT');
-      const selectedOutfitId = outfitId ?? outfitIds[0] ?? null;
+      // 三視圖的角度與表情集跟著正式立繪：一律用主要那套穿搭（畫面上選了別套也一樣，不然說明會叫 AI 換衣服）。
+      const followsMain = (viewRedraw || expressionJob) && Boolean(state.character.adopted.character);
+      if (outfitId === undefined && outfitIds.length > 1 && !followsMain) throw new DomainError('角色有多套穿搭，請明確選擇這次工作使用的穿搭。', 422, 'MISSING_OUTFIT');
+      const selectedOutfitId = followsMain ? mainOutfitId(state) : outfitId ?? outfitIds[0] ?? null;
       const selectedOutfit = selectedOutfitId ? clone(state.character.outfits[selectedOutfitId]) : null;
+      // 衣裝差分：已經有正式立繪、這次畫的是另一套穿搭：照正式立繪的臉、髮型、身形畫同一個角色，只換成這套的衣服；採用後放進衣櫃。
+      const outfitVariant = targetId === 'character' && !viewRedraw && !expressionJob && isOutfitVariant(state, selectedOutfitId);
+      // 局部修改另一套穿搭的立繪：要附上那張（選區以它為準）；重畫則不附（免得照抄）。
+      const variantPortrait = outfitVariant && kind === 'refine' ? outfitPortraitId(state, selectedOutfitId) : null;
       if (typeof prompt !== 'string' || !prompt.trim() || prompt.length > 12000) throw new DomainError('請輸入本次設計要求，長度不可超過 12000 字。', 422, 'INVALID_PROMPT');
       if (!['generate', 'refine', 'expand', 'sync'].includes(kind)) throw new DomainError('不支援這種設計工作。', 422, 'UNSUPPORTED_JOB_KIND');
       if (!variantCounts.includes(variants)) throw new DomainError(`一次可產生 ${variantCounts.join('、')} 張候選。`, 422, 'INVALID_VARIANTS');
@@ -948,21 +1215,26 @@ export class ProjectStore {
       const equippedAssets = (selectedOutfit?.equipped || []).filter((item) => item.enabled).map((item) => state.character.adopted[item.componentId]);
       const relatedPartIds = new Set([...(targetId !== 'character' ? [targetId] : []), ...(selectedOutfit?.equipped || []).filter((item) => item.enabled).map((item) => item.componentId)]);
       const viewAssets = [...relatedPartIds].flatMap((partId) => Object.values(state.character.components[partId]?.views || {}));
-      const referenceIds = new Set([...(viewRedraw ? otherViews.map((item) => item.assetId) : [state.character.adopted.character, state.character.adopted[targetId]]), ...equippedAssets, ...viewAssets, ...state.character.style.references.map((reference) => reference.assetId)].filter(Boolean));
+      const referenceIds = new Set([...(expressionJob ? [expressionSource, framingAsset] : viewRedraw ? otherViews.map((item) => item.assetId) : [state.character.adopted.character, state.character.adopted[targetId], variantPortrait]), ...(expressionJob ? [] : [...equippedAssets, ...viewAssets]), ...state.character.style.references.map((reference) => reference.assetId)].filter(Boolean));
       const referenceAssets = await Promise.all(state.assets.filter((asset) => referenceIds.has(asset.id)).map(async (asset) => ({ ...asset, path: await this._assetPath(id, asset), sha256: await fs.readFile(await this._assetPath(id, asset)).then((content) => createHash('sha256').update(content).digest('hex'), () => null) })));
       if (referenceAssets.some((asset) => !asset.sha256)) throw new DomainError('這次工作使用的參考圖片尚未就緒，請待素材完成後再建立工作。', 409, 'MISSING_REFERENCE');
       const outfitInstruction = selectedOutfit ? `本次穿搭：${selectedOutfit.name}（ID：${selectedOutfit.id}）。只依這套穿搭的 enabled=true 裝備生成整體；其他穿搭僅供背景參考，不得合併穿戴。${targetId !== 'character' && !selectedOutfit.equipped.some((item) => item.componentId === targetId && item.enabled) ? '目標部件目前未穿戴：本次僅設計部件，不自動加入穿搭。' : ''}` : '目前尚未設定穿搭；請設計角色草案，不得將未知服裝宣稱為已確認。';
       const viewLabel = turnaroundLabels[outputView];
-      const viewInstruction = viewRedraw ? `本次輸出：三視圖的「${viewLabel}」（view：${outputView}）。只畫一個全身的${viewLabel}。${viewSpecs[outputView]}設計完全照附上的正面（定稿）${otherViews.length > 1 ? '與已確認的其他角度' : ''}，髮型、五官、服裝、配色、配件與頭身比例都不改，身高和正面一樣；中性 A 字站姿、正交視角、淺灰素色背景，不加文字或其他人物。${viewRedo ? `原本的${viewLabel}有問題，這次重畫；沒有附上原本那張，不要沿用它的畫法或錯誤。` : ''}採用後放進三視圖的${viewLabel}，不取代正式立繪。回收時的 view 必須是 ${outputView}。`
-        : targetId === 'character' && framing === 'frontView' ? `本次輸出：正面全身（view：front）。${FRONT_SPEC}回收時的 view 必須是 front。`
+      const expressionInstruction = expressionJob ? `本次輸出：表情集的「${expressionData.label}」（expression：${expression}）。胸像：頭頂到胸口、正面面向觀看者、淺灰素色背景、只有一個人，不加文字或邊框。表情：${expressionData.brief}${expressionData.prompt ? `（${expressionData.prompt}）` : ''}。設計完全照附上的正面（定稿），髮型、五官、服裝、配色與配件都不改，只改表情。${framingAsset ? '取景（頭的大小、位置、裁切）和「取景參考」那張一樣，整套表情才對得齊；表情不要照它。' : '這是表情集的第一張：頭頂上方留一點空間、裁在胸口，之後的表情都照這張的取景。'}${expressionRedo ? (expressionStale(state, expression) ? `正式立繪換過了，照新的正面重畫「${expressionData.label}」；沒有附上原本那張（那是舊的設計）。` : `原本的「${expressionData.label}」有問題，這次重畫；沒有附上原本那張，不要沿用它的畫法或錯誤。`) : ''}設定裡的神情（mood）是角色平常的樣子，這張的表情以「${expressionData.label}」為準。採用後放進表情集，不取代正式立繪。回收時的 view 必須是 expression。` : '';
+      const viewInstruction = expressionJob ? expressionInstruction : viewRedraw ? `本次輸出：三視圖的「${viewLabel}」（view：${outputView}）。只畫一個全身的${viewLabel}。${viewSpecs[outputView]}設計完全照附上的正面（定稿）${otherViews.length > 1 ? '與已確認的其他角度' : ''}，髮型、五官、服裝、配色、配件與頭身比例都不改，身高和正面一樣；中性 A 字站姿、正交視角、淺灰素色背景，不加文字或其他人物。${viewRedo ? `原本的${viewLabel}有問題，這次重畫；沒有附上原本那張，不要沿用它的畫法或錯誤。` : ''}採用後放進三視圖的${viewLabel}，不取代正式立繪。回收時的 view 必須是 ${outputView}。`
+        : targetId === 'character' && framing === 'frontView' ? `本次輸出：正面全身（view：front）。${outfitVariant ? `${FRONT_SPEC_BODY}服裝與配件要畫清楚。` : FRONT_SPEC}回收時的 view 必須是 front。`
         : targetId === 'character' && framing === 'turnaround' ? `本次輸出：三視圖（view：front）。${TURNAROUND_SPEC}回收時的 view 必須是 front。` : `本次輸出視角：${viewLabels[outputView]}（view：${outputView}）。${targetId === 'character' ? '輸出完整角色設定稿，可在同一稿內呈現前後視角。' : ['back', 'detail'].includes(outputView) ? '這份候選採用後只保存對應視角，不取代部件主圖。' : '這份候選採用後會更新部件主圖。'}回收時的 view 必須與本次輸出視角相同。`;
+      const outfitLine = outfitVariant ? `這是穿搭「${selectedOutfit.name}」的立繪：照正式立繪畫同一個角色，臉、五官、髮型、髮色、膚色、身形與比例都不改，只換成這套穿搭的衣服與配件。採用後放在這套穿搭，不取代正式立繪。` : '';
       // 設計標註：設計師在角度圖上標的重點（例如尾巴從哪裡長出來），畫角色的任何圖都附上。
       const noteInstruction = targetId === 'character' ? viewNotesText(state) : '';
       // 重畫單一角度時，正式三視圖就是這次的定稿。
-      const hasCanon = viewRedraw || state.character.style.references.some((reference) => reference.canon && referenceIds.has(reference.assetId));
-      const compiled = compileBrief(state.character, { directionId, outfitId: selectedOutfitId, framing, canon: hasCanon });
-      const variantInstruction = variants > 1 ? `本次請產生 ${variants} 張候選，彼此在構圖或細節上可有變化，但都必須符合同一份設定與鎖定特徵；每張分別提交為待審候選。` : '';
-      const yaml = `${[outfitInstruction, viewInstruction, noteInstruction].filter(Boolean).flatMap((instruction) => instruction.split(/\r?\n/).map((line) => `# ${line}`)).join('\n')}\n${characterYaml(state.character)}`;
+      const hasCanon = viewRedraw || expressionJob || state.character.style.references.some((reference) => reference.canon && referenceIds.has(reference.assetId));
+      const compiled = compileBrief(state.character, { directionId, outfitId: selectedOutfitId, framing, canon: hasCanon, expression: expressionJob, outfitVariant });
+      // 表情集：幾張之間只有表情的細節不同，取景要和取景參考一樣（整套才對得齊）。
+      const variantInstruction = variants > 1 ? (expressionJob
+        ? `本次請產生 ${variants} 張候選，彼此只在表情的細節上可有變化（例如嘴型、眉毛、眼神），取景、設計與鎖定特徵都要一樣；每張分別提交為待審候選。`
+        : `本次請產生 ${variants} 張候選，彼此在構圖或細節上可有變化，但都必須符合同一份設定與鎖定特徵；每張分別提交為待審候選。`) : '';
+      const yaml = `${[outfitInstruction, viewInstruction, outfitLine, noteInstruction].filter(Boolean).flatMap((instruction) => instruction.split(/\r?\n/).map((line) => `# ${line}`)).join('\n')}\n${characterYaml(state.character)}`;
       const snapshotPath = path.join(this.jobDir(id, jobId), 'input.yaml');
       const instructionsPath = path.join(this.jobDir(id, jobId), 'instructions.md');
       // 每張固定輸入都標出用途：繪風參考管「畫法」，正式立繪與裝備圖只管「長相與服裝」，避免舊圖的畫法蓋掉新的繪風參考。
@@ -973,10 +1245,18 @@ export class ProjectStore {
       const inputRole = (asset) => {
         const reference = styleReferences.find((item) => item.assetId === asset.id);
         // 重畫單一角度：正式三視圖排第一當定稿；原本的定稿是畫三視圖之前的設計，只在三視圖看不清楚時參考。
+        // 表情集：正面是定稿，已經畫好的表情只管取景；原本的定稿只在正面看不清楚時參考。
+        if (expressionJob && asset.id === expressionSource) return { order: -2, label: '定稿（正面）：照這張畫表情。髮型、五官、服裝、配色、配件都以它為準，不得變更' };
+        if (expressionJob && asset.id === framingAsset) return { order: -1, label: '取景參考（已確認的表情）：頭的大小、位置、裁切和背景照這張；表情不要照它' };
+        if (expressionJob && reference?.canon) return { order: 0, label: '原本的定稿：設計以正面為準，這張只在正面看不清楚時參考' };
         const otherView = viewRedraw && otherViews.find((item) => item.assetId === asset.id);
         if (otherView?.view === 'front') return { order: -2, label: `定稿（正面）：照這張畫${viewLabel}。髮型、五官、服裝、配色、配件與頭身比例都以它為準，不得變更` };
         if (otherView) return { order: -1, label: `已確認的${turnaroundLabels[otherView.view]}：同一個角色，設計和它一致` };
         if (viewRedraw && reference?.canon) return { order: 0, label: '原本的定稿：設計以正面為準，這張只在正面看不清楚時參考' };
+        // 另一套穿搭：正式立繪與定稿只管長相，衣服不要照它們。
+        if (variantPortrait && asset.id === variantPortrait) return { order: -2, label: `這套穿搭「${selectedOutfit.name}」目前的立繪：這次照這張局部修改，選區以這張為準；沒提到的地方不要動` };
+        if (outfitVariant && asset.id === state.character.adopted.character) return { order: -1, label: '正式立繪（主要那套穿搭）：照它畫同一個角色，臉、五官、髮型、髮色、膚色、身形與比例都以它為準；衣服不要照它，換成這次的穿搭' };
+        if (outfitVariant && reference?.canon) return { order: 0, label: '定稿：臉、五官、髮型與身形照它；衣服不要照它，換成這次的穿搭' };
         if (reference?.canon) return { order: -1, label: `定稿：照這張畫。髮型、五官、服裝、配色、配件與頭身比例都以它為準，不得變更${reference.role === 'style' ? '；畫法也以它為準' : ''}` };
         if (reference) return { order: 0, label: `${referenceRoleLabels[reference.role] || '參考圖'}：要參考它的「${focusText(reference)}」${reference.role === 'style' ? '，這次的畫法以它為準' : ''}` };
         // 補畫三視圖（舊角色已經有一張立繪）：照這張的設計畫成三視圖，不重新設計。
@@ -986,25 +1266,27 @@ export class ProjectStore {
         return { order: 3, label: `「${partName(asset.targetId)}」的${viewLabels[asset.view] || '設計圖'}：服裝結構與細節${drawingStyle.length ? '，不要沿用它的畫法' : ''}` };
       };
       const labeledInputs = referenceAssets.map((asset) => ({ asset, ...inputRole(asset) })).sort((a, b) => a.order - b.order);
-      const styleLine = drawingStyle.length ? `繪風參考：${drawingStyle.map((reference) => `${reference.name}（${focusText(reference)}）`).join('、')}。畫法以繪風參考為準；正式立繪與裝備圖只用來確認長相與服裝。` : '';
-      const handoffPrompt = `請使用 AIDOL 工作資料進行角色設計。\n專案：${state.character.name}\n工作：${jobId}\n目標：${targetId}\n基礎版本：${baseRevision}\n${outfitInstruction}\n${viewInstruction}\n${noteInstruction ? `${noteInstruction}\n` : ''}${variantInstruction ? `${variantInstruction}\n` : ''}${compiled.direction ? `畫風方向：${compiled.direction.id} · ${compiled.direction.name}\n` : ''}${styleLine ? `${styleLine}\n` : ''}${hasCanon ? '有定稿：設計照定稿，只改這次要的視角、姿勢與排版。\n' : ''}本次要求：${prompt.trim()}\n人物快照：${snapshotPath}\n操作說明：${instructionsPath}\n使用新的工作階段；先讀取設定與參考圖。完成後提交圖片為待審候選，不可覆寫目前採用稿。`;
+      const styleLine = drawingStyle.length ? `繪風參考：${drawingStyle.map((reference) => `${reference.name}（${focusText(reference)}）`).join('、')}。畫法以繪風參考為準；${outfitVariant ? '正式立繪只用來確認長相（衣服照這次的穿搭，不要照它）' : '正式立繪與裝備圖只用來確認長相與服裝'}。` : '';
+      const handoffPrompt = `請使用 AIDOL 工作資料進行角色設計。\n專案：${state.character.name}\n工作：${jobId}\n目標：${targetId}\n基礎版本：${baseRevision}\n${outfitInstruction}\n${viewInstruction}\n${outfitLine ? `${outfitLine}\n` : ''}${noteInstruction ? `${noteInstruction}\n` : ''}${variantInstruction ? `${variantInstruction}\n` : ''}${compiled.direction ? `畫風方向：${compiled.direction.id} · ${compiled.direction.name}\n` : ''}${styleLine ? `${styleLine}\n` : ''}${hasCanon ? (expressionJob ? '有定稿：設計照定稿，只改表情。\n' : outfitVariant ? '有定稿：長相照定稿，衣服換成這次的穿搭。\n' : '有定稿：設計照定稿，只改這次要的視角、姿勢與排版。\n') : ''}本次要求：${prompt.trim()}\n人物快照：${snapshotPath}\n操作說明：${instructionsPath}\n使用新的工作階段；先讀取設定與參考圖。完成後提交圖片為待審候選，不可覆寫目前採用稿。`;
       // 定稿：設計照定稿，只改這次要的視角、姿勢與排版；定稿之後才改的外觀設定列成例外。
-      const canonList = hasCanon && !viewRedraw ? canonChanges(state.history, state.character, { outfitId: selectedOutfitId }) : [];
+      const canonList = hasCanon && !viewRedraw && !expressionJob ? canonChanges(state.history, state.character, { outfitId: selectedOutfitId, variant: outfitVariant }) : [];
       const canonLine = hasCanon ? [
-        '以「定稿」為準，禁止變更任何設定：髮型、五官、服裝、配色、配件與頭身比例都要和定稿一樣；只改變本次要求的視角、姿勢與排版。長相以定稿圖為準，input.yaml 與下面的文字設定只補充定稿上看不到的部分（例如背面）。',
-        canonList.length ? `除了以下改動，其他全部照定稿：\n${canonList.map((change) => `- ${change.label}：${change.from} → ${change.to}`).join('\n')}` : '',
+        expressionJob ? '以「定稿（正面）」為準，禁止變更任何設定：髮型、五官、服裝、配色與配件都要和定稿一樣；只改表情與取景（胸像）。長相以定稿圖為準，input.yaml 與下面的文字設定只補充定稿上看不到的部分。'
+          : outfitVariant ? `以「定稿」為準的是角色本身：臉、五官、髮型、膚色、身形與比例都要和定稿一樣；衣服與配件照這次的穿搭「${selectedOutfit.name}」（下面 DNA 的穿搭段，以及 input.yaml 的 outfits.${selectedOutfitId}），不要照定稿或正式立繪的衣服。`
+          : '以「定稿」為準，禁止變更任何設定：髮型、五官、服裝、配色、配件與頭身比例都要和定稿一樣；只改變本次要求的視角、姿勢與排版。長相以定稿圖為準，input.yaml 與下面的文字設定只補充定稿上看不到的部分（例如背面）。',
+        canonList.length ? `${outfitVariant ? '除了以下改動，長相照定稿' : '除了以下改動，其他全部照定稿'}：\n${canonList.map((change) => `- ${change.label}：${change.from} → ${change.to}`).join('\n')}` : '',
         drawingStyle.length ? '畫法（線條、上色、陰影）以「繪風參考」為準；設計照定稿。' : '',
       ].filter(Boolean).join('\n') : '';
       const keepLine = canonLine ? `${canonLine}\n` : drawingStyle.length
-        ? '角色的長相、髮型、服裝與配色依 input.yaml 和上面的角色、裝備圖保持一致；畫法（線條、上色、陰影、五官與人物的畫法）以「繪風參考」為準，不要沿用目前正式立繪或裝備圖的畫法。要換畫法時請重新畫整張，不要拿舊畫法的圖做局部修改；之後若要再修正（例如頭身），也要再附上繪風參考。下方「畫風方向」只補充繪風參考沒有涵蓋的部分，兩者衝突時以繪風參考為準。'
+        ? (outfitVariant ? '角色的長相、髮型與髮色依 input.yaml 和上面的正式立繪保持一致；衣服照這次的穿搭設定，不要照正式立繪的衣服；' : '角色的長相、髮型、服裝與配色依 input.yaml 和上面的角色、裝備圖保持一致；') + '畫法（線條、上色、陰影、五官與人物的畫法）以「繪風參考」為準，不要沿用目前正式立繪或裝備圖的畫法。要換畫法時請重新畫整張，不要拿舊畫法的圖做局部修改；之後若要再修正（例如頭身），也要再附上繪風參考。下方「畫風方向」只補充繪風參考沒有涵蓋的部分，兩者衝突時以繪風參考為準。'
         : '依據 input.yaml 保持角色辨識特徵與繪風，只依本次要求修改。';
       // 交接訊息只寫工作資料夾，回報與回收的規則寫在這裡（同時也在 AIDOL skill）。
       const reportSection = `## 回報與回收\n\n- 回收憑證是同資料夾的 handoff.json（不要顯示 token）；用 AIDOL skill 的 submit-candidate helper 提交。\n- 開始產圖前回報 \`--event started\`；本次共 ${variants} 張，每張完成就提交；全部完成回報 \`--event finished\`，失敗回報 \`--event failed --message "原因"\`。\n- 沒有圖像工具時說明限制並保留工作；不得用文字或示意圖冒充產圖；不覆寫、不採用目前的正式稿。`;
-      const instructions = `# AIDOL 精修工作\n\n${handoffPrompt}\n\n## 固定輸入\n\n${labeledInputs.map(({ asset, label }) => `- ${label}｜${asset.name}: ${asset.path} (${asset.sha256 || '檔案尚未可用'})`).join('\n')}\n\n${region ? `選區（0 至 1）：${JSON.stringify(region)}\n\n` : ''}${keepLine}${hasCanon ? '定稿上看不到的部分依文字設定補上，維持同一設計語言；不得新增定稿沒有的配件、花紋或裝飾。' : '尚未指定的結構先提出設計，不得宣稱已確認。'}\n${compiled.empty ? '' : `\n${compiled.text}\n`}`;
+      const instructions = `# AIDOL 精修工作\n\n${handoffPrompt}\n\n## 固定輸入\n\n${labeledInputs.map(({ asset, label }) => `- ${label}｜${asset.name}: ${asset.path} (${asset.sha256 || '檔案尚未可用'})`).join('\n')}\n\n${region ? `選區（0 至 1）：${JSON.stringify(region)}\n\n` : ''}${keepLine}${hasCanon ? (outfitVariant ? '衣服照這次的穿搭設定設計；角色本身（臉、髮型、身形）不得改變。' : '定稿上看不到的部分依文字設定補上，維持同一設計語言；不得新增定稿沒有的配件、花紋或裝飾。') : '尚未指定的結構先提出設計，不得宣稱已確認。'}\n${compiled.empty ? '' : `\n${compiled.text}\n`}`;
       await fs.mkdir(this.jobDir(id, jobId), { recursive: true });
       await fs.writeFile(snapshotPath, yaml, { flag: 'wx' });
       await fs.writeFile(instructionsPath, `${instructions.trimEnd()}\n\n${reportSection}\n`, { flag: 'wx' });
-      const job = { id: jobId, targetId, outputView, ...(viewRedraw ? { sheetAssetId: state.views.assetId, ...(viewRedo ? { viewRedo: true } : {}) } : {}), outfitId: selectedOutfitId, prompt: prompt.trim(), kind, ...(region ? { region: clone(region) } : {}), variants, ...(compiled.direction ? { directionId: compiled.direction.id } : {}), ...(framing ? { framing } : {}), baseRevision, status: 'prepared', createdAt: now(), context: { yaml, selectedOutfit, referenceAssets, styleReferences, snapshotPath, instructionsPath, ...(compiled.empty ? {} : { compiled: compiled.text, compiledPrompt: compiled.prompt }) }, handoffPrompt };
+      const job = { id: jobId, targetId, outputView, ...(viewRedraw ? { sheetAssetId: state.views.assetId, ...(viewRedo ? { viewRedo: true } : {}) } : {}), ...(expressionJob ? { expression, expressionLabel: expressionData.label, expressionSource, expressionMain: state.character.adopted.character, ...(expressionRedo ? { expressionRedo: true } : {}) } : {}), ...(outfitVariant ? { outfitVariant: true, outfitMain: state.character.adopted.character } : {}), outfitId: selectedOutfitId, prompt: prompt.trim(), kind, ...(region ? { region: clone(region) } : {}), variants, ...(compiled.direction ? { directionId: compiled.direction.id } : {}), ...(framing ? { framing } : {}), baseRevision, status: 'prepared', createdAt: now(), context: { yaml, selectedOutfit, referenceAssets, styleReferences, snapshotPath, instructionsPath, ...(compiled.empty ? {} : { compiled: compiled.text, compiledPrompt: compiled.prompt }) }, handoffPrompt };
       state.jobs.push(job);
       await this._save(state);
       return clone(job);
@@ -1023,11 +1305,34 @@ export class ProjectStore {
       const state = await this._read(id);
       const job = state.jobs.find((item) => item.id === jobId);
       if (!job) throw new DomainError('找不到這次設計工作。', 404, 'JOB_NOT_FOUND');
-      const forbidden = ['id', 'targetId', 'outfitId', 'outputView', 'sheetAssetId', 'viewRedo', 'prompt', 'kind', 'region', 'variants', 'directionId', 'framing', 'baseRevision', 'createdAt', 'context'];
+      const forbidden = ['id', 'targetId', 'outfitId', 'outputView', 'sheetAssetId', 'viewRedo', 'expression', 'expressionLabel', 'expressionSource', 'expressionMain', 'expressionRedo', 'prompt', 'kind', 'region', 'variants', 'directionId', 'framing', 'baseRevision', 'createdAt', 'context'];
       if (forbidden.some((key) => Object.hasOwn(patch, key))) throw new DomainError('不可變更工作的固定輸入。');
+      // 已經收掉的工作不能再改回別的狀態（例如交給 Codex 的途中剛好被按了「不畫了」）。
+      if (job.status === 'cancelled' && Object.hasOwn(patch, 'status') && patch.status !== 'cancelled') throw new DomainError('此工作已結束，請建立新的工作。', 409, 'JOB_ENDED');
       Object.assign(job, clone(patch), { updatedAt: now() });
       await this._save(state);
       return clone(job);
+    });
+  }
+
+  // 「不畫了」（2026-10-14 起）：還沒送出、等你送出、或失敗了的繪製可以收掉（工作當成結束，圖鑑與畫布不再列出）。
+  // 正在畫、Design QA 正在審、已經有圖等你挑、全自動正在處理的那張不行。
+  async cancelJob(id, jobId) {
+    return this._withProject(id, async () => {
+      const state = await this._read(id);
+      const job = state.jobs.find((item) => item.id === jobId);
+      if (!job) throw new DomainError('找不到這次設計工作。', 404, 'JOB_NOT_FOUND');
+      if (['cancelled', 'accepted'].includes(job.status)) throw new DomainError('這次繪製已經結束了。', 409, 'JOB_ENDED');
+      // AIDOL 直接畫、但核心重開過（畫面顯示「中斷了」）：其實已經沒在畫，可以收掉。
+      const interrupted = job.runner === 'auto' && !this.drawingJobs.has(jobId);
+      if (this.drawingJobs.has(jobId) || (!interrupted && (job.status === 'running' || (job.progress?.startedAt && !job.progress?.finishedAt)))) throw new DomainError('這次正在畫，先按「停下」。', 409, 'JOB_DRAWING');
+      if (this.reviewingJobs.has(jobId)) throw new DomainError('Design QA 正在審這批圖，等它審完。', 409, 'REVIEW_RUNNING');
+      // 只擋現在這一輪全自動的工作（之前幾輪失敗、沒送出的照樣可以收）。
+      if (job.autopilotId && this.autopilots.has(id) && state.autopilot?.id === job.autopilotId) throw new DomainError('全自動正在處理這張；要停的話先停下全自動。', 409, 'AUTOPILOT_JOB');
+      if (state.candidates.some((candidate) => candidate.jobId === jobId && candidate.status === 'pending')) throw new DomainError('這次已經有圖等你挑了。', 409, 'JOB_HAS_IMAGES');
+      Object.assign(job, { status: 'cancelled', cancelledAt: now(), updatedAt: now() });
+      await this._save(state);
+      return this._public(state);
     });
   }
 
@@ -1043,9 +1348,11 @@ export class ProjectStore {
       const job = jobId ? state.jobs.find((item) => item.id === jobId) : null;
       if (jobId && !job) throw new DomainError('找不到這次設計工作。', 404, 'JOB_NOT_FOUND');
       if (job && (job.targetId !== targetId || role !== 'design')) throw new DomainError('候選圖片必須與指定工作的部件及用途一致。', 422, 'JOB_TARGET_MISMATCH');
+      // 已經「不畫了」的工作不再收圖（不然會被改回「等你挑」）。
+      if (job?.status === 'cancelled') throw new DomainError('此工作已結束，無法回收新候選。', 409, 'JOB_ENDED');
       const assetView = view ?? job?.outputView ?? 'front';
       // 角色的圖平常只有正面（整張）；側面、背面只能是「重畫三視圖單一角度」工作交回來的候選。
-      if (targetId === 'character' ? assetView !== 'front' && !(job && allViews.includes(assetView)) : !outputViews.includes(assetView)) throw new DomainError('圖片視角不符合角色或部件的允許範圍。', 422, 'INVALID_OUTPUT_VIEW');
+      if (targetId === 'character' ? assetView !== 'front' && !(job && (allViews.includes(assetView) || assetView === 'expression')) : !outputViews.includes(assetView)) throw new DomainError('圖片視角不符合角色或部件的允許範圍。', 422, 'INVALID_OUTPUT_VIEW');
       if (job && assetView !== (job.outputView || 'front')) throw new DomainError('候選視角與本次工作不同，請依照工作的輸出視角匯入。', 422, 'ASSET_VIEW_MISMATCH');
       const assetId = uid('asset');
       const filePath = path.join(this.projectDir(id), 'assets', `${assetId}${mimeExtensions[actualMime]}`);
@@ -1053,22 +1360,24 @@ export class ProjectStore {
       await fs.writeFile(filePath, buffer, { flag: 'wx' });
       const asset = { id: assetId, url: `/api/projects/${id}/assets/${assetId}`, name: name.trim() || '圖片', targetId, role, view: assetView, version: state.assets.filter((item) => item.targetId === targetId && item.role === role && item.view === assetView).length + 1, createdAt: now(), mimeType: actualMime, sha256: createHash('sha256').update(buffer).digest('hex') };
       if (job?.outfitId) asset.outfitId = job.outfitId;
+      if (assetView === 'expression' && job?.expression) asset.expression = job.expression;
       state.assets.push(asset);
       let candidate;
       if (job) {
-        candidate = { id: uid('candidate'), assetId, jobId, targetId, view: assetView, ...(job.outfitId ? { outfitId: job.outfitId } : {}), baseRevision: job.baseRevision, status: 'pending', createdAt: now() };
+        candidate = { id: uid('candidate'), assetId, jobId, targetId, view: assetView, ...(job.outfitId ? { outfitId: job.outfitId } : {}), ...(assetView === 'expression' && job.expression ? { expression: job.expression } : {}), baseRevision: job.baseRevision, status: 'pending', createdAt: now() };
         state.candidates.push(candidate);
         if (job.status !== 'accepted') job.status = 'review';
         job.updatedAt = now();
       }
       if (role === 'reference' && !job) await this._saveMetadata(state);
       else await this._save(state);
-      return { asset: clone(asset), ...(candidate ? { candidate: { ...candidate, olderSettings: candidate.baseRevision !== state.character.revision } } : {}), project: this._public(state) };
+      return { asset: clone(asset), ...(candidate ? { candidate: { ...candidate, olderSettings: this._olderSettings(state, candidate.baseRevision) } } : {}), project: this._public(state) };
     });
   }
 
   // 由 AIDOL Skill 經回收憑證回報的真實進度；不推測、不補假百分比。
-  async recordProgress(id, jobId, { event, message } = {}) {
+  // code 只有核心自己呼叫時會帶（例如「AIDOL 直接畫」的額度用完），介面依 code 換成使用者的語言。
+  async recordProgress(id, jobId, { event, message, code, resetsAt } = {}) {
     return this._withProject(id, async () => {
       const state = await this._read(id);
       const job = state.jobs.find((item) => item.id === jobId);
@@ -1088,7 +1397,7 @@ export class ProjectStore {
         job.progress.finishedAt = at;
         if (job.status === 'running') job.status = state.candidates.some((candidate) => candidate.jobId === job.id) ? 'review' : 'handed_off';
       } else {
-        job.failure = { at, ...(note ? { message: note } : {}) };
+        job.failure = { at, ...(note ? { message: note } : {}), ...(typeof code === 'string' ? { code } : {}), ...(Number.isFinite(resetsAt) ? { resetsAt } : {}) };
         job.progress.finishedAt = at;
         if (!['review', 'accepted'].includes(job.status)) job.status = 'failed';
       }
@@ -1096,6 +1405,16 @@ export class ProjectStore {
       await this._saveMetadata(state);
       return clone(job);
     });
+  }
+
+  // 指定圖片在本機的完整路徑（Design QA 看候選圖用）；順序照 assetIds。
+  async assetFiles(id, assetIds) {
+    const state = await this.getProject(id);
+    return Promise.all(assetIds.map(async (assetId) => {
+      const asset = state.assets.find((item) => item.id === assetId);
+      if (!asset) throw new DomainError('找不到這張圖片。', 404, 'ASSET_NOT_FOUND');
+      return this._assetPath(id, asset);
+    }));
   }
 
   // 定稿圖在本機的完整路徑（讓 Codex 照圖填設定用）。
@@ -1112,7 +1431,9 @@ export class ProjectStore {
     return { asset, buffer: await fs.readFile(await this._assetPath(id, asset)) };
   }
 
-  async acceptCandidate(id, candidateId, { baseRevision }) {
+  // by：誰採用的。全自動模式由 Design QA 代為採用時是 'design-qa'（畫面標出來，使用者之後可以換回別張）。
+  // asMain：另一套穿搭的立繪改成正式立繪（原本的正式立繪放進它那套的衣櫃）。
+  async acceptCandidate(id, candidateId, { baseRevision, by, asMain = false } = {}) {
     return this._withProject(id, async () => {
       const state = await this._read(id);
       this._cas(state, baseRevision);
@@ -1122,6 +1443,20 @@ export class ProjectStore {
       if (!['pending', 'accepted'].includes(candidate.status)) throw new DomainError('這張圖目前不能採用。', 409, 'CANDIDATE_CLOSED');
       this._target(state, candidate.targetId);
       const asset = state.assets.find((item) => item.id === candidate.assetId);
+      // 表情：只放進表情集，不動正式立繪與角色設定（不進版本）。照舊的正面畫的也可以採用，畫面會提醒可以重畫。
+      if (candidate.targetId === 'character' && asset.view === 'expression') {
+        const job = state.jobs.find((item) => item.id === candidate.jobId);
+        const key = asset.expression || job?.expression;
+        // 拿掉的表情（預設的也一樣）不會因為採用又跑回來；要用的話先在表情集加回去。
+        if (!expressionList(state.expressions).includes(key) || !expressionInfo(state.expressions, key)) throw new DomainError('這個表情已經從表情集拿掉了，這張沒有放進表情集。', 409, 'EXPRESSION_REMOVED');
+        state.expressions = { ...(state.expressions || {}), items: { ...(state.expressions?.items || {}), [key]: { assetId: asset.id, sourceAssetId: job?.expressionSource || null, sourceMain: job?.expressionMain || null, at: now() } } };
+        candidate.status = 'accepted';
+        candidate.acceptedAt = now();
+        if (by === 'design-qa') candidate.acceptedBy = 'design-qa'; else delete candidate.acceptedBy;
+        if (job) job.status = 'accepted';
+        await this._saveMetadata(state);
+        return this._public(state);
+      }
       // 重畫的側面／背面：只換掉三視圖裡那個角度，不動正式三視圖與角色設定（視角不進版本）。
       if (candidate.targetId === 'character' && asset.view !== 'front') {
         const views = state.views;
@@ -1136,13 +1471,36 @@ export class ProjectStore {
         views.updatedAt = now();
         candidate.status = 'accepted';
         candidate.acceptedAt = now();
+        if (by === 'design-qa') candidate.acceptedBy = 'design-qa'; else delete candidate.acceptedBy;
         state.jobs.find((job) => job.id === candidate.jobId).status = 'accepted';
         await this._saveMetadata(state);
         if (old) await fs.rm(await this._assetPath(id, old), { force: true }).catch(() => {});
         return this._public(state);
       }
+      // 衣裝差分：另一套穿搭畫的立繪只放進衣櫃（那套的立繪），不換正式立繪、不進版本。
+      const portraitOutfit = candidate.targetId === 'character' ? candidate.outfitId || state.jobs.find((item) => item.id === candidate.jobId)?.outfitId || null : null;
+      // 那套穿搭已經刪掉了：衣服對不上任何一套，不放進衣櫃、也不當正式立繪（改成正式立繪也一樣）。復原那套之後就可以採用。
+      if (outfitRemoved(state, portraitOutfit)) throw new DomainError('這套穿搭已經刪掉了，這張不能採用。要用的話，先在圖鑑放大這張，按「復原套裝」。', 409, 'OUTFIT_REMOVED');
+      if (candidate.targetId === 'character' && isOutfitVariant(state, portraitOutfit)) {
+        const items = { ...(state.wardrobe?.items || {}) };
+        if (!asMain) {
+          items[portraitOutfit] = { assetId: asset.id, at: now() };
+          state.wardrobe = { ...(state.wardrobe || {}), items };
+          candidate.status = 'accepted';
+          candidate.acceptedAt = now();
+          if (by === 'design-qa') candidate.acceptedBy = 'design-qa'; else delete candidate.acceptedBy;
+          const job = state.jobs.find((item) => item.id === candidate.jobId);
+          if (job) job.status = 'accepted';
+          await this._saveMetadata(state);
+          return this._public(state);
+        }
+        // 改成正式立繪：原本的正式立繪放進它那套的衣櫃，這套的衣櫃空出來（這張就是正式立繪了）。
+        this._moveMainToWardrobe(state, portraitOutfit);
+      }
       const primary = ['front', 'full'].includes(asset.view);
+      const previousMain = state.character.adopted.character;
       if (primary) state.character.adopted[candidate.targetId] = candidate.assetId;
+      if (primary && candidate.targetId === 'character') this._keepDisplacedMain(state, previousMain);
       if (candidate.targetId !== 'character') {
         const component = state.character.components[candidate.targetId];
         component.views = { ...(component.views || {}), [asset.view]: candidate.assetId };
@@ -1157,6 +1515,7 @@ export class ProjectStore {
       state.character.revision += 1;
       candidate.status = 'accepted';
       candidate.acceptedAt = now();
+      if (by === 'design-qa') candidate.acceptedBy = 'design-qa'; else delete candidate.acceptedBy;
       state.jobs.find((job) => job.id === candidate.jobId).status = 'accepted';
       this._history(state, `採用${candidate.targetId === 'character' ? '角色設定稿' : `${state.character.components[candidate.targetId].name}${viewLabels[asset.view]}`}候選`, candidate.targetId === 'character' ? 'sheetAdopted' : 'partAdopted', candidate.targetId === 'character' ? undefined : { name: state.character.components[candidate.targetId].name, view: asset.view });
       await this._save(state);
@@ -1173,7 +1532,9 @@ export class ProjectStore {
       const character = clone(history.character);
       character.revision = baseRevision;
       this._validateUpdate(state, { character });
+      const previousMain = state.character.adopted.character;
       state.character = { ...character, revision: baseRevision + 1 };
+      this._keepDisplacedMain(state, previousMain);
       state.name = character.name;
       state.syncTargets = [...history.syncTargets].filter((target) => character.adopted[target]);
       this._history(state, `恢復第 ${history.revision} 版設定`, 'restored', { revision: history.revision });
@@ -1216,6 +1577,30 @@ export class ProjectStore {
         if (viewPath && await exists(viewPath)) archive.file(viewPath, { name: `views/${view}${path.extname(viewPath) || '.png'}` });
       }
     }
+    // 表情集另外放一份 expressions/01-neutral.png…（照表情集的順序），和名稱清單。
+    const expressionItems = expressionList(state.expressions).map((key, index) => ({ key, index, item: state.expressions?.items?.[key], info: expressionInfo(state.expressions, key) })).filter((entry) => entry.item?.assetId && entry.info);
+    const expressionLines = [];
+    for (const { key, index, item, info } of expressionItems) {
+      const expressionAsset = state.assets.find((asset) => asset.id === item.assetId);
+      const expressionPath = expressionAsset && await this._assetPath(id, expressionAsset);
+      if (!expressionPath || !(await exists(expressionPath))) continue;
+      const file = `${String(index + 1).padStart(2, '0')}-${key}${path.extname(expressionPath) || '.png'}`;
+      archive.file(expressionPath, { name: `expressions/${file}` });
+      expressionLines.push(`- ${file}：${scrub(info.label)}`);
+    }
+    if (expressionLines.length) archive.append(`# 表情集\n\n${expressionLines.join('\n')}\n`, { name: 'expressions/expressions.md' });
+    // 衣櫃：每套穿搭的立繪另外放一份 outfits/01-<穿搭代號>.png（主要那套就是正式立繪），和名稱清單。
+    const outfitLines = [];
+    for (const [index, outfitId] of Object.keys(state.character.outfits).entries()) {
+      const portraitId = outfitPortraitId(state, outfitId);
+      const portraitAsset = portraitId && state.assets.find((asset) => asset.id === portraitId);
+      const portraitPath = portraitAsset && await this._assetPath(id, portraitAsset);
+      if (!portraitPath || !(await exists(portraitPath))) continue;
+      const file = `${String(index + 1).padStart(2, '0')}-${outfitId}${path.extname(portraitPath) || '.png'}`;
+      archive.file(portraitPath, { name: `outfits/${file}` });
+      outfitLines.push(`- ${file}：${scrub(state.character.outfits[outfitId].name)}${outfitId === mainOutfitId(state) ? '（主要）' : ''}`);
+    }
+    if (outfitLines.length) archive.append(`# 衣櫃\n\n${outfitLines.join('\n')}\n`, { name: 'outfits/outfits.md' });
     // 設計標註另外放一份文字，和角度圖一起交給別人看。
     if ((state.viewNotes || []).length) archive.append(`# 設計標註\n\n${viewNotesText(state).split('\n').slice(1).join('\n')}\n`, { name: 'views/notes.md' });
     const packed = await Promise.all(state.jobs.map((job) => this._portableJob(id, job, exportedPaths, scrub)));

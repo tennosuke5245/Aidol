@@ -16,5 +16,8 @@
   "VIEWS_NOT_READY": "要先有拆好的正面，才能畫側面或背面。",
   "INVALID_NOTE": "標註要寫說明（500 字以內），名稱 40 字以內。",
   "NOTE_NOT_FOUND": "找不到這個標註。",
-  "TOO_MANY_NOTES": "標註最多 40 個。"
+  "TOO_MANY_NOTES": "標註最多 40 個。",
+  "DRAW_NEEDS_LOGIN": "要先在 Codex 用 ChatGPT 帳號登入，才能讓 AIDOL 直接畫。",
+  "DRAW_NEEDS_CHATGPT": "Codex 目前用 API key 登入，畫圖會另外計費；AIDOL 只用 ChatGPT 方案的額度畫圖。請改用 ChatGPT 帳號登入，或改成交給 Codex App。",
+  "DRAW_PLAN_FREE": "ChatGPT 免費方案不能用 Codex 畫圖。可以改成交給 Codex App，或升級方案。"
 }

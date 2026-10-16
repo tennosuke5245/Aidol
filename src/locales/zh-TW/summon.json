@@ -26,7 +26,7 @@
     "sub": "Codex 回報失敗。要求與設定都還在，可以再試一次。"
   },
   "card": {
-    "waiting": "等待送出",
+    "waiting": "等你送出",
     "failed": "沒有畫出",
     "drawing": "繪製中",
     "previewTitle": "{{target}}・第 {{number}} 張",
@@ -37,7 +37,9 @@
     "adoptMain": "設為立繪",
     "adopt": "採用這張",
     "older": "用較早的設定畫的",
-    "staleView": "三視圖已經換過"
+    "staleView": "三視圖已經換過",
+    "pickedByQa": "Design QA 代為採用",
+    "outfitRemoved": "套裝已刪除"
   },
   "opening": "開啟中…",
   "reopen": "重新開啟 Codex",
@@ -66,7 +68,36 @@
     "partDesign": "{{name}}的設計圖",
     "canon": "定稿：設計照這張畫",
     "viewFront": "正面：照這張畫",
-    "view": "已確認的{{view}}"
+    "view": "已確認的{{view}}",
+    "expressionFraming": "取景參考（已確認的表情）"
   },
-  "viewTarget": "三視圖・{{view}}"
+  "viewTarget": "三視圖・{{view}}",
+  "direct": {
+    "drawingSub": "AIDOL 正在用你的 Codex 畫，畫好一張就翻開一張。",
+    "stop": "停下",
+    "again": "再畫一次",
+    "useCodexApp": "改交給 Codex App",
+    "switch": "改讓 AIDOL 直接畫",
+    "usageLimit": "Codex 的額度用完了，{{time}} 之後會恢復，到時候再畫一次就好。"
+  },
+  "qa": {
+    "running": "Design QA 正在看這批圖…",
+    "picked": "Design QA：{{summary}}",
+    "none": "Design QA 覺得這批都還不行：{{summary}}",
+    "pickBadge": "QA 推薦",
+    "passBadge": "可以用",
+    "failBadge": "要重畫",
+    "score": "{{total}}／25",
+    "issueSep": "；",
+    "ask": "請 Design QA 挑一張",
+    "needsCodex": "要先連上 Codex 才能請 Design QA 看"
+  },
+  "expressionTarget": "表情集・{{name}}",
+  "outfitTarget": "套裝・{{name}}",
+  "outfitRemovedTarget": "已刪除的套裝・{{name}}",
+  "outfitRemovedTitle": "這套已經刪掉了",
+  "outfitRemoved": "這些圖不能採用，會留在圖鑑；復原這套就能採用。",
+  "outfitRemovedWaiting": "不用送出；還要畫的話，先復原這套。",
+  "outfitRemovedDrawing": "這套穿搭已經刪掉了，畫好的圖不能採用（會留在圖鑑）。",
+  "cancel": "不畫了"
 }

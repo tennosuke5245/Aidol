@@ -4,7 +4,10 @@
     "part": "已設為這件裝備的設計圖。",
     "mainDecomposing": "已設為正式立繪，正在從立繪拆解裝備…",
     "main": "已設為正式立繪。",
-    "view": "已放進三視圖的{{view}}"
+    "view": "已放進三視圖的{{view}}",
+    "expression": "放進表情集了：{{name}}",
+    "outfit": "已設為套裝「{{name}}」的立繪。",
+    "mainFromOutfit": "已把「{{name}}」設成正式立繪；原本的立繪放進「{{previous}}」。"
   },
   "imported": "已匯入這張圖，放在圖鑑裡。",
   "referenceSaved": "參考圖片與用途已儲存。",

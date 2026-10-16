@@ -31,5 +31,10 @@
     "delete": "Delete \"{{name}}\"",
     "trash_one": "Trash ({{count}})",
     "trash_other": "Trash ({{count}})"
-  }
+  },
+  "autopilot": "Autopilot",
+  "autopilotRunning": "Autopilot running",
+  "autopilotDrawing": "Drawing {{view}}",
+  "autopilotReviewing": "QA checking {{view}}",
+  "autopilotTitle": "Let AIDOL draw the front and every angle for you"
 }

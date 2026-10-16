@@ -6,17 +6,20 @@
   "filter": {
     "all": "全部",
     "main": "立繪",
+    "expression": "表情",
     "gear": "裝備"
   },
   "live": {
     "label": "還在進行的繪製",
     "failed": "這次沒畫成",
     "notSent": "沒送出",
-    "pressSend": "到 Codex 按送出",
+    "waiting": "等你送出",
     "view": "查看",
     "importTitle": "從電腦選一張圖放進這次繪製",
     "import": "手動放入",
-    "importInput": "選擇要放入的圖片"
+    "importInput": "選擇要放入的圖片",
+    "cancel": "不畫了",
+    "cancelTitle": "收掉這次繪製（之後想畫，再按繪製就好）"
   },
   "olderSettings": "較早的設定",
   "adopted": {
@@ -31,11 +34,15 @@
     "sheetBack": "三視圖・背面",
     "sheetFrontQuarter": "三視圖・斜前方",
     "sheetBackQuarter": "三視圖・斜後方",
-    "sheetOtherSide": "三視圖・另一側"
+    "sheetOtherSide": "三視圖・另一側",
+    "expression": "表情集",
+    "outfit": "套裝立繪"
   },
   "empty": {
     "title": "還沒有圖",
-    "body": "到「捏角色」按「開始繪製」，畫好的圖都會收在這裡。"
+    "body": "到「捏角色」畫第一張立繪，畫好的圖都會收在這裡。",
+    "filteredTitle": "這一類還沒有圖",
+    "filteredBody": "換到「{{all}}」看看其他畫好的圖。"
   },
   "view": {
     "front": "正面",
@@ -53,7 +60,13 @@
     "refine": "框選局部修改",
     "redraw": "用一樣的要求再畫",
     "adoptView": "用在三視圖的{{view}}",
-    "staleView": "這張是照舊的三視圖重畫的；三視圖已經換過，不能放進去。"
+    "staleView": "這張是照舊的三視圖重畫的；三視圖已經換過，不能放進去。",
+    "adoptExpression": "放進表情集",
+    "adoptOutfit": "設為「{{name}}」的立繪",
+    "makeMain": "改成正式立繪",
+    "makeMainHint": "原本的正式立繪會放進「{{previous}}」；三視圖要重新拆，表情會標成舊設計。",
+    "outfitRemoved": "這張是照已經刪掉的套裝畫的，不能採用；復原那套之後就可以。",
+    "download": "下載"
   },
   "compare": {
     "this": "這張",
@@ -78,5 +91,6 @@
     "zoomOut": "縮小圖稿",
     "zoomIn": "放大圖稿",
     "fit": "圖稿適合視窗"
-  }
+  },
+  "formerMain": "以前的正式立繪"
 }

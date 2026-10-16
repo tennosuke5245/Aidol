@@ -29,5 +29,10 @@
     "new": "新しくつくる",
     "delete": "「{{name}}」を削除",
     "trash_other": "ゴミ箱（{{count}}）"
-  }
+  },
+  "autopilot": "全自動",
+  "autopilotRunning": "全自動で進行中",
+  "autopilotDrawing": "{{view}}を描画中",
+  "autopilotReviewing": "QA が{{view}}を確認中",
+  "autopilotTitle": "正面と各アングルを AIDOL にまとめて描いてもらう"
 }

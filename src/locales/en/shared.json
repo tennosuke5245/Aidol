@@ -37,7 +37,8 @@
       "frontQuarter": "Front 3/4 view",
       "backQuarter": "Back 3/4 view",
       "otherSide": "Other side view",
-      "unknown": "Unknown view"
+      "unknown": "Unknown view",
+      "expression": "Expression"
     }
   },
   "diff": {
@@ -83,7 +84,32 @@
       "silhouette": "Silhouette",
       "layers": "Layers",
       "detail": "Detail",
-      "colors": "Colors"
+      "colors": "Colors",
+      "species": "Species",
+      "ears": "Ears",
+      "horns": "Horns",
+      "tail": "Tail",
+      "wings": "Wings",
+      "featureColor": "Feature color",
+      "skin": "Skin tone",
+      "accentStyle": "Dye style",
+      "eyeColorLeft": "Left eye color (heterochromia)",
+      "pupil": "Pupils",
+      "faceShape": "Face shape",
+      "speciesExtras": "Species features",
+      "hairExtras": "Hair details",
+      "faceMarks": "Facial features",
+      "eyeColorRight": "Right eye color (heterochromia)",
+      "scene": "Occasion",
+      "appearanceText": "Appearance description",
+      "signatureText": "Signature feature",
+      "faceText": "Face description",
+      "bodyText": "Body description",
+      "outfitText": "Outfit description",
+      "accessoriesText": "Accessories description",
+      "colorsText": "Color description",
+      "skinText": "Skin description",
+      "otherText": "Other appearance notes ({{key}})"
     },
     "unset": "Not set",
     "empty": "Empty",
@@ -102,6 +128,7 @@
     "outfitItem": "{{outfit}}: {{name}}",
     "wear": "{{outfit}}: wear {{name}}",
     "worn": "Worn",
-    "notWorn": "Not worn"
+    "notWorn": "Not worn",
+    "sameAsRight": "Same as right eye"
   }
 }

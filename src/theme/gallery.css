@@ -46,6 +46,10 @@
 @media (max-width: 900px) {
   .gallery-body { padding: 16px 14px 40px; }
   .gallery-grid { --row: 150px; gap: 10px; }
+  .gallery { grid-template-rows: auto minmax(0, 1fr); }
+  /* 還在畫的那幾列：按鈕排到說明下面，說明不會被擠成很窄的一條。 */
+  .live-card { flex-wrap: wrap; }
+  .live-actions { flex: 1 1 100%; flex-wrap: wrap; }
   .gallery .game-top .tabs { margin-left: 0; }
   .lightbox { grid-template-columns: 1fr; grid-template-rows: 55vh auto; overflow-y: auto; }
   .lightbox-close { right: 14px; }

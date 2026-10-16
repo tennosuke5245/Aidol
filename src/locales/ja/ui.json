@@ -4,5 +4,19 @@
   "knobStep": "{{control}}：{{step}}",
   "knobCompare": "{{label}}：{{step}}",
   "close": "閉じる",
-  "language": "言語"
+  "language": "言語",
+  "color": {
+    "picker": "カラーピッカー",
+    "area": "色：左右で鮮やかさ、上下で明るさ",
+    "hue": "色相",
+    "hex": "カラーコード",
+    "eyedropper": "スポイト",
+    "eyedropperHint": "画面のどこからでも色を取れます（参考画像やイラストなど）",
+    "palette": "キャラクターのパレット",
+    "recent": "最近使った色",
+    "done": "完了",
+    "custom": "カスタムカラー",
+    "customHint": "カスタムカラー：カラーボード、カラーコード、スポイト",
+    "customNamed": "カスタム：{{name}} {{hex}}"
+  }
 }

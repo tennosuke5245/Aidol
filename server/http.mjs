@@ -47,6 +47,7 @@ export async function createApp({ dataDir, assetDir, demo = true, registerIntegr
   app.post('/api/projects/:id/jobs', asyncRoute(async (req, res) => res.status(201).json(await store.createJob(req.params.id, req.body))));
   app.get('/api/projects/:id/jobs', asyncRoute(async (req, res) => res.json(await store.listJobs(req.params.id))));
   app.get('/api/projects/:id/jobs/:jobId', asyncRoute(async (req, res) => res.json(await store.getJob(req.params.id, req.params.jobId))));
+  app.post('/api/projects/:id/jobs/:jobId/cancel', asyncRoute(async (req, res) => res.json(await store.cancelJob(req.params.id, req.params.jobId))));
   app.post('/api/projects/:id/assets', upload.single('file'), asyncRoute(async (req, res) => {
     if (!req.file) throw new DomainError('請選擇要匯入的圖片。', 422, 'IMAGE_REQUIRED');
     const { role, targetId, jobId, view } = req.body;
@@ -64,6 +65,9 @@ export async function createApp({ dataDir, assetDir, demo = true, registerIntegr
   app.post('/api/projects/:id/views/front-only', asyncRoute(async (req, res) => res.json(await store.useMainAsFront(req.params.id))));
   app.post('/api/projects/:id/views/extra', asyncRoute(async (req, res) => res.json(await store.addExtraView(req.params.id, req.body || {}))));
   app.delete('/api/projects/:id/views/extra/:view', asyncRoute(async (req, res) => res.json(await store.removeExtraView(req.params.id, req.params.view))));
+  // 表情集：加一個預設表情（preset）或自訂表情（name、note）；拿掉一個表情（畫好的圖留在圖鑑）。
+  app.post('/api/projects/:id/expressions', asyncRoute(async (req, res) => res.json(await store.addExpression(req.params.id, req.body || {}))));
+  app.delete('/api/projects/:id/expressions/:key', asyncRoute(async (req, res) => res.json(await store.removeExpression(req.params.id, req.params.key))));
   app.post('/api/projects/:id/view-notes', asyncRoute(async (req, res) => res.status(201).json(await store.createViewNote(req.params.id, req.body || {}))));
   app.patch('/api/projects/:id/view-notes/:noteId', asyncRoute(async (req, res) => res.json(await store.updateViewNote(req.params.id, req.params.noteId, req.body || {}))));
   app.delete('/api/projects/:id/view-notes/:noteId', asyncRoute(async (req, res) => res.json(await store.deleteViewNote(req.params.id, req.params.noteId))));
@@ -90,7 +94,7 @@ export async function createApp({ dataDir, assetDir, demo = true, registerIntegr
     res.type(asset.mimeType).send(buffer);
   }));
   app.post('/api/projects/:id/candidates/:candidateId/accept', asyncRoute(async (req, res) => {
-    const project = await store.acceptCandidate(req.params.id, req.params.candidateId, req.body);
+    const project = await store.acceptCandidate(req.params.id, req.params.candidateId, { baseRevision: req.body?.baseRevision, asMain: req.body?.asMain === true });
     // 正式立繪換上之後自動拆解裝備（需要 Codex）；拆解在背景跑，失敗不影響採用。
     const candidate = project.candidates.find((item) => item.id === req.params.candidateId);
     const asset = candidate && project.assets.find((item) => item.id === candidate.assetId);
@@ -100,12 +104,23 @@ export async function createApp({ dataDir, assetDir, demo = true, registerIntegr
     }
     res.json(project);
   }));
+  // 衣櫃：把另一套穿搭現在的立繪設成正式立繪（原本的放進它那套）；和採用正式立繪一樣接著拆裝備。
+  app.post('/api/projects/:id/wardrobe/:outfitId/main', asyncRoute(async (req, res) => {
+    const project = await store.promoteOutfit(req.params.id, req.params.outfitId, { baseRevision: req.body?.baseRevision });
+    const decompose = req.app.locals.integrations?.decompose;
+    if (decompose) {
+      try { return res.json((await decompose(project.id, { assetId: project.character.adopted.character, auto: true })).project); } catch { /* 沒有 Codex 或已在拆解：照常回傳 */ }
+    }
+    res.json(project);
+  }));
   app.delete('/api/projects/:id', asyncRoute(async (req, res) => res.json(await store.deleteProject(req.params.id))));
   app.get('/api/trash', asyncRoute(async (_req, res) => res.json(await store.listTrash())));
   app.post('/api/trash/:trashId/restore', asyncRoute(async (req, res) => res.json(await store.restoreProject(req.params.trashId))));
   app.delete('/api/trash/:trashId', asyncRoute(async (req, res) => res.json(await store.purgeTrash(req.params.trashId))));
   app.get('/api/preferences', asyncRoute(async (_req, res) => res.json(await store.getPreferences())));
   app.put('/api/preferences', asyncRoute(async (req, res) => res.json(await store.savePreferences(req.body))));
+  app.get('/api/ui-state', asyncRoute(async (_req, res) => res.json(await store.getUiState())));
+  app.patch('/api/ui-state', asyncRoute(async (req, res) => res.json(await store.updateUiState(req.body))));
   app.post('/api/projects/:id/proposals', asyncRoute(async (req, res) => res.status(201).json(await store.saveProposal(req.params.id, req.body))));
   app.post('/api/projects/:id/proposals/:proposalId/dismiss', asyncRoute(async (req, res) => res.json(await store.dismissProposal(req.params.id, req.params.proposalId))));
   app.post('/api/projects/:id/proposals/:proposalId/accept', asyncRoute(async (req, res) => res.json(await store.acceptProposal(req.params.id, req.params.proposalId, req.body))));
@@ -142,11 +157,15 @@ export async function startServer(options = {}) {
   const app = await createApp(options);
   const port = options.port ?? Number(process.env.AIDOL_PORT ?? 4318);
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw new DomainError('本機服務連接埠設定不正確。');
+  // 連接埠被占用：Node 會發 EADDRINUSE；Bun 不發 error、而是 listen 完成但沒有位址。兩種都說清楚。
+  const portBusy = () => new DomainError(`連接埠 ${port} 已經有別的程式在用（可能 AIDOL 已經開著）。關掉那個程式再開，或用環境變數 AIDOL_PORT 換一個連接埠。`, 409, 'PORT_IN_USE');
   const server = await new Promise((resolve, reject) => {
     const instance = app.listen(port, '127.0.0.1', () => resolve(instance));
-    instance.on('error', reject);
+    instance.on('error', (error) => reject(error?.code === 'EADDRINUSE' ? portBusy() : error));
   });
-  const actualPort = server.address().port;
+  const address = server.address();
+  if (!address) { try { server.close(); } catch {} throw portBusy(); }
+  const actualPort = address.port;
   const url = `http://127.0.0.1:${actualPort}`;
   if (options.announce !== false) process.stdout.write(`AIDOL_READY ${JSON.stringify({ type: 'ready', port: actualPort, url })}\n`);
   let closing;
@@ -162,6 +181,12 @@ if (!process.env.AIDOL_SKIP_HTTP_AUTOSTART && process.argv[1] && import.meta.url
   const hasIntegration = await fs.access(integrationPath).then(() => true, () => false);
   const registerIntegrations = hasIntegration ? (await import(pathToFileURL(integrationPath).href)).registerCodexRoutes : undefined;
   const staticDir = process.env.AIDOL_CLIENT_DIR || process.env.AIDOL_STATIC_DIR || (await fs.access(path.join(root, 'dist', 'client', 'index.html')).then(() => path.join(root, 'dist', 'client'), () => undefined));
-  const running = await startServer({ registerIntegrations, staticDir });
+  let running;
+  try { running = await startServer({ registerIntegrations, staticDir }); }
+  catch (error) {
+    // 看得懂的一行（不印程式堆疊）：最常見的是連接埠被占用。
+    process.stderr.write(`AIDOL 沒有啟動：${error?.message || error}\n`);
+    process.exit(1);
+  }
   for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, async () => { await running.close(); process.exit(0); });
 }

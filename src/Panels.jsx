@@ -18,7 +18,8 @@ export function Modal({ title, subtitle, children, onClose, wide, actions, class
   useEffect(() => {
     const prior = document.activeElement; box.current?.focus();
     const handle = event => {
-      if (event.key === 'Escape') closeAction.current();
+      // Esc 只關最上面這個對話框：標記成已處理，底下的翻牌畫面、燈箱、抽屜就不會跟著關（它們看 defaultPrevented）。
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeAction.current(); }
       if (event.key === 'Tab') {
         const items = [...box.current.querySelectorAll('button:not(:disabled),a[href],input,textarea,select,[tabindex="0"]')];
         const first = items[0], last = items.at(-1);
@@ -104,7 +105,7 @@ export function ReferenceForm({ busy, onUpload }) {
   </form>;
 }
 
-export function SettingsPanel({ project, status, busy, onYaml, onInstall, onRefresh }) {
+export function SettingsPanel({ project, status, busy, onYaml, onInstall, onRefresh, drawWith, canDrawDirect, onDrawWith }) {
   useT();
   const [baseRevision] = useState(project.character.revision);
   const [tab, setTab] = useState('yaml');
@@ -115,6 +116,14 @@ export function SettingsPanel({ project, status, busy, onYaml, onInstall, onRefr
     {tab === 'codex' && <div className="form-stack">
       <div className="integration-card"><Mark size={28} /><div><strong>{t('panels.settings.cliTitle')}</strong><p>{status?.available ? `${status.version} · ${status.authenticated ? t('panels.settings.signedIn') : t('panels.settings.notSignedIn')}` : status?.error ? errorText(status.code || 'CODEX_UNAVAILABLE', status.error) : t('panels.settings.checking')}</p>{status?.planType && <span className="tag">{status.planType}</span>}</div></div>
       <button type="button" className="btn btn-secondary" onClick={onRefresh}>{t('panels.settings.recheck')}</button>
+      <fieldset className="draw-with" aria-describedby="draw-with-hint">
+        <legend>{t('panels.settings.drawWith.title')}</legend>
+        {['aidol', 'codex-app'].map(mode => { const selected = (canDrawDirect ? drawWith || 'aidol' : 'codex-app') === mode; return <label key={mode} className={`draw-with-option ${selected ? 'is-on' : ''}`}>
+          <input type="radio" name="draw-with" value={mode} checked={selected} disabled={busy || (mode === 'aidol' && !canDrawDirect)} onChange={() => onDrawWith?.(mode)} />
+          <span><b>{t(`panels.settings.drawWith.${mode}`)}</b><small>{t(`panels.settings.drawWith.${mode}Hint`)}</small></span>
+        </label>; })}
+        <small className="hint" id="draw-with-hint">{canDrawDirect ? t('panels.settings.drawWith.available', { plan: status?.planType || '' }) : t('panels.settings.drawWith.unavailable')}</small>
+      </fieldset>
       <div className="integration-card"><FileCode size={26} /><div><strong>{t('panels.settings.skillTitle')}</strong><p>{status?.skill?.installed ? t('panels.settings.skillInstalled') : t('panels.settings.skillNotInstalled')}</p></div></div>
       <button type="button" className="btn btn-secondary" disabled={busy} onClick={onInstall}>{busy ? <Busy /> : status?.skill?.installed ? t('panels.settings.skillUpdate') : t('panels.settings.skillInstall')}</button>
       <div className="notice">{t('panels.settings.notice')}</div>

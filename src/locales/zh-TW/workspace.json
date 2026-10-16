@@ -29,5 +29,10 @@
     "new": "創造新角色",
     "delete": "刪除「{{name}}」",
     "trash_other": "資源回收區（{{count}}）"
-  }
+  },
+  "autopilot": "全自動",
+  "autopilotRunning": "全自動進行中",
+  "autopilotDrawing": "正在畫{{view}}",
+  "autopilotReviewing": "QA 在看{{view}}",
+  "autopilotTitle": "讓 AIDOL 一路畫完正面與各個角度"
 }

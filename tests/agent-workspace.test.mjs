@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { jobPresentation, jobProgress, workspaceSummary, candidateComparison, hasCharacterSetup } from '../shared/agent-workspace.mjs';
+import { canCancelJob, jobPresentation, jobProgress, workspaceSummary, candidateComparison, hasCharacterSetup } from '../shared/agent-workspace.mjs';
 
 function fixture() {
   return {
@@ -78,7 +78,7 @@ test('畫好的圖不因設定改版被鎖住；沒送出的舊工作不再催�
   assert.equal(result.olderSettings, true);
   assert.equal(result.needsAttention, true);
   const old = jobPresentation(project, unsent);
-  assert.equal(old.label, '未送出');
+  assert.equal(old.label, '沒送出');
   assert.equal(old.needsAttention, false);
   assert.equal(jobPresentation(project, missing).label, '沒有新圖');
   assert.equal(jobPresentation(project, missing).action, 'new');
@@ -86,6 +86,10 @@ test('畫好的圖不因設定改版被鎖住；沒送出的舊工作不再催�
   const summary = workspaceSummary(project, 'casual');
   assert.deepEqual(summary.attentionJobs.map(item => item.id), ['drawn']);
   assert.deepEqual(summary.reviewCandidates.map(item => item.id), ['drawn']);
+  // 核心給了 olderSettings（只看之後有沒有改到長相）：照核心的。
+  const fresh = jobPresentation(project, { ...unsent, olderSettings: false });
+  assert.equal(fresh.label, '等你送出');
+  assert.equal(fresh.needsAttention, true);
 });
 
 test('候選必須符合工作目標、視角、穿搭，才可成為挑選主操作', () => {
@@ -219,4 +223,15 @@ test('只有 Skill 回報開始才顯示繪製中；張數依實際回傳的圖�
   assert.equal(broken.label, '失敗');
   assert.equal(broken.action, 'handoff');
   assert.equal(broken.needsAttention, true);
+});
+
+test('不畫了：還沒送出、等你送出、失敗的可以收；正在畫、有圖、已結束、全自動正在處理的不行', () => {
+  const project = fixture();
+  assert.equal(canCancelJob(project, job('a', { status: 'handed_off' })), true);
+  assert.equal(canCancelJob(project, job('b', { status: 'prepared' })), true);
+  assert.equal(canCancelJob(project, job('c', { status: 'failed', progress: { startedAt: 'x' } })), true, '核心重開後中斷的直接畫顯示成失敗，可以收');
+  for (const status of ['running', 'review', 'accepted', 'cancelled']) assert.equal(canCancelJob(project, job('d', { status })), false, status);
+  assert.equal(canCancelJob(project, job('e', { status: 'handed_off', progress: { startedAt: 'x' } })), false, 'Codex 已經開始畫');
+  assert.equal(canCancelJob({ ...project, autopilot: { status: 'running', id: 'run' } }, job('f', { status: 'prepared', autopilotId: 'run' })), false, '這一輪全自動的');
+  assert.equal(canCancelJob({ ...project, autopilot: { status: 'running', id: 'run-2' } }, job('g', { status: 'failed', autopilotId: 'run' })), true, '之前那一輪留下的');
 });

@@ -76,7 +76,16 @@
     "skillNotInstalled": "送信のたびにプロジェクトの Skill が添付されます。Codex にインストールすることもできます。",
     "skillUpdate": "AIDOL Skill を更新",
     "skillInstall": "Codex にインストール",
-    "notice": "文章の設定は Codex CLI と一緒に、絵は Codex App で描きます。AIDOL が Codex に新しいチャットを開き、送信を押すと Skill が進捗を報告して画像を送り返します。別料金の Image API に切り替えることはありません。"
+    "notice": "文章の設定は Codex CLI と一緒に作ります。絵は AIDOL があなたの Codex で直接描く（ChatGPT プランの利用枠を使います）か、Codex App に任せて送信を押すかを選べます。別料金の Image API に切り替えることはありません。",
+    "drawWith": {
+      "title": "描き方",
+      "aidol": "AIDOL が直接描く",
+      "aidolHint": "「描画開始」を押すだけで描きます。Codex App に切り替える必要はありません。ChatGPT プランの利用枠を使い、使い切ったあとはクレジットがあればクレジットを使います。",
+      "codex-app": "Codex App に任せる",
+      "codex-appHint": "AIDOL が Codex App に新しいチャットを開いてプロンプトを入力し、あなたが送信を押します。",
+      "available": "あなたの Codex で直接描けます（プラン：{{plan}}）。",
+      "unavailable": "AIDOL に直接描かせるには、ChatGPT アカウント（API キーでも無料プランでもないもの）で Codex にログインしてください。"
+    }
   },
   "history": {
     "saveNumber": "{{revision}}回目のセーブ",

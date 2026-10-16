@@ -1,0 +1,93 @@
+{
+  "title": "全自動",
+  "intro": "AIDOL 會用你的 Codex 先畫正面全身，Design QA 每批挑出最好的一張代為採用，再照正面一個一個畫你勾選的角度。不滿意的地方之後可以在並排看換回別張或重畫。",
+  "introFaces": "AIDOL 會用你的 Codex 照正式立繪的正面一個一個畫還沒畫的表情，Design QA 每批挑出最好的一張代為採用。不喜歡的之後可以在表情集重畫。",
+  "stepsLabel": "步驟",
+  "step": {
+    "done": "已採用",
+    "pending": "還沒開始",
+    "expressions": "表情集（{{done}}／{{total}}）",
+    "expressionPhase": "{{name}}・{{phase}}",
+    "outfits": "衣櫃（{{done}}／{{total}}）"
+  },
+  "phase": {
+    "drawing": "正在畫（第 {{attempt}} 次）",
+    "reviewing": "Design QA 在挑",
+    "split": "等畫面裁好正面",
+    "detecting": "等 AI 找出角度"
+  },
+  "watch": "看這批",
+  "open": "打開",
+  "outcome": {
+    "done": "全部畫完了。到並排看看看結果，不喜歡的角度可以換回別張或重畫。",
+    "stopped": "已停下。按「繼續」會從還沒畫完的地方接著畫。",
+    "interrupted": "AIDOL 重新啟動過，全自動中斷了。按「繼續」接著畫。",
+    "needsYou": "{{view}}重畫了幾次還是沒有過 Design QA，請你看一下那幾批圖。",
+    "paused": "全自動先停下了。",
+    "doneFaces": "表情都畫好了。到表情集看看結果，不喜歡的可以重畫。",
+    "doneOutfits": "衣櫃都畫好了。到服裝頁看看結果，不喜歡的可以重畫。",
+    "doneExtras": "表情和衣櫃都畫好了。不喜歡的可以在表情集、服裝頁重畫。"
+  },
+  "reason": {
+    "AUTOPILOT_NEEDS_SCREEN": "正面要在畫面上裁切，等太久了：請打開這個角色，再按「繼續」。",
+    "AUTOPILOT_WAIT_TIMEOUT": "等 AI 找角度太久了，先停下。請按「繼續」再試一次。",
+    "DRAW_USAGE_LIMIT": "Codex 的額度用完了。額度恢復後按「繼續」接著畫。",
+    "AUTOPILOT_STEP_LIMIT": "這一輪畫太多次了，先停下讓你看一下。",
+    "AUTOPILOT_REVIEW_FAILED": "Design QA 連續兩次沒審完，先停下。可以打開那一批自己挑，或按「繼續」再請 QA 審一次（不會重畫）。",
+    "AUTOPILOT_FRONT_NEEDS_SPLIT": "你自己換上的正式立繪還沒拆成正面：請先在畫布上按「當正面」或「拆出三視圖」，再按「繼續」。全自動不會畫新的蓋掉它。"
+  },
+  "stop": "停下",
+  "start": "開始全自動",
+  "resume": "繼續",
+  "started": "全自動開始了：AIDOL 會先畫正面全身。",
+  "startedFaces": "全自動開始了：AIDOL 會一個一個畫表情。",
+  "checking": "確認 Codex 能不能直接畫…",
+  "form": {
+    "views": "要畫的角度",
+    "frontAlways": "一定會先畫正面",
+    "variants": "每一步畫幾張讓 Design QA 挑",
+    "variantsHint": "張數越多越容易挑到好的，也越花額度。",
+    "expressions": "表情集",
+    "expressionsChip": "也畫表情集（還有 {{count}} 個）",
+    "expressionsHint": "角度畫完後，照正面一個一個畫還沒畫的表情（先畫「一般」決定取景）。",
+    "facesOnly": "沒勾角度：照現在的正式立繪畫勾選的表情集或衣櫃，不會重畫正面。",
+    "expressionsDone": "也畫表情集（都畫好了）",
+    "outfits": "衣櫃",
+    "outfitsDone": "也畫衣櫃（都畫好了）",
+    "outfitsHint": "最後照正式立繪一套一套畫還沒有立繪的穿搭，只換衣服；畫好放進那套的衣櫃，不換正式立繪。",
+    "outfitsChip_other": "也畫衣櫃（還有 {{count}} 套）"
+  },
+  "notice": "進行中請讓 AIDOL 開在這個角色上：正面採用後要在畫面上裁切。可以隨時按停下。",
+  "logLabel": "經過",
+  "log": {
+    "started": "開始全自動",
+    "waiting": "等{{reason}}",
+    "drawing": "開始畫{{view}}（第 {{attempt}} 次）",
+    "reviewing": "Design QA 看{{view}}",
+    "adopted": "Design QA 挑好{{view}}，代為採用",
+    "redraw": "{{view}}這批都沒過，照 QA 的說明重畫",
+    "drawFailed": "{{view}}這次沒畫出圖",
+    "reviewFailed": "{{view}}這次 QA 沒看完",
+    "gaveUp": "{{view}}重畫幾次還是沒過，停下來等你",
+    "paused": "先停下",
+    "stopped": "已停下",
+    "done": "全部畫完",
+    "failed": "出錯停下",
+    "userPicked": "你自己挑了{{view}}，照你的",
+    "staleBatch": "立繪換過了，{{view}}照新的立繪重畫",
+    "removed": "{{view}}已經從表情集拿掉，跳過",
+    "outfitRemoved": "{{view}}用的那套穿搭被刪掉了，這批不採用，改用還在的那套重畫",
+    "outfitSkipped": "{{view}}刪掉了或已經是主要那套，跳過"
+  },
+  "waitReason": {
+    "split": "畫面裁好正面",
+    "detecting": "AI 找出角度"
+  },
+  "redrawsFront": "目前的立繪還沒拆成正面：全自動會先照它畫一張正面全身並採用。原本的立繪留在圖鑑，之後可以換回來。",
+  "introOutfits": "AIDOL 會用你的 Codex 照正式立繪一套一套畫衣櫃裡還沒有立繪的穿搭（臉、髮型、身形照正式立繪，只換衣服），Design QA 每批挑出最好的一張放進那套的衣櫃。不喜歡的之後可以在服裝頁重畫。",
+  "introExtras": "AIDOL 會用你的 Codex 照正式立繪先畫還沒畫的表情，再一套一套畫衣櫃裡還沒有立繪的穿搭，Design QA 每批挑出最好的一張代為採用。不喜歡的之後可以重畫。",
+  "startedOutfits": "全自動開始了：AIDOL 會一套一套畫衣櫃。",
+  "startedExtras": "全自動開始了：AIDOL 會先畫表情，再畫衣櫃。",
+  "outfitStep": "套裝「{{name}}」",
+  "openWardrobe": "到服裝頁看"
+}

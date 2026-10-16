@@ -26,7 +26,7 @@
     "sub": "Codex reported a failure. Your request and settings are still here, so you can try again."
   },
   "card": {
-    "waiting": "Waiting to send",
+    "waiting": "Ready to send",
     "failed": "Not drawn",
     "drawing": "Drawing",
     "previewTitle": "{{target}} · image {{number}}",
@@ -37,7 +37,9 @@
     "adoptMain": "Use as main",
     "adopt": "Adopt this one",
     "older": "Drawn with older settings",
-    "staleView": "Turnaround has changed"
+    "staleView": "Turnaround has changed",
+    "pickedByQa": "Adopted by Design QA",
+    "outfitRemoved": "Outfit deleted"
   },
   "opening": "Opening…",
   "reopen": "Reopen Codex",
@@ -66,7 +68,36 @@
     "partDesign": "{{name}} design",
     "canon": "Final design: draw exactly as this",
     "viewFront": "Front view: drawn from this",
-    "view": "Confirmed {{view}} view"
+    "view": "Confirmed {{view}} view",
+    "expressionFraming": "Framing reference (an adopted expression)"
   },
-  "viewTarget": "Turnaround · {{view}}"
+  "viewTarget": "Turnaround · {{view}}",
+  "direct": {
+    "drawingSub": "AIDOL is drawing with your Codex. Each card flips as soon as its image is ready.",
+    "stop": "Stop",
+    "again": "Draw again",
+    "useCodexApp": "Use the Codex App instead",
+    "switch": "Let AIDOL draw it",
+    "usageLimit": "Your Codex usage limit has been reached. It resets at {{time}}; draw again after that."
+  },
+  "qa": {
+    "running": "Design QA is looking at these images…",
+    "picked": "Design QA: {{summary}}",
+    "none": "Design QA thinks none of these work yet: {{summary}}",
+    "pickBadge": "QA pick",
+    "passBadge": "Usable",
+    "failBadge": "Redraw",
+    "score": "{{total}}/25",
+    "issueSep": "; ",
+    "ask": "Ask Design QA to pick one",
+    "needsCodex": "Connect Codex first to use Design QA"
+  },
+  "expressionTarget": "Expression sheet · {{name}}",
+  "outfitTarget": "Outfit · {{name}}",
+  "outfitRemovedTarget": "Deleted outfit · {{name}}",
+  "outfitRemovedTitle": "This outfit was deleted",
+  "outfitRemoved": "These images can't be adopted and will stay in the Gallery. Restore the outfit to adopt them.",
+  "outfitRemovedWaiting": "There's no need to send this. Restore the outfit first if you still want it.",
+  "outfitRemovedDrawing": "This outfit was deleted, so the images being drawn can't be adopted. They'll stay in the Gallery.",
+  "cancel": "Cancel this draw"
 }

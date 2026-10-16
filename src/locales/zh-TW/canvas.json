@@ -20,7 +20,7 @@
     "newImages_other": "新圖 {{count}}",
     "drawing": "繪製中",
     "failed": "這次沒畫成",
-    "sendInCodex": "到 Codex 按送出",
+    "sendInCodex": "等你送出",
     "notWorn": "沒穿",
     "changed": "設定改過",
     "adopted": "已採用",
@@ -195,7 +195,8 @@
     "worn": "穿著",
     "removeKeepHint": "已經畫過圖的裝備會保留，只是脫下",
     "removeHint": "從角色移除這件裝備",
-    "remove": "不要這件"
+    "remove": "不要這件",
+    "proposedText": "AI 提議的裝備"
   },
   "rack": {
     "label": "繪製進度"

@@ -1,3 +1,4 @@
+import { outfitPortraitId } from './wardrobe.mjs';
 const openStates = new Set(['prepared', 'queued', 'handed_off', 'running', 'failed', 'review']);
 
 export function firstImagePrompt(character, targetId = 'character') {
@@ -28,8 +29,9 @@ export async function prepareFirstImage({ projectId, targetId = 'character', out
   const project = await loadProject(projectId);
   const selectedOutfit = project.character.outfits[outfitId] ? outfitId : Object.keys(project.character.outfits)[0];
   if (!selectedOutfit) throw new Error('請先建立一套穿搭，再開始出圖。');
-  const adopted = project.assets.find(asset => asset.id === project.character.adopted[targetId]);
-  if (adopted && (targetId !== 'character' || (adopted.outfitId || Object.keys(project.character.outfits)[0]) === selectedOutfit)) return { state: 'adopted', project, asset: adopted, outfitId: selectedOutfit };
+  // 角色看這套穿搭的立繪（主要那套是正式立繪，其他套是衣櫃裡那張）。
+  const adopted = project.assets.find(asset => asset.id === (targetId === 'character' ? outfitPortraitId(project, selectedOutfit) : project.character.adopted[targetId]));
+  if (adopted) return { state: 'adopted', project, asset: adopted, outfitId: selectedOutfit };
   const existing = currentImageJob(project, targetId, selectedOutfit);
   const candidate = reviewCandidate(project, existing);
   if (candidate) return { state: 'review', project, candidate, outfitId: selectedOutfit };

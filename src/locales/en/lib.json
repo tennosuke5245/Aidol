@@ -293,5 +293,170 @@
     "threeQuarter": "Three-quarter",
     "half": "Half body",
     "closeup": "Close-up"
+  },
+  "skinTones": {
+    "porcelain": "Porcelain",
+    "fair": "Fair",
+    "warm": "Warm beige",
+    "tan": "Tan",
+    "bronze": "Bronze",
+    "deep": "Deep brown",
+    "ebony": "Dark brown"
+  },
+  "hairDyeStyles": {
+    "streak": "Streak",
+    "inner": "Inner color",
+    "ombre": "Ombré",
+    "split": "Split dye"
+  },
+  "hairExtras": {
+    "ahoge": "Ahoge",
+    "braid": "Braid",
+    "bun": "Bun",
+    "sidelocks": "Long sidelocks"
+  },
+  "pupils": {
+    "round": "Round",
+    "slit": "Slit",
+    "star": "Star",
+    "heart": "Heart",
+    "cross": "Cross",
+    "ring": "Ring",
+    "hollow": "No highlight"
+  },
+  "faceShapes": {
+    "round": "Round",
+    "oval": "Oval",
+    "sharp": "Pointed chin",
+    "square": "Square"
+  },
+  "faceMarks": {
+    "mole": "Beauty mark",
+    "freckles": "Freckles",
+    "blush": "Blush",
+    "scar": "Scar",
+    "eyeliner": "Red eye makeup"
+  },
+  "earTypes": {
+    "human": "Human",
+    "pointed": "Pointed",
+    "long": "Long pointed",
+    "cat": "Cat",
+    "fox": "Fox",
+    "wolf": "Wolf",
+    "rabbit": "Rabbit",
+    "bear": "Bear",
+    "fin": "Fins",
+    "mechanical": "Mechanical"
+  },
+  "hornTypes": {
+    "none": "None",
+    "small": "Small",
+    "curved": "Curved",
+    "ram": "Ram",
+    "dragon": "Dragon",
+    "oni": "Oni",
+    "antlers": "Antlers",
+    "unicorn": "Unicorn"
+  },
+  "tailTypes": {
+    "none": "None",
+    "cat": "Cat",
+    "fox": "Fox",
+    "nineFox": "Nine tails",
+    "wolf": "Wolf",
+    "rabbit": "Rabbit",
+    "dragon": "Dragon",
+    "devil": "Devil",
+    "fish": "Fish tail"
+  },
+  "wingTypes": {
+    "none": "None",
+    "feather": "Feathered",
+    "bat": "Bat",
+    "dragon": "Dragon",
+    "fairy": "Fairy",
+    "head": "Head wings",
+    "mechanical": "Mechanical"
+  },
+  "speciesExtras": {
+    "halo": "Halo",
+    "fangs": "Fangs",
+    "scales": "Scales",
+    "markings": "Markings",
+    "joints": "Mechanical joints",
+    "thirdEye": "Third eye",
+    "gem": "Forehead gem"
+  },
+  "speciesKinds": {
+    "human": "Human",
+    "elf": "Elf",
+    "cat": "Cat-eared",
+    "fox": "Fox-eared",
+    "wolf": "Wolf-eared",
+    "rabbit": "Bunny-eared",
+    "dragon": "Dragonkin",
+    "demon": "Demon",
+    "angel": "Angel",
+    "vampire": "Vampire",
+    "oni": "Oni",
+    "merfolk": "Merfolk",
+    "android": "Android",
+    "fairy": "Fairy",
+    "other": "Other"
+  },
+  "colorHues": {
+    "red": "red",
+    "orange": "orange",
+    "brown": "brown",
+    "yellow": "yellow",
+    "olive": "olive",
+    "lime": "lime green",
+    "green": "green",
+    "teal": "teal",
+    "cyan": "cyan",
+    "blue": "blue",
+    "indigo": "indigo",
+    "purple": "purple",
+    "magenta": "magenta",
+    "pink": "pink",
+    "white": "white",
+    "gray": "gray",
+    "black": "black"
+  },
+  "colorTones": {
+    "pale": "pale",
+    "light": "light",
+    "vivid": "vivid",
+    "muted": "muted",
+    "dark": "dark"
+  },
+  "expressionPresets": {
+    "neutral": "Neutral",
+    "smile": "Smile",
+    "joy": "Happy",
+    "laugh": "Laughing",
+    "anger": "Angry",
+    "sad": "Sad",
+    "cry": "Crying",
+    "surprised": "Surprised",
+    "shy": "Embarrassed",
+    "smug": "Smug",
+    "deadpan": "Deadpan",
+    "scared": "Scared",
+    "wink": "Wink",
+    "sleepy": "Sleepy",
+    "determined": "Determined",
+    "pout": "Pouting"
+  },
+  "outfitScenes": {
+    "casual": "Day off",
+    "sleepwear": "Pajamas",
+    "uniform": "Uniform",
+    "formal": "Formal",
+    "winter": "Winter",
+    "sports": "Sportswear",
+    "festival": "Festival",
+    "battle": "Battle"
   }
 }

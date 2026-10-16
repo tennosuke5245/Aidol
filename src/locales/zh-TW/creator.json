@@ -8,17 +8,19 @@
     "outfit": "服裝",
     "color": "色彩",
     "gear": "裝備",
-    "style": "畫風"
+    "style": "畫風",
+    "species": "種族"
   },
   "hints": {
     "persona": "名字、個性和故事。不知道怎麼寫，就交給 AI。",
-    "body": "年齡、頭身和體型。",
-    "hair": "點一下就換上，顏色在下面。",
-    "face": "神情、眼型、眉毛和眼睛的顏色。",
+    "body": "年齡、頭身、體型和膚色。",
+    "hair": "點一下選擇；顏色、挑染和細節在下面。",
+    "face": "神情、眼型、眉毛、眼睛（可以異色瞳）和臉部特徵。",
     "outfit": "選風格，再從角色的色票挑顏色。",
     "color": "角色專屬的顏色，服裝與配件都從這裡挑。",
     "gear": "每件裝備可以穿脫，也能單獨畫出設計圖。",
-    "style": "轉動旋鈕，調整畫面的感覺。"
+    "style": "轉動旋鈕，調整畫面的感覺。",
+    "species": "點一個種族就套用它的特徵，再往下細調耳朵、角、尾巴和翅膀。"
   },
   "stage": {
     "label": "角色",
@@ -26,14 +28,20 @@
     "zoom": "放大正式立繪",
     "portraitAlt": "{{name}}的正式立繪",
     "changedTitle": "外觀設定在這張立繪之後改過",
-    "changedHint": "按「開始繪製」用新設定重畫",
+    "changedHint": "按「{{button}}」用新設定重畫",
     "portraitTitle": "正式立繪",
-    "portraitHint": "點一下放大；在右邊調整外觀後，按「開始繪製」畫新的一張",
+    "portraitHint": "點一下放大；調整外觀後，按「{{button}}」畫新的一張",
     "emptyTitle": "還沒有正式立繪",
-    "emptyHint": "先在右邊挑外觀，再按「畫正面」",
+    "emptyHint": "先挑外觀，再按「{{button}}」",
     "canonAlt": "{{name}} 的定稿",
     "canonTitle": "這是定稿",
-    "canonHint": "還沒有正式立繪；按「畫正面」會照這張畫，設計不改"
+    "canonHint": "還沒有正式立繪；按「{{button}}」會照這張畫，設計不改",
+    "outfitTitle": "套裝「{{outfit}}」",
+    "outfitHint": "這套的立繪；正式立繪是「{{main}}」那套",
+    "outfitEmptyTitle": "「{{outfit}}」還沒有立繪",
+    "outfitEmptyHint": "按「畫這套」：照正式立繪的臉、髮型和身形，換上這套衣服",
+    "outfitPreviewTitle": "{{name}}・{{outfit}}",
+    "outfitAlt": "{{name}}穿著「{{outfit}}」"
   },
   "draw": {
     "notePlaceholder": "這次想畫什麼？例如：帥氣的站姿、拿著信件（可不填）",
@@ -52,7 +60,10 @@
     "turnaroundNote": "三視圖：正面・側面・背面畫在同一張，採用後自動拆成三張",
     "firstFront": "畫正面",
     "frontNote": "先畫正面全身；選好之後在畫布上一張張補畫側面、背面，會自動對齊成三視圖",
-    "notePlaceholderFront": "有要特別注意的嗎？例如：袖子要長到蓋住手（可不填）"
+    "notePlaceholderFront": "有要特別注意的嗎？例如：袖子要長到蓋住手（可不填）",
+    "outfit": "畫這套",
+    "notePlaceholderOutfit": "這套有要特別注意的嗎？例如：袖子捲起來（可不填）",
+    "canonOutfit": "照定稿的長相畫，衣服換成這套"
   },
   "gear": {
     "add": "新增裝備",
@@ -91,23 +102,36 @@
     "age": "年齡感",
     "headRatio": "頭身比",
     "height": "身高",
-    "build": "體型"
+    "build": "體型",
+    "skin": "膚色"
   },
   "hair": {
     "tags": "髮型分類",
     "all": "全部",
     "color": "髮色",
-    "accent": "挑染",
+    "accent": "挑染與漸層",
     "length": "長度",
     "volume": "蓬度",
     "bangs": "瀏海",
-    "texture": "髮質"
+    "texture": "髮質",
+    "dyeStyle": "挑染方式",
+    "noDye": "無",
+    "accentColor": "挑染顏色",
+    "extras": "細節"
   },
   "face": {
     "mood": "神情",
     "eyeShape": "眼型",
     "brows": "眉毛",
-    "eyeColor": "眼睛顏色"
+    "eyeColor": "眼睛顏色",
+    "hetero": "異色瞳",
+    "heteroHint": "點上面的眼睛選要改哪一隻，現在改的是{{eye}}。左右以角色自己為準：正面時右眼在畫面左邊。",
+    "rightEye": "右眼",
+    "leftEye": "左眼",
+    "whichEye": "要改哪一隻眼睛",
+    "pupil": "瞳孔",
+    "shape": "臉型",
+    "marks": "臉部特徵"
   },
   "outfit": {
     "tabs": "套裝",
@@ -130,7 +154,9 @@
     "goPalette": "去設定色彩",
     "silhouette": "輪廓",
     "layers": "層次",
-    "detail": "細節"
+    "detail": "細節",
+    "scene": "情境",
+    "sceneNone": "不指定"
   },
   "palette": {
     "changeColor": "換顏色",
@@ -142,8 +168,18 @@
     "empty": "還沒有顏色。角色專屬的 4–8 個顏色，服裝與配件都從這裡挑。",
     "defaultName": "顏色 {{number}}",
     "add": "新增顏色",
-    "importHint": "先在「髮型」或「五官」選顏色",
-    "import": "從髮色和眼色帶入"
+    "importHint": "先在髮型、五官、身形或種族選顏色",
+    "import": "帶入角色身上的顏色",
+    "fromImage": "從圖片取色",
+    "fromImageSource": "取色的圖",
+    "fromImageHint": "點一張圖，自動抓出主要的顏色；點顏色就加進色票。",
+    "fromImageLoading": "取色中…",
+    "fromImageFailed": "這張圖讀不到，換一張試試。",
+    "fromImageAdd": "加進色票",
+    "fromImageAdded": "已經在色票裡",
+    "fromImageAddAll": "全部加入（{{count}} 個）",
+    "fromImageEmpty": "還沒有正式立繪或參考圖。先畫一張或加一張參考圖，就能從圖上取色。",
+    "fromImageNone": "這張圖找不到明顯的顏色（可能整張都是背景色），換一張試試。"
   },
   "style": {
     "presets": "快速套用",
@@ -198,12 +234,53 @@
     "remove": "移除「{{name}}」",
     "ask": "讓 AI 幫忙",
     "askPlaceholder": "想加什麼？例如：補完背景故事、給一個招牌配件。不填就依目前人設補完。",
-    "asking": "AI 正在寫，約半分鐘…",
+    "asking": "AI 正在寫，通常要一到三分鐘…",
     "askButton": "讓 AI 補完設定",
     "askHint": "AI 寫好的內容會先列出來，你按「套用」才會改。",
     "fillRequest": "依照目前的人設「{{profile}}」，幫我補完這個角色的設定與外觀。",
     "readCanon": "照定稿填外觀",
     "readCanonHint": "AI 看定稿圖，把髮型、眼睛、服裝、配色等看得到的外觀填進設定；寫好會先列出來，你按套用才會改。",
-    "readCanonRequest": "照定稿圖把看得到的外觀填進設定。"
+    "readCanonRequest": "照定稿圖把看得到的外觀填進設定。",
+    "suggestHetero": "異色瞳（右眼{{right}}、左眼{{left}}）"
+  },
+  "multiNote": "可複選",
+  "species": {
+    "ears": "耳朵",
+    "horns": "角",
+    "tail": "尾巴",
+    "wings": "翅膀",
+    "extras": "其他特徵",
+    "extrasNote": "可複選",
+    "color": "特徵色",
+    "colorNote": "沒選時，耳朵和尾巴跟髮色",
+    "colorFollow": "跟髮色",
+    "humanHint": "沒有特別的特徵",
+    "otherHint": "自己搭配下面的特徵"
+  },
+  "dice": {
+    "title": "骰一個：隨機換這一頁的選項（Ctrl＋Z 可以復原）",
+    "label": "隨機換「{{page}}」的選項",
+    "done": "已經隨機換了這一頁；不喜歡可以復原。",
+    "undo": "復原"
+  },
+  "wardrobe": {
+    "label": "衣櫃",
+    "main": "主要",
+    "scenes": "情境",
+    "scenesHint": "挑一個情境開新套裝，之後都能改。情境開的新套裝只帶著頭髮、身體，衣服重新設計。",
+    "blank": "照目前這套",
+    "delete": "刪除這套",
+    "deleteMain": "這套是正式立繪那套，不能刪。要刪的話，先畫別套的立繪，再到圖鑑把那張「改成正式立繪」。",
+    "deleted": "已刪除套裝「{{name}}」",
+    "deletedDrawn": "已刪除套裝「{{name}}」，畫過的圖還在圖鑑",
+    "undo": "復原",
+    "mainKept": "正式立繪那套不能刪，已經放回去了。",
+    "full": "套裝最多 {{limit}} 套，先刪掉一套。",
+    "restore": "復原套裝「{{name}}」",
+    "restored": "已復原套裝「{{name}}」",
+    "drawAllHint": "用全自動照正式立繪一套一套畫，Design QA 每套挑一張放進衣櫃；隨時可以停下。",
+    "drawAllNeedsDirect": "要在設定裡把畫圖方式改成「AIDOL 直接畫」，才能全部自動畫完；也可以一套一套按「畫這套」。",
+    "drawAllRunning": "全自動正在跑，跑完再按。",
+    "drawAll_other": "全部畫完（還有 {{count}} 套）"
   }
 }

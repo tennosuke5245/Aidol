@@ -9,6 +9,11 @@ export function setDna(character, part, key, value) {
   if (value === undefined) delete character.dna[part][key]; else character.dna[part][key] = value;
 }
 
+// 可複選的欄位：空的就整個拿掉，存檔才乾淨。
+export function setDnaList(character, part, key, values) {
+  setDna(character, part, key, values?.length ? values : undefined);
+}
+
 // 舊角色沒有畫風方向時補上一個「日常動畫」，之後的旋鈕都調整目前方向。
 export function ensureDirection(character) {
   character.style.directions ||= {};
