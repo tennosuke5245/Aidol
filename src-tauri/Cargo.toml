@@ -1,6 +1,6 @@
 [package]
 name = "aidol"
-version = "0.2.0"
+version = "0.3.0"
 description = "AIDOL 角色設計工作室"
 edition = "2021"
 
